@@ -173,6 +173,8 @@ SRendererShadow.prototype.constructor = SRendererShadow;
 
 function S001 (p) {
   SRendererShadow.call(this, p);
+  this.angleVel = 0;
+  this.angle = 0;
 }
 
 S001.prototype = Object.create(SRendererShadow.prototype, {
@@ -187,8 +189,8 @@ S001.prototype = Object.create(SRendererShadow.prototype, {
         for(let j = -3; j <= 3; j++) {
           canvas.pushMatrix();
           canvas.translate(i * 60, 0, j * 60);
-          canvas.rotateZ(p.millis() * 0.001 + i * 0.1);
-          canvas.rotateX(p.millis() * 0.001 + j * 0.1);
+          canvas.rotateX(this.angle + p.millis() * 0.0001 + i * 0.1);
+          canvas.rotateY(p.millis() * 0.0001 + j * 0.1);
           canvas.box(20, 3, 20);
           canvas.popMatrix();
         }
@@ -196,18 +198,32 @@ S001.prototype = Object.create(SRendererShadow.prototype, {
       canvas.popMatrix();
 
       canvas.fill(200, 200, 200, 255);
-      canvas.box(660, 5, 660);
+      canvas.box(6600, 5, 6600);
       canvas.popMatrix();
     }
   },
   draw: {
     value: function () {
       let p = this.p;
-      var lightAngle = p.frameCount * 0.1;
+      this.angle += this.angleVel;
+      this.angleVel = Math.max(this.angleVel * 0.9, 0);
+      var camAngle = p.frameCount * 0.002;
+      var lightAngle = Math.PI / -4;
       this.lightPos.set(10 * Math.cos(lightAngle), -13, 10 * Math.sin(lightAngle));
       this.lightDirection = p.createVector(0, 0, 1);
-      this.cameraTarget.set(0, 100 * Math.sin(p.frameCount * 0.01), 0);
+      this.cameraPosition.set(400 * Math.cos(camAngle), 100 * Math.sin(p.frameCount * 0.01) - 200, 400 * Math.sin(camAngle));
+      this.cameraTarget.set(0, 0, 0);
       Object.getPrototypeOf(S001.prototype).draw(this);
+    }
+  },
+  oscEvent: {
+    value: function (m) {
+      let p = this.p;
+      let path = m.addrPattern().split("/");
+      if (path.length >= 3 && path[1] == "sc3p5") {
+        print(m)
+        this.angleVel += 0.5;
+      }
     }
   }
 });
@@ -228,6 +244,9 @@ var s = function (p) {
     s001.draw();
   }
 
+  p.oscEvent = function(m) {
+    s001.oscEvent(m);
+  }
 };
 
 var p001 = new p5(s);
