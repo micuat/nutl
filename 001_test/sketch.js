@@ -256,45 +256,52 @@ S001.prototype = Object.create(SRendererShadow.prototype, {
 
 S001.prototype.constructor = S001;
 
-var s = function (p) {
-  let s001 = new S001(p);
-  let passPg = p.createGraphics(800, 800, p.P3D);
-  let ppg = p.createGraphics(800, 800, p.P3D);
-  let postShaders = {};
-  let shaderTypes = ["kaleid", "rgbshift", "slide", "bloom", "invert", "mpeg", "radial", "darktoalpha", "pixelate", "fillalpha"];
-  for (let i in shaderTypes) {
-    postShaders[shaderTypes[i]] = p.loadShader(p.sketchPath("shaders/post/" + shaderTypes[i] + ".glsl"));
+function PostProcess (p) {
+  this.passPg = p.createGraphics(800, 800, p.P3D);
+  this.pg = p.createGraphics(800, 800, p.P3D);
+  this.postShaders = {};
+  this.shaderTypes = ["kaleid", "bloom"];
+  for (let i in this.shaderTypes) {
+    this.postShaders[this.shaderTypes[i]] = p.loadShader(p.sketchPath("shaders/post/" + this.shaderTypes[i] + ".glsl"));
   }
-  let postProcess = {
+  let self = this;
+  this.postProcess = {
     "bloom" : function (lpg) {
-      passPg.beginDraw();
-      passPg.clear();
-      passPg.image(lpg, 0, 0);
-      passPg.endDraw();
+      self.passPg.beginDraw();
+      self.passPg.clear();
+      self.passPg.image(lpg, 0, 0);
+      self.passPg.endDraw();
       for (let i = 0; i < 2; i++) {
-        ppg.beginDraw();
-        ppg.clear();
-        postShaders["bloom"].set("delta", 0.001);
-        ppg.image(passPg, 0, 0);
-        ppg.filter(postShaders["bloom"]);
-        ppg.endDraw();
-        let temppg = ppg;
-        ppg = passPg;
-        passPg = temppg;
+        self.pg.beginDraw();
+        self.pg.clear();
+        self.postShaders["bloom"].set("delta", 0.001);
+        self.pg.image(self.passPg, 0, 0);
+        self.pg.filter(self.postShaders["bloom"]);
+        self.pg.endDraw();
+        let temppg = self.pg;
+        self.pg = self.passPg;
+        self.passPg = temppg;
       }
-      let temppg = ppg;
-      ppg = passPg;
-      passPg = temppg;
+      let temppg = self.pg;
+      self.pg = self.passPg;
+      self.passPg = temppg;
     },
     "kaleid" : function (lpg) {
-      ppg.beginDraw();
-      ppg.clear();
-      ppg.image(lpg, 0, 0);
-      ppg.filter(postShaders["kaleid"]);
-      ppg.endDraw();
+      self.pg.beginDraw();
+      self.pg.clear();
+      self.pg.image(lpg, 0, 0);
+      self.pg.filter(self.postShaders["kaleid"]);
+      self.pg.endDraw();
     }
   }
+  this.draw = function (type, pg) {
+    this.postProcess[type](pg);
+  }
+}
 
+var s = function (p) {
+  let s001 = new S001(p);
+  let postProcess = new PostProcess(p);
 
   p.setup = function () {
     p.createCanvas(800, 800);
@@ -306,10 +313,10 @@ var s = function (p) {
   p.draw = function () {
     s001.draw();
 
-    // postProcess.bloom(s001.pg);
-    postProcess.kaleid(s001.pg);
+    postProcess.draw("bloom", s001.pg);
+    // postProcess.draw("kaleid", s001.pg);
 
-    p.image(ppg, 0, 0);
+    p.image(postProcess.pg, 0, 0);
   }
 
   p.oscEvent = function(m) {
