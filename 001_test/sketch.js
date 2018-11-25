@@ -3,6 +3,7 @@ function SRenderer (p) {
 }
 
 SRenderer.prototype.setup = function (that) { // what "that" f***
+  if(that == undefined) that = this;
   let p = that.p;
   that.name = p.folderName;
 }
@@ -14,6 +15,7 @@ function SRendererShadow (p) {
   this.shadowMap;
   this.lightDirection = p.createVector(0, 0, 1);
   this.cameraPosition = p.createVector(0, -200.0, 150.0);
+  this.cameraTarget = p.createVector(0, 0, 0);
   this.name;
 }
 
@@ -138,11 +140,8 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
         modelviewInv.m03, modelviewInv.m13, modelviewInv.m23, modelviewInv.m33
       ));
     
-      p.camera(that.cameraPosition.x, that.cameraPosition.y, that.cameraPosition.z, 0.0, 0.0, 0, 0, 1, 0);
+      p.camera(that.cameraPosition.x, that.cameraPosition.y, that.cameraPosition.z, that.cameraTarget.x, that.cameraTarget.y, that.cameraTarget.z, 0, 1, 0);
       p.background(0);
-    
-      // var lightAngle = p.frameCount * 0.02;
-      // that.lightPos.set(10 * Math.cos(lightAngle), -13, 10 * Math.sin(lightAngle));
     
       // Render shadow pass
       that.shadowMap.beginDraw();
@@ -207,6 +206,7 @@ S001.prototype = Object.create(SRendererShadow.prototype, {
       var lightAngle = p.frameCount * 0.1;
       this.lightPos.set(10 * Math.cos(lightAngle), -13, 10 * Math.sin(lightAngle));
       this.lightDirection = p.createVector(0, 0, 1);
+      this.cameraTarget.set(0, 100 * Math.sin(p.frameCount * 0.01), 0);
       Object.getPrototypeOf(S001.prototype).draw(this);
     }
   }
