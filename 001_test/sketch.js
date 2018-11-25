@@ -115,7 +115,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
     }
   },
   renderLandscape: {
-    value: function (that, canvas) {
+    value: function (that, canvas, isShadow) {
       if(that == undefined) that = this;
     }
   },
@@ -155,7 +155,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       that.shadowMap.beginDraw();
       that.shadowMap.camera(that.lightPos.x, that.lightPos.y, that.lightPos.z, that.lightDirection.x-that.lightPos.x, that.lightDirection.y-that.lightPos.y, that.lightDirection.z-that.lightPos.z, 0, 1, 0);
       that.shadowMap.background(255, 255, 255, 255); // Will set the depth to 1.0 (maximum depth)
-      that.renderLandscape(that.shadowMap);
+      that.renderLandscape(that.shadowMap, true);
       that.shadowMap.endDraw();
       // shadowMap.updatePixels();
     
@@ -167,7 +167,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       that.pg.beginDraw();
       that.pg.background(34, 34, 34, 255);
       that.pg.noStroke();
-      that.renderLandscape(that.pg, that.defaultShader);
+      that.renderLandscape(that.pg, false);
       that.pg.endDraw();
     }
   }
@@ -202,12 +202,13 @@ function S001 (p) {
 
 S001.prototype = Object.create(SRendererShadow.prototype, {
   renderLandscape: {
-    value: function (canvas) {
+    value: function (canvas, isShadow) {
       let p = this.p;
       canvas.pushMatrix();
 
       canvas.pushMatrix();
       canvas.translate(0, -20, 0);
+
       for(let i = -3; i <= 3; i++) {
         for(let j = -3; j <= 3; j++) {
           let idx = Math.floor(p.map(i, -3, 3, 0, 4));
