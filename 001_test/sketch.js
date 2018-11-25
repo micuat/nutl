@@ -197,7 +197,7 @@ function S001 (p) {
   SRendererShadow.call(this, p);
   this.angleVel = 0;
   this.angle = 0;
-  this.colorScheme = new ColorScheme("273043-9197ae-eff6ee-f02d3a-dd0426");
+  this.colorScheme = new ColorScheme("26547c-ef476f-ffd166-06d6a0-fffcf9");
 }
 
 S001.prototype = Object.create(SRendererShadow.prototype, {
