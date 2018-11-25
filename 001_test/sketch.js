@@ -26,7 +26,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       if(that == undefined) that = this;
       let p = that.p;
       that.pg.beginDraw();
-      let sh = that.pg.loadShader(that.name + ("/shadow.frag"), that.name + ("/shadow.vert"));
+      let sh = that.pg.loadShader("shaders/shadow/shadow.frag", "shaders/shadow/shadow.vert");
       that.pg.endDraw();
       that.shadowMap = p.createGraphics(2048, 2048, p.P3D);
       that.shadowMap.noSmooth(); // Antialiasing on the shadowMap leads to weird artifacts
@@ -43,7 +43,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       if(that == undefined) that = this;
       let p = that.p;
       that.pg.beginDraw();
-      that.defaultShader = that.pg.loadShader(that.name + ("/default.frag"), that.name + ("/default.vert"));
+      that.defaultShader = that.pg.loadShader("shaders/shadow/default.frag", "shaders/shadow/default.vert");
       that.pg.shader(that.defaultShader);
       that.pg.noStroke();
       that.pg.perspective(60.0 / 180 * Math.PI, that.pg.width / that.pg.height, 10, 1000);
