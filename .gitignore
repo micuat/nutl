@@ -78,3 +78,5 @@ build/
 .vs/
 addons/
 icon.rc
+
+app.config

@@ -44,7 +44,7 @@ public int newWidth, newHeight;
 
 public PApplet that = this;
 
-public String folderName = "001_test";
+public String folderName = "";
 
 boolean libInited = false;
 
@@ -61,6 +61,15 @@ public void addFloat(OscMessage m, float f) {
 }
 
 void setup() {
+  String[] setLines = loadStrings("app.config");
+  folderName = setLines[0];
+  String[] libLines = loadStrings(folderName + "/libraries.config");
+  for(String l: libLines) {
+    if(l.equals("") == false) {
+      libPaths.add(sketchPath("libs/" + l));
+    }
+  }
+
   noSmooth();
   //hint(DISABLE_TEXTURE_MIPMAPS);
   //smooth();
@@ -72,10 +81,6 @@ void setup() {
   surface.setResizable(true);
   frameRate(60);
 
-  libPaths.add(sketchPath("libs/SRenderer.js"));
-  libPaths.add(sketchPath("libs/SRendererShadow.js"));
-  libPaths.add(sketchPath("libs/ColorScheme.js"));
-  libPaths.add(sketchPath("libs/PostProcess.js"));
   scriptPaths.add(sketchPath(folderName + "/sketch.js"));
 
   initNashorn();
