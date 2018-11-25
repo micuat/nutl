@@ -98,7 +98,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       let normalLength = Math.sqrt(lightNormalX * lightNormalX + lightNormalY * lightNormalY + lightNormalZ * lightNormalZ);
       that.lightDirection.set(lightNormalX / -normalLength, lightNormalY / -normalLength, lightNormalZ / -normalLength);
       that.defaultShader.set("lightDirection", that.lightDirection.x, that.lightDirection.y, that.lightDirection.z);
-      that.defaultShader.set("uLightColor", 1.0, 1.0, 1.0);
+      that.defaultShader.set("uLightColor", 0.75, 0.75, 0.75);
       // that.defaultShader.set("uBaseColor", 0.5, 0.5, 0.5);
     
       that.defaultShader.set("uMetallic", 0.4);
@@ -106,7 +106,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       that.defaultShader.set("uSpecular", 0.99);
       that.defaultShader.set("uLightRadius", 500.0);
       that.defaultShader.set("uExposure", 2.0);
-      that.defaultShader.set("uGamma", 0.6);
+      that.defaultShader.set("uGamma", 0.8);
     
       that.defaultShader.set("vLightPosition", that.lightPos.x, that.lightPos.y, that.lightPos.z);
     
@@ -232,7 +232,7 @@ S001.prototype = Object.create(SRendererShadow.prototype, {
     value: function () {
       let p = this.p;
       this.angle += this.angleVel;
-      this.angleVel = Math.max(this.angleVel * 0.9, 0);
+      this.angleVel = Math.max(this.angleVel * 0.95, 0);
       var camAngle = p.frameCount * 0.002;
       var lightAngle = Math.PI / -4;
       this.lightPos.set(10 * Math.cos(lightAngle), -13, 10 * Math.sin(lightAngle));
@@ -248,7 +248,7 @@ S001.prototype = Object.create(SRendererShadow.prototype, {
       let path = m.addrPattern().split("/");
       if (path.length >= 3 && path[1] == "sc3p5") {
         print(m)
-        this.angleVel += 0.5;
+        this.angleVel += 0.1;
       }
     }
   }
@@ -258,6 +258,43 @@ S001.prototype.constructor = S001;
 
 var s = function (p) {
   let s001 = new S001(p);
+  let passPg = p.createGraphics(800, 800, p.P3D);
+  let ppg = p.createGraphics(800, 800, p.P3D);
+  let postShaders = {};
+  let shaderTypes = ["kaleid", "rgbshift", "slide", "bloom", "invert", "mpeg", "radial", "darktoalpha", "pixelate", "fillalpha"];
+  for (let i in shaderTypes) {
+    postShaders[shaderTypes[i]] = p.loadShader(p.sketchPath("shaders/post/" + shaderTypes[i] + ".glsl"));
+  }
+  let postProcess = {
+    "bloom" : function (lpg) {
+      passPg.beginDraw();
+      passPg.clear();
+      passPg.image(lpg, 0, 0);
+      passPg.endDraw();
+      for (let i = 0; i < 2; i++) {
+        ppg.beginDraw();
+        ppg.clear();
+        postShaders["bloom"].set("delta", 0.001);
+        ppg.image(passPg, 0, 0);
+        ppg.filter(postShaders["bloom"]);
+        ppg.endDraw();
+        let temppg = ppg;
+        ppg = passPg;
+        passPg = temppg;
+      }
+      let temppg = ppg;
+      ppg = passPg;
+      passPg = temppg;
+    },
+    "kaleid" : function (lpg) {
+      ppg.beginDraw();
+      ppg.clear();
+      ppg.image(lpg, 0, 0);
+      ppg.filter(postShaders["kaleid"]);
+      ppg.endDraw();
+    }
+  }
+
 
   p.setup = function () {
     p.createCanvas(800, 800);
@@ -268,7 +305,11 @@ var s = function (p) {
 
   p.draw = function () {
     s001.draw();
-    p.image(s001.pg, 0, 0);
+
+    // postProcess.bloom(s001.pg);
+    postProcess.kaleid(s001.pg);
+
+    p.image(ppg, 0, 0);
   }
 
   p.oscEvent = function(m) {
