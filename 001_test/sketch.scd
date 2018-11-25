@@ -44,8 +44,8 @@ SynthDef(\sig, { |out, freq = 440, dfreq = 1, mul = 0.22, offset = 0|
 
 n = NetAddr("127.0.0.1", 7000);  // open 7000 on localhost server
 o = OSCFunc({ arg msg, time;
-	[time, msg].postln;
-	msg[3].postln;
+	// [time, msg].postln;
+	// msg[3].postln;
 	if(msg[2] == 0, {
 		n.sendMsg("/sc3p5/pop", msg[3]);
 	});

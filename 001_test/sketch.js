@@ -171,10 +171,29 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
 
 SRendererShadow.prototype.constructor = SRendererShadow;
 
+function ColorScheme (colorString) {
+  this.colors = [];
+  {
+    let cs = colorString.split("-");
+    for(let i in cs) {
+      this.colors.push({
+        r: parseInt("0x"+cs[i].substring(0,2)),
+        g: parseInt("0x"+cs[i].substring(2,4)),
+        b: parseInt("0x"+cs[i].substring(4,6))
+      });
+    }
+  }
+  this.get = function (i) {
+    i = Math.min(this.colors.length - 1, Math.max(0, i));
+    return this.colors[i];
+  }
+}
+
 function S001 (p) {
   SRendererShadow.call(this, p);
   this.angleVel = 0;
   this.angle = 0;
+  this.colorScheme = new ColorScheme("273043-9197ae-eff6ee-f02d3a-dd0426");
 }
 
 S001.prototype = Object.create(SRendererShadow.prototype, {
@@ -187,17 +206,19 @@ S001.prototype = Object.create(SRendererShadow.prototype, {
       canvas.translate(0, -20, 0);
       for(let i = -3; i <= 3; i++) {
         for(let j = -3; j <= 3; j++) {
+          let idx = Math.floor(p.map(i, -3, 3, 0, 4));
+          canvas.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
           canvas.pushMatrix();
           canvas.translate(i * 60, 0, j * 60);
           canvas.rotateX(this.angle + p.millis() * 0.0001 + i * 0.1);
           canvas.rotateY(p.millis() * 0.0001 + j * 0.1);
-          canvas.box(20, 3, 20);
+          canvas.box(30, 3, 30);
           canvas.popMatrix();
         }
       }
       canvas.popMatrix();
 
-      canvas.fill(200, 200, 200, 255);
+      canvas.fill(250, 250, 250);
       canvas.box(6600, 5, 6600);
       canvas.popMatrix();
     }
