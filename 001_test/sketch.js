@@ -5,6 +5,7 @@ function SRenderer (p) {
 SRenderer.prototype.setup = function (that) { // what "that" f***
   if(that == undefined) that = this;
   let p = that.p;
+  that.pg = p.createGraphics(800, 800, p.P3D);
   that.name = p.folderName;
 }
 
@@ -24,12 +25,15 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
     value: function (that) {
       if(that == undefined) that = this;
       let p = that.p;
+      that.pg.beginDraw();
+      let sh = that.pg.loadShader(that.name + ("/shadow.frag"), that.name + ("/shadow.vert"));
+      that.pg.endDraw();
       that.shadowMap = p.createGraphics(2048, 2048, p.P3D);
       that.shadowMap.noSmooth(); // Antialiasing on the shadowMap leads to weird artifacts
       //that.shadowMap.loadPixels(); // Will interfere with noSmooth() (probably a bug in Processing)
       that.shadowMap.beginDraw();
       that.shadowMap.noStroke();
-      that.shadowMap.shader(p.loadShader(that.name + ("/shadow.frag"), that.name + ("/shadow.vert")));
+      that.shadowMap.shader(sh);
       that.shadowMap.ortho(-400, 400, -400, 400, -1000, 1000); // Setup orthogonal view matrix for the directional light
       that.shadowMap.endDraw();
     }
@@ -38,10 +42,12 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
     value: function (that) {
       if(that == undefined) that = this;
       let p = that.p;
-      that.defaultShader = p.loadShader(that.name + ("/default.frag"), that.name + ("/default.vert"));
-      p.shader(that.defaultShader);
-      p.noStroke();
-      p.perspective(60.0 / 180 * Math.PI, p.width / p.height, 10, 1000);
+      that.pg.beginDraw();
+      that.defaultShader = that.pg.loadShader(that.name + ("/default.frag"), that.name + ("/default.vert"));
+      that.pg.shader(that.defaultShader);
+      that.pg.noStroke();
+      that.pg.perspective(60.0 / 180 * Math.PI, that.pg.width / that.pg.height, 10, 1000);
+      that.pg.endDraw();
     }
   },
   setup: {
@@ -72,7 +78,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       // Apply the inverted modelview matrix from the default pass to get the original vertex
       // positions inside the shader. that is needed because Processing is pre-multiplying
       // the vertices by the modelview matrix (for better performance).
-      let modelviewInv = p.g.modelviewInv;
+      let modelviewInv = that.pg.modelviewInv;
       shadowTransform.apply(modelviewInv);
     
       // Convert column-minor PMatrix to column-major GLMatrix and send it to the shader.
@@ -117,7 +123,8 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
     value: function (that) {
       if(that == undefined) that = this;
       let p = that.p;
-      p.shader(that.defaultShader);
+      that.pg.beginDraw();
+      that.pg.shader(that.defaultShader);
     
       let viewMatrix = new Packages.processing.core.PMatrix3D(
         0.5, 0.0, 0.0, 0.5,
@@ -140,8 +147,9 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
         modelviewInv.m03, modelviewInv.m13, modelviewInv.m23, modelviewInv.m33
       ));
     
-      p.camera(that.cameraPosition.x, that.cameraPosition.y, that.cameraPosition.z, that.cameraTarget.x, that.cameraTarget.y, that.cameraTarget.z, 0, 1, 0);
-      p.background(0);
+      that.pg.camera(that.cameraPosition.x, that.cameraPosition.y, that.cameraPosition.z, that.cameraTarget.x, that.cameraTarget.y, that.cameraTarget.z, 0, 1, 0);
+      that.pg.background(0);
+      that.pg.endDraw();
     
       // Render shadow pass
       that.shadowMap.beginDraw();
@@ -156,15 +164,11 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       that.updateDefaultShader();
     
       // Render default pass
-      p.background(34, 34, 34, 255);
-      p.noStroke();
-      that.renderLandscape(p.g, that.defaultShader);
-    
-      // Render light source
-      p.pushMatrix();
-      p.fill(255, 255, 255, 255);
-      p.translate(that.lightPos.x, that.lightPos.y, that.lightPos.z);
-      p.popMatrix();
+      that.pg.beginDraw();
+      that.pg.background(34, 34, 34, 255);
+      that.pg.noStroke();
+      that.renderLandscape(that.pg, that.defaultShader);
+      that.pg.endDraw();
     }
   }
 });
@@ -263,6 +267,7 @@ var s = function (p) {
 
   p.draw = function () {
     s001.draw();
+    p.image(s001.pg, 0, 0);
   }
 
   p.oscEvent = function(m) {
