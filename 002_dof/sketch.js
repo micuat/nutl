@@ -196,8 +196,8 @@ var s = function (p) {
         // pg.vertex(-7.5, j * 10, z);
         // pg.vertex(7.5, j * 10, z);
         pg.pushMatrix();
-        pg.translate(-5, j * 40, z-500);
-        pg.box(15, 15, 1000);
+        pg.translate(-5, j * 40, z);
+        pg.box(15, 15, 15);
         pg.popMatrix();
       }
       // pg.endShape(p.CLOSE);
@@ -226,7 +226,7 @@ var s = function (p) {
     // dof.focus = 0.7;
     dof.focus = 0.5;//p.map(p.mouseX, 0, p.width, -0, 0.5);
     // let mid = p.map(p.mouseX, 0, p.width, 0, 400);
-    let mid = 130;//p.map(Math.sin(t), -1, 1, -100, 400);
+    let mid = 110;//p.map(Math.sin(t), -1, 1, -100, 400);
     dof.minDepth = mid - 100.0;
     dof.maxDepth = mid + 100.0;
   
