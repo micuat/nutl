@@ -72,6 +72,10 @@ void setup() {
   surface.setResizable(true);
   frameRate(60);
 
+  libPaths.add(sketchPath("libs/SRenderer.js"));
+  libPaths.add(sketchPath("libs/SRendererShadow.js"));
+  libPaths.add(sketchPath("libs/ColorScheme.js"));
+  libPaths.add(sketchPath("libs/PostProcess.js"));
   scriptPaths.add(sketchPath(folderName + "/sketch.js"));
 
   initNashorn();
