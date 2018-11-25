@@ -1,11 +1,10 @@
-var lightPos;
-var defaultShader;
-var shadowMap;
-var pgColor;
-
-var s = function (p) {
+var S001 = function (p) {
+  let lightPos;
+  let defaultShader;
+  let shadowMap;
   let name;
   let lightDirection = {x: 0.0, y: 0.0, z: 0.0};
+
   function initShadowPass() {
     shadowMap = p.createGraphics(2048, 2048, p.P3D);
     shadowMap.noSmooth(); // Antialiasing on the shadowMap leads to weird artifacts
@@ -24,11 +23,8 @@ var s = function (p) {
     p.perspective(60.0 / 180 * Math.PI, p.width / p.height, 10, 1000);
   }
 
-  p.setup = function () {
+  this.setup = function () {
     name = p.folderName;
-
-    p.createCanvas(800, 800);
-    p.frameRate(30);
 
     initShadowPass();
     initDefaultPass();
@@ -86,8 +82,6 @@ var s = function (p) {
     defaultShader.set("shadowMap", shadowMap);
   }
 
-  let tween = 0;
-
   function renderLandscape(canvas, shader) {
     canvas.pushMatrix();
 
@@ -110,7 +104,7 @@ var s = function (p) {
     canvas.popMatrix();
   }
 
-  p.draw = function () {
+  this.draw = function () {
 
     if (p.frameCount % 120 == 0) {
       // print(p.frameRate());
@@ -172,4 +166,20 @@ var s = function (p) {
 
 };
 
-var p056 = new p5(s);
+var s = function (p) {
+  let s001 = new S001(p);
+
+  p.setup = function () {
+    p.createCanvas(800, 800);
+    p.frameRate(30);
+
+    s001.setup();
+  }
+
+  p.draw = function () {
+    s001.draw();
+  }
+
+};
+
+var p001 = new p5(s);
