@@ -215,8 +215,8 @@ S001.prototype = Object.create(SRendererShadow.prototype, {
           canvas.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
           canvas.pushMatrix();
           canvas.translate(i * 60, 0, j * 60);
-          canvas.rotateX(this.angle + p.millis() * 0.0001 + i * 0.1);
-          canvas.rotateY(p.millis() * 0.0001 + j * 0.1);
+          canvas.rotateX(this.angle + p.millis() * 0.0001 + i * 0.2);
+          canvas.rotateY(p.millis() * 0.0001 + j * 0.2);
           canvas.box(30, 3, 30);
           canvas.popMatrix();
         }
@@ -259,7 +259,7 @@ function PostProcess (p) {
   this.passPg = p.createGraphics(800, 800, p.P3D);
   this.pg = p.createGraphics(800, 800, p.P3D);
   this.postShaders = {};
-  this.singlePassTypes = ["kaleid", "invert"];
+  this.singlePassTypes = ["invert", "kaleid", "mpeg", "pixelate", "rgbshift", "slide"];
   this.multiPassTypes = ["bloom"];
   this.shaderTypes = this.singlePassTypes.concat(this.multiPassTypes);
   for (let i in this.shaderTypes) {
@@ -298,6 +298,7 @@ function PostProcess (p) {
       for (let k in params) {
         self.postShaders[sname].set(k, params[k]);
       }
+      self.postShaders[sname].set("resolution", self.pg.width * 1.0, self.pg.height * 1.0);
       self.pg.image(lpg, 0, 0);
       self.pg.filter(self.postShaders[sname]);
       self.pg.endDraw();
@@ -311,7 +312,9 @@ function PostProcess (p) {
 
 var s = function (p) {
   let s001 = new S001(p);
-  let postProcess = new PostProcess(p);
+  let postProcess0 = new PostProcess(p);
+  let postProcess1 = new PostProcess(p);
+  let postProcess2 = new PostProcess(p);
 
   p.setup = function () {
     p.createCanvas(800, 800);
@@ -323,11 +326,24 @@ var s = function (p) {
   p.draw = function () {
     s001.draw();
 
-    postProcess.draw("bloom", s001.pg, {delta: 0.001, num: 5});
-    // postProcess.draw("kaleid", s001.pg, {delta: 1.0});
+    // postProcess.draw("bloom", s001.pg, {delta: 0.001, num: 5});
     // postProcess.draw("invert", s001.pg, {delta: 1.0});
+    // postProcess.draw("kaleid", s001.pg, {delta: 1.0});
+    // postProcess.draw("mpeg", s001.pg, {time: p.millis() * 0.001});
+    // postProcess.draw("pixelate", s001.pg, {delta: 1.0});
+    // postProcess.draw("rgbshift", s001.pg, {delta: 100.0});
+    // postProcess.draw("slide", s001.pg, {delta: 0.01, time: p.millis() * 0.001});
 
-    p.image(postProcess.pg, 0, 0);
+    postProcess0.draw("bloom", s001.pg, {delta: 0.002, num: 2});
+    postProcess1.draw("rgbshift", postProcess0.pg, {
+      delta: 300 * p.constrain(-Math.sin(p.millis() * 0.001) * 1 - 0.5, 0, 1)
+    });
+    postProcess2.draw("slide", postProcess1.pg, {
+      delta: p.constrain(Math.sin(p.millis() * 0.001) * 0.1 - 0.08, 0, 1),
+      time: p.millis() * 0.001
+    });
+
+    p.image(postProcess2.pg, 0, 0);
   }
 
   p.oscEvent = function(m) {
