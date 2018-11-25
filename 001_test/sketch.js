@@ -247,7 +247,6 @@ S001.prototype = Object.create(SRendererShadow.prototype, {
       let p = this.p;
       let path = m.addrPattern().split("/");
       if (path.length >= 3 && path[1] == "sc3p5") {
-        print(m)
         this.angleVel += 0.1;
       }
     }
@@ -260,22 +259,26 @@ function PostProcess (p) {
   this.passPg = p.createGraphics(800, 800, p.P3D);
   this.pg = p.createGraphics(800, 800, p.P3D);
   this.postShaders = {};
-  this.shaderTypes = ["kaleid", "bloom"];
+  this.singlePassTypes = ["kaleid", "invert"];
+  this.multiPassTypes = ["bloom"];
+  this.shaderTypes = this.singlePassTypes.concat(this.multiPassTypes);
   for (let i in this.shaderTypes) {
     this.postShaders[this.shaderTypes[i]] = p.loadShader(p.sketchPath("shaders/post/" + this.shaderTypes[i] + ".glsl"));
   }
   let self = this;
   this.postProcess = {
-    "bloom" : function (lpg) {
+    "bloom" : function (lpg, params) {
       self.passPg.beginDraw();
       self.passPg.clear();
       self.passPg.image(lpg, 0, 0);
       self.passPg.endDraw();
-      for (let i = 0; i < 2; i++) {
+      for (let i = 0; i < params.num; i++) {
         self.pg.beginDraw();
         self.pg.clear();
-        self.postShaders["bloom"].set("delta", 0.001);
-        self.pg.image(self.passPg, 0, 0);
+        for (let k in params) {
+          self.postShaders["bloom"].set(k, params[k]);
+        }
+          self.pg.image(self.passPg, 0, 0);
         self.pg.filter(self.postShaders["bloom"]);
         self.pg.endDraw();
         let temppg = self.pg;
@@ -285,17 +288,24 @@ function PostProcess (p) {
       let temppg = self.pg;
       self.pg = self.passPg;
       self.passPg = temppg;
-    },
-    "kaleid" : function (lpg) {
+    }
+  }
+  for (let i in this.singlePassTypes) {
+    let sname = self.singlePassTypes[i];
+    this.postProcess[this.singlePassTypes[i]] = function(lpg, params) {
       self.pg.beginDraw();
       self.pg.clear();
+      for (let k in params) {
+        self.postShaders[sname].set(k, params[k]);
+      }
       self.pg.image(lpg, 0, 0);
-      self.pg.filter(self.postShaders["kaleid"]);
+      self.pg.filter(self.postShaders[sname]);
       self.pg.endDraw();
     }
   }
-  this.draw = function (type, pg) {
-    this.postProcess[type](pg);
+
+  this.draw = function (type, pg, params) {
+    this.postProcess[type](pg, params);
   }
 }
 
@@ -313,8 +323,9 @@ var s = function (p) {
   p.draw = function () {
     s001.draw();
 
-    postProcess.draw("bloom", s001.pg);
-    // postProcess.draw("kaleid", s001.pg);
+    postProcess.draw("bloom", s001.pg, {delta: 0.001, num: 5});
+    // postProcess.draw("kaleid", s001.pg, {delta: 1.0});
+    // postProcess.draw("invert", s001.pg, {delta: 1.0});
 
     p.image(postProcess.pg, 0, 0);
   }
