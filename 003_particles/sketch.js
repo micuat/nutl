@@ -111,7 +111,7 @@ function Agent (params) {
   let p = params.p;
   this.col = params.col;
   this.pos = params.pos;
-  // this.poss = [];
+  this.poss = [];
   this.vel = p5.Vector.random3D();
   this.vel.mult(0.1);
   this.life = 1000;
@@ -123,8 +123,8 @@ function Agent (params) {
     if(this.life <= 0) {
       return;
     }
-    // this.poss.push(this.pos.copy());
-    // if(this.poss.length > 10) this.poss.shift();
+    this.poss.push({pos: this.pos.copy(), rx: this.rotX, ry: this.rotY});
+    if(this.poss.length > 10) this.poss.shift();
     let phi = (p.noise(this.pos.x, this.pos.y) * 2 - 1) * Math.PI * 2;
     let theta = (p.noise(this.pos.z, this.pos.y) * 2 - 1) * Math.PI * 2;
     this.vel.mult(0.9);
@@ -143,18 +143,27 @@ function Agent (params) {
       return;
     }
     pg.pushMatrix();
+    pg.noStroke();
     pg.translate(this.pos.x, this.pos.y, this.pos.z);
     pg.fill(this.col.r, this.col.g, this.col.b);
     pg.rotateX(this.rotX);
     pg.rotateY(this.rotY);
     pg.box(7.5, 7.5, 25);
-    // p.beginShape();
-    // for(let i in this.poss) {
-    //   p.stroke(this.col.r, this.col.g, this.col.b, p.map(i, 0, this.poss.length, 0, 255));
-    //   p.vertex(this.poss[i].x, this.poss[i].y, this.poss[i].z);
-    // }
-    // p.endShape();
     pg.popMatrix();
+    // pg.beginShape(p.TRIANGLE_STRIP);
+    for(let i in this.poss) {
+      pg.pushMatrix();
+      pg.fill(this.col.r, this.col.g, this.col.b, p.map(i, 0, this.poss.length, 0, 255));
+      pg.translate(this.poss[i].pos.x, this.poss[i].pos.y, this.poss[i].pos.z);
+      pg.rotateX(this.poss[i].rx);
+      pg.rotateY(this.poss[i].ry);
+      pg.box(7.5, 7.5, 25);
+      pg.popMatrix();
+      // pg.fill(this.col.r, this.col.g, this.col.b, p.map(i, 0, this.poss.length, 0, 255));
+      // pg.vertex(this.poss[i].pos.x+3, this.poss[i].pos.y, this.poss[i].pos.z);
+      // pg.vertex(this.poss[i].pos.x-3, this.poss[i].pos.y, this.poss[i].pos.z);
+    }
+    // pg.endShape();
   }
 }
 
@@ -164,7 +173,7 @@ function S003 (p) {
   this.minDepth = -100.0;
   this.maxDepth = 100.0;
   this.maxBlur = 0.2;
-  this.aperture = 0.02;
+  this.aperture = 0.01;
   this.agents = [];
   this.cameraPosition = p.createVector(0.0, 0.0, 500.0);
   this.wind = p.createVector();
