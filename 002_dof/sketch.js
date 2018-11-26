@@ -24,9 +24,14 @@ function SRendererDof(p, w, h) {
 
 SRendererDof.prototype = Object.create(SRenderer.prototype, {
   draw: {
-    value: function (that) {
+    value: function (that, args) {
       if(that == undefined) that = this;
       let p = that.p;
+      p.background(0);
+
+      that.drawScene(that.src, args, false);
+      that.drawScene(that.depth, args, true);
+
       that.depthShader.set("minDepth", that.minDepth);
       that.depthShader.set("maxDepth", that.maxDepth); 
       
@@ -57,10 +62,11 @@ SRendererDof.prototype = Object.create(SRenderer.prototype, {
         that.dest = that.dest2;
         that.dest2 = destTemp;
       }
+      that.pg = that.dest2;
     }
   },
   drawScene: {
-    value: function (that, pg) {
+    value: function (that, pg, args, isDepth) {
       if(that == undefined) that = this;
     }
   }
@@ -79,12 +85,13 @@ function S002 (p) {
 
 S002.prototype = Object.create(SRendererDof.prototype, {
   drawScene: {
-    value: function (pg, t, lights) {
+    value: function (pg, args, isDepth) {
+      let t = args.t;
       let p = this.p;
       pg.beginDraw();
       pg.camera(0, 0, 200, 0, 0, 0, 0, 1, 0);
       pg.background(30);
-      if (lights)
+      if (isDepth != true)
         pg.lights();
       pg.pushMatrix();
       pg.noStroke();
@@ -113,18 +120,12 @@ S002.prototype = Object.create(SRendererDof.prototype, {
     }
   },
   draw: {
-    value: function () {
+    value: function (t) {
       let p = this.p;
-      p.background(0);
-  
-      this.drawScene(this.src, t, true);
-      this.drawScene(this.depth, t, false);
-    
-      Object.getPrototypeOf(S002.prototype).draw(this);
-    
       let mid = 110;
       this.minDepth = mid - 100.0;
       this.maxDepth = mid + 100.0;
+      Object.getPrototypeOf(S002.prototype).draw(this, {t: t});
     }
   }
 });
@@ -133,6 +134,7 @@ S002.prototype.constructor = S002;
 
 var s = function (p) {
   let s002 = new S002(p);
+  let postProcess0 = new PostProcess(p);
   let startFrame;
 
   p.setup = function () {
@@ -148,8 +150,12 @@ var s = function (p) {
   p.draw = function () {
     t = (getCount() / 30.0);
     s002.draw(t);
+    postProcess0.draw("slide", s002.pg, {
+      delta: p.constrain(Math.sin(p.millis() * 0.001) * 0.1 - 0.08, 0, 1),
+      time: p.millis() * 0.001
+    });
  
-    p.image(s002.dest2, 0, 0);
+    p.image(postProcess0.pg, 0, 0);
   }
 
 };
