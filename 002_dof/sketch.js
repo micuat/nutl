@@ -59,7 +59,7 @@ SRendererDof.prototype = Object.create(SRenderer.prototype, {
       }
     }
   },
-  renderLandscape: {
+  drawScene: {
     value: function (that, pg) {
       if(that == undefined) that = this;
     }
@@ -78,7 +78,7 @@ function S002 (p) {
 }
 
 S002.prototype = Object.create(SRendererDof.prototype, {
-  renderLandscape: {
+  drawScene: {
     value: function (pg, t, lights) {
       let p = this.p;
       pg.beginDraw();
@@ -117,8 +117,8 @@ S002.prototype = Object.create(SRendererDof.prototype, {
       let p = this.p;
       p.background(0);
   
-      this.renderLandscape(this.src, t, true);
-      this.renderLandscape(this.depth, t, false);
+      this.drawScene(this.src, t, true);
+      this.drawScene(this.depth, t, false);
     
       Object.getPrototypeOf(S002.prototype).draw(this);
     

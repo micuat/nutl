@@ -6,7 +6,7 @@ function S001 (p) {
 }
 
 S001.prototype = Object.create(SRendererShadow.prototype, {
-  renderLandscape: {
+  drawScene: {
     value: function (canvas, isShadow) {
       let p = this.p;
       canvas.pushMatrix();

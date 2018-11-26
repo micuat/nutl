@@ -103,7 +103,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       that.defaultShader.set("shadowMap", that.shadowMap);
     }
   },
-  renderLandscape: {
+  drawScene: {
     value: function (that, canvas, isShadow) {
       if(that == undefined) that = this;
     }
@@ -144,7 +144,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       that.shadowMap.beginDraw();
       that.shadowMap.camera(that.lightPos.x, that.lightPos.y, that.lightPos.z, that.lightDirection.x-that.lightPos.x, that.lightDirection.y-that.lightPos.y, that.lightDirection.z-that.lightPos.z, 0, 1, 0);
       that.shadowMap.background(255, 255, 255, 255); // Will set the depth to 1.0 (maximum depth)
-      that.renderLandscape(that.shadowMap, true);
+      that.drawScene(that.shadowMap, true);
       that.shadowMap.endDraw();
       // shadowMap.updatePixels();
     
@@ -156,7 +156,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       that.pg.beginDraw();
       that.pg.background(34, 34, 34, 255);
       that.pg.noStroke();
-      that.renderLandscape(that.pg, false);
+      that.drawScene(that.pg, false);
       that.pg.endDraw();
     }
   }
