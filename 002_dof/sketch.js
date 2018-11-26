@@ -29,8 +29,12 @@ SRendererDof.prototype = Object.create(SRenderer.prototype, {
       let p = that.p;
       p.background(0);
 
+      that.src.beginDraw();
       that.drawScene(that.src, args, false);
+      that.src.endDraw();
+      that.depth.beginDraw();
       that.drawScene(that.depth, args, true);
+      that.depth.endDraw();
 
       that.depthShader.set("minDepth", that.minDepth);
       that.depthShader.set("maxDepth", that.maxDepth); 
@@ -88,7 +92,6 @@ S002.prototype = Object.create(SRendererDof.prototype, {
     value: function (pg, args, isDepth) {
       let t = args.t;
       let p = this.p;
-      pg.beginDraw();
       pg.camera(0, 0, 200, 0, 0, 0, 0, 1, 0);
       pg.background(30);
       if (isDepth != true)
@@ -116,7 +119,6 @@ S002.prototype = Object.create(SRendererDof.prototype, {
       pg.popMatrix();
       pg.translate(0, 0, -1000);
       pg.box(3000, 3000, 1);
-      pg.endDraw();
     }
   },
   draw: {
