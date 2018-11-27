@@ -125,9 +125,10 @@ function Agent (params) {
     }
     this.poss.push({pos: this.pos.copy(), rx: this.rotX, ry: this.rotY});
     if(this.poss.length > 10) this.poss.shift();
-    let phi = (p.noise(this.pos.x, this.pos.y) * 2 - 1) * Math.PI * 2;
-    let theta = (p.noise(this.pos.z, this.pos.y) * 2 - 1) * Math.PI * 2;
-    this.vel.mult(0.9);
+    let nc = 0.6;
+    let phi = (p.noise(this.pos.x * nc, this.pos.y * nc) * 2 - 1) * Math.PI * 2;
+    let theta = (p.noise(this.pos.z * nc, this.pos.y * nc) * 2 - 1) * Math.PI * 2;
+    this.vel.mult(0.95);
     let va = 2.0;
     this.vel.x += Math.sin(phi) * Math.cos(theta) * va + wind.x;
     this.vel.y += Math.sin(phi) * Math.sin(theta) * va + wind.y;
@@ -148,21 +149,21 @@ function Agent (params) {
     pg.fill(this.col.r, this.col.g, this.col.b);
     pg.rotateX(this.rotX);
     pg.rotateY(this.rotY);
-    pg.box(7.5, 7.5, 25);
+    pg.box(10, 10, 50);
     pg.popMatrix();
     // pg.beginShape(p.TRIANGLE_STRIP);
-    for(let i in this.poss) {
-      pg.pushMatrix();
-      pg.fill(this.col.r, this.col.g, this.col.b, p.map(i, 0, this.poss.length, 0, 255));
-      pg.translate(this.poss[i].pos.x, this.poss[i].pos.y, this.poss[i].pos.z);
-      pg.rotateX(this.poss[i].rx);
-      pg.rotateY(this.poss[i].ry);
-      pg.box(7.5, 7.5, 25);
-      pg.popMatrix();
-      // pg.fill(this.col.r, this.col.g, this.col.b, p.map(i, 0, this.poss.length, 0, 255));
-      // pg.vertex(this.poss[i].pos.x+3, this.poss[i].pos.y, this.poss[i].pos.z);
-      // pg.vertex(this.poss[i].pos.x-3, this.poss[i].pos.y, this.poss[i].pos.z);
-    }
+    // for(let i in this.poss) {
+    //   pg.pushMatrix();
+    //   pg.fill(this.col.r, this.col.g, this.col.b, p.map(i, 0, this.poss.length, 0, 255));
+    //   pg.translate(this.poss[i].pos.x, this.poss[i].pos.y, this.poss[i].pos.z);
+    //   pg.rotateX(this.poss[i].rx);
+    //   pg.rotateY(this.poss[i].ry);
+    //   pg.box(7.5, 7.5, 25);
+    //   pg.popMatrix();
+    //   // pg.fill(this.col.r, this.col.g, this.col.b, p.map(i, 0, this.poss.length, 0, 255));
+    //   // pg.vertex(this.poss[i].pos.x+3, this.poss[i].pos.y, this.poss[i].pos.z);
+    //   // pg.vertex(this.poss[i].pos.x-3, this.poss[i].pos.y, this.poss[i].pos.z);
+    // }
     // pg.endShape();
   }
 }
@@ -173,7 +174,7 @@ function S003 (p) {
   this.minDepth = -100.0;
   this.maxDepth = 100.0;
   this.maxBlur = 0.2;
-  this.aperture = 0.01;
+  this.aperture = 0.02;
   this.agents = [];
   this.cameraPosition = p.createVector(0.0, 0.0, 500.0);
   this.wind = p.createVector();
@@ -201,15 +202,18 @@ S003.prototype = Object.create(SRendererDof.prototype, {
   draw: {
     value: function (t) {
       let p = this.p;
-      let mid = p.mouseX;//600;
+      let mid = 400;
       this.minDepth = mid - 200.0;
       this.maxDepth = mid + 200.0;
-      if(p.random(1) > 0.2) {
+      if(p.random(1) > 0) {
         let idx = Math.floor(p.random(0, 5));
-        this.agents.push(new Agent({p: p, pos: p.createVector(0, 250, 0), col: this.colorScheme.get(idx)}));
-        if(this.agents.length > 50) this.agents.shift();
+        this.agents.push(new Agent({p: p, pos: p.createVector(0, 100, 0), col: this.colorScheme.get(idx)}));
+        if(this.agents.length > 150) this.agents.shift();
       }
 
+      this.wind.x = Math.cos(t) * 0.2;
+      this.wind.y = -0.3;
+      this.wind.z = Math.sin(t) * 0.2;
       for(let i in this.agents) {
         this.agents[i].update(this.wind);
         // this.agents[i].update(p.createVector(0, -1, 0));
@@ -231,6 +235,7 @@ S003.prototype.constructor = S003;
 
 var s = function (p) {
   let s003 = new S003(p);
+  let postProcess0 = new PostProcess(p);
   let startFrame;
 
   p.setup = function () {
@@ -246,8 +251,9 @@ var s = function (p) {
   p.draw = function () {
     t = (getCount() / 30.0);
     s003.draw(t);
+    postProcess0.draw("bloom", s003.pg, {delta: 0.01, num: 2});
  
-    p.image(s003.pg, 0, 0);
+    p.image(postProcess0.pg, 0, 0);
   }
 
   p.oscEvent = function (m) {
