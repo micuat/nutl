@@ -6,6 +6,13 @@ function SRendererShadow (p) {
   this.lightDirection = p.createVector(0, 0, 1);
   this.cameraPosition = p.createVector(0, -200.0, 150.0);
   this.cameraTarget = p.createVector(0, 0, 0);
+  this.uLightColor = {r: 0.75, g: 0.75, b: 0.75};
+  this.uMetallic = 0.4;
+  this.uRoughness = 0.1;
+  this.uSpecular = 0.99;
+  this.uLightRadius = 500.0;
+  this.uExposure = 2.0;
+  this.uGamma = 0.8;
   this.name;
 }
 
@@ -86,16 +93,15 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       let lightNormalZ = that.lightPos.x * modelviewInv.m02 + that.lightPos.y * modelviewInv.m12 + that.lightPos.z * modelviewInv.m22;
       let normalLength = Math.sqrt(lightNormalX * lightNormalX + lightNormalY * lightNormalY + lightNormalZ * lightNormalZ);
       that.lightDirection.set(lightNormalX / -normalLength, lightNormalY / -normalLength, lightNormalZ / -normalLength);
+
       that.defaultShader.set("lightDirection", that.lightDirection.x, that.lightDirection.y, that.lightDirection.z);
-      that.defaultShader.set("uLightColor", 0.75, 0.75, 0.75);
-      // that.defaultShader.set("uBaseColor", 0.5, 0.5, 0.5);
-    
-      that.defaultShader.set("uMetallic", 0.4);
-      that.defaultShader.set("uRoughness", 0.1);
-      that.defaultShader.set("uSpecular", 0.99);
-      that.defaultShader.set("uLightRadius", 500.0);
-      that.defaultShader.set("uExposure", 2.0);
-      that.defaultShader.set("uGamma", 0.8);
+      that.defaultShader.set("uLightColor", that.uLightColor.r, that.uLightColor.g, that.uLightColor.b);
+      that.defaultShader.set("uMetallic", that.uMetallic);
+      that.defaultShader.set("uRoughness", that.uRoughness);
+      that.defaultShader.set("uSpecular", that.uSpecular);
+      that.defaultShader.set("uLightRadius", that.uLightRadius);
+      that.defaultShader.set("uExposure", that.uExposure);
+      that.defaultShader.set("uGamma", that.uGamma);
     
       that.defaultShader.set("vLightPosition", that.lightPos.x, that.lightPos.y, that.lightPos.z);
     
