@@ -25,16 +25,8 @@ uniform vec3 bpos[4];
 
 uniform sampler2D texture;
 
-//SuperShape 3d by eiffie based on mickdermack's 2d formula
 uniform vec3 cameraPosition;
-uniform float iteration;
-uniform float phiGlitch;
-uniform float dGlitch;
-uniform float fragGlitch;
-
-uniform vec4 S1, S2;//m,n1,n2,n3
-
-
+uniform vec3 cameraTarget;
 
 #define AA 1   // make this 1 is your machine is too slow
 
@@ -340,7 +332,7 @@ float checkersGradBox( in vec2 p )
 
 vec3 render( in vec3 ro, in vec3 rd )
 { 
-    vec3 col = vec3(0.7, 0.9, 1.0) +rd.y*0.8;
+    vec3 col = vec3(0.0);//vec3(0.7, 0.9, 1.0) +rd.y*0.8;
     vec2 res = castRay(ro,rd);
     float t = res.x;
 	float m = res.y;
@@ -421,9 +413,8 @@ void main()
 #endif
 
 		// camera	
-        vec3 ro = cameraPosition;//vec3( -0.5+3.5*cos(0.1*time + 6.0*mo.x), 1.0 + 2.0*mo.y, 0.5 + 4.0*sin(0.1*time + 6.0*mo.x) );
-				// ro.y += pow(sin(iTime * 0.25), 4) * 3.0;
-        vec3 ta = vec3( -0.5, -0.4, 0.5 );
+        vec3 ro = cameraPosition;
+        vec3 ta = cameraTarget;
         // camera-to-world transformation
         mat3 ca = setCamera( ro, ta, 0.0 );
         // ray direction

@@ -1,18 +1,24 @@
-function S006 (p) {
+function S006PBR (p) {
   SRendererShadow.call(this, p);
   this.angleVel = 0;
   this.angle = 0;
   this.colorScheme = new ColorScheme("26547c-ef476f-ffd166-06d6a0-fffcf9");
 }
 
-S006.prototype = Object.create(SRendererShadow.prototype, {
+S006PBR.prototype = Object.create(SRendererShadow.prototype, {
   drawScene: {
     value: function (canvas, isShadow) {
       let p = this.p;
+      let t = p.millis() * 0.001;
+      canvas.background(0);
       canvas.pushMatrix();
 
       canvas.pushMatrix();
       canvas.translate(0, -20, 0);
+
+      let w = p.map(t % 2, 0, 2, 0, 2);
+      if(w > 1) w = 2 - w;
+      w *= 30;
 
       for(let i = -3; i <= 3; i++) {
         for(let j = -3; j <= 3; j++) {
@@ -22,13 +28,13 @@ S006.prototype = Object.create(SRendererShadow.prototype, {
           canvas.translate(i * 60, 0, j * 60);
           canvas.rotateX(this.angle + p.millis() * 0.0006 + i * 0.2);
           canvas.rotateY(p.millis() * 0.0006 + j * 0.2);
-          canvas.box(30, 3, 30);
+          canvas.box(w, 3, w);
           canvas.popMatrix();
         }
       }
       canvas.popMatrix();
 
-      canvas.fill(250, 250, 250);
+      canvas.fill(0);
       canvas.box(6600, 5, 6600);
       canvas.popMatrix();
     }
@@ -44,7 +50,7 @@ S006.prototype = Object.create(SRendererShadow.prototype, {
       this.lightDirection = p.createVector(0, 0, 1);
       this.cameraPosition.set(400 * Math.cos(camAngle), 100 * Math.sin(p.frameCount * 0.01) - 200, 400 * Math.sin(camAngle));
       this.cameraTarget.set(0, 0, 0);
-      Object.getPrototypeOf(S006.prototype).draw(this);
+      Object.getPrototypeOf(S006PBR.prototype).draw(this);
     }
   },
   oscEvent: {
@@ -58,9 +64,9 @@ S006.prototype = Object.create(SRendererShadow.prototype, {
   }
 });
 
-S006.prototype.constructor = S006;
+S006PBR.prototype.constructor = S006PBR;
 
-function S006a (p) {
+function S006Ray (p) {
   SRenderer.call(this, p);
   this.angleVel = 0;
   this.angle = 0;
@@ -69,22 +75,30 @@ function S006a (p) {
   this.angle = 0;
 }
 
-S006a.prototype = Object.create(SRenderer.prototype, {
+S006Ray.prototype = Object.create(SRenderer.prototype, {
   draw: {
     value: function (t) {
       let p = this.p;
       if (p.frameCount % 60 == 0) {
-        this.shader = p.loadShader(p.sketchPath(p.folderName + "/frag.glsl"));
+        // this.shader = p.loadShader(p.sketchPath(p.folderName + "/frag.glsl"));
       }
   
       p.background(0);
   
       this.shader.set("iTime", t);
-  
-      let x = Math.cos(this.angle) * 3.0;
-      let y = 3.0;
-      let z = Math.sin(this.angle) * 3.0;
+
+      let r = p.map(t % 2, 0, 2, 1.0, 0.0);
+      r = Math.sqrt(r) * 3.0;
+      let x = Math.cos(this.angle) * r;
+      let y = r;
+      let z = Math.sin(this.angle) * r;
       this.shader.set("cameraPosition", x, y, z);
+      if(r > 2) r = p.map(r, 3, 2, 5, 0);
+      else r = 0.0;
+      let tx = 0.0;//Math.cos(this.angle) * r;
+      let ty = r;
+      let tz = 0.0;//Math.sin(this.angle) * r;
+      this.shader.set("cameraTarget", tx, ty, tz);
 
       this.angle += 0.025;
       p.filter(this.shader);
@@ -92,35 +106,34 @@ S006a.prototype = Object.create(SRenderer.prototype, {
   }
 });
 
-S006a.prototype.constructor = S006a;
+S006Ray.prototype.constructor = S006Ray;
 
 var s = function (p) {
-  let s006 = new S006(p);
-  let s006a = new S006a(p);
+  let s006PBR = new S006PBR(p);
+  let s006Ray = new S006Ray(p);
 
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(30);
 
-    s006.setup();
-    s006a.setup();
+    s006PBR.setup();
+    s006Ray.setup();
   }
 
   p.draw = function () {
     let t = p.millis() * 0.001;
 
     if(t % 4 < 2) {
-      s006a.draw(t);
-      p.image(s006a.pg, 0, 0);
+      s006Ray.draw(t);
+      p.image(s006Ray.pg, 0, 0);
     }
     else {
-      s006.draw(t);
-      p.image(s006.pg, 0, 0);
+      s006PBR.draw(t);
+      p.image(s006PBR.pg, 0, 0);
     }
   }
 
   p.oscEvent = function(m) {
-    // s006.oscEvent(m);
   }
 };
 
