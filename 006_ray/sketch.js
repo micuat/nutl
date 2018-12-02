@@ -3,6 +3,7 @@ function S006PBR (p) {
   this.angleVel = 0;
   this.angle = 0;
   this.colorScheme = new ColorScheme("26547c-ef476f-ffd166-06d6a0-fffcf9");
+  this.colorTexture = p.createGraphics(400, 400, p.P3D);
 }
 
 S006PBR.prototype = Object.create(SRendererShadow.prototype, {
@@ -20,10 +21,18 @@ S006PBR.prototype = Object.create(SRendererShadow.prototype, {
       if(w > 1) w = 2 - w;
       w = 40;
 
-      if(isShadow == false)
-        this.defaultShader.set("colorTexture", this.rayPg);
-      // if(this.rayPg != undefined) {
-      // }
+      if(isShadow == false) {
+        this.colorTexture.beginDraw();
+        this.colorTexture.background(0);
+        this.colorTexture.noStroke();
+        this.colorTexture.fill(255);
+        this.colorTexture.rect(0, p.map(t % 2, 0, 2, -200, 400), 200, 200);
+        this.colorTexture.rect(200, p.map((t + 1) % 2, 0, 2, 400, -200), 200, 200);
+        this.colorTexture.endDraw();
+
+        this.defaultShader.set("colorTexture", this.colorTexture);
+      }
+
       for(let i = -3; i <= 3; i++) {
         for(let j = -3; j <= 3; j++) {
           let idx = Math.floor(p.map(i, -3, 3, 0, 4));
@@ -114,8 +123,6 @@ var s = function (p) {
   let s006PBR = new S006PBR(p);
   let s006Ray = new S006Ray(p);
 
-  let pg = p.createGraphics(400, 400, p.P3D);
-
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(30);
@@ -127,18 +134,12 @@ var s = function (p) {
   p.draw = function () {
     let t = p.millis() * 0.001;
 
-    pg.beginDraw();
-    pg.background(0);
-    pg.noStroke();
-    pg.fill(255);
-    pg.rect(0, 0, 400, 400);
-    pg.endDraw();
+    s006Ray.draw(t);
     if(false && t % 4 < 2) {
       s006Ray.draw(t);
       p.image(s006Ray.pg, 0, 0);
     }
     else {
-      s006PBR.rayPg = pg;
       s006PBR.draw(t);
       p.image(s006PBR.pg, 0, 0);
     }
