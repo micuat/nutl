@@ -332,7 +332,7 @@ float checkersGradBox( in vec2 p )
 
 vec3 render( in vec3 ro, in vec3 rd )
 { 
-    vec3 col = vec3(0.0);//vec3(0.7, 0.9, 1.0) +rd.y*0.8;
+    vec3 col = vec3(0.7, 0.9, 1.0) +rd.y*0.8;
     vec2 res = castRay(ro,rd);
     float t = res.x;
 	float m = res.y;

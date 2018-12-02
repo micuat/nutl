@@ -1,4 +1,5 @@
-uniform mat4 transform; 
+uniform mat4 transform;
+uniform mat4 texMatrix;
 uniform mat4 modelview;
 uniform mat4 modelviewInv;
 uniform mat4 viewMatrix;
@@ -11,10 +12,12 @@ uniform vec3 vLightPosition;
 attribute vec4 vertex; 
 attribute vec4 color; 
 attribute vec3 normal; 
+attribute vec2 texCoord;
 
 varying vec4 vertColor;
 varying vec3 vNormal;
 varying vec3 vPosition;
+varying vec4 vTexCoord;
 varying vec4 shadowCoord;
 varying float lightIntensity;
 // varying vec3 vWsNormal;
@@ -30,4 +33,5 @@ void main() {
   gl_Position = transform * vertex;
   vPosition = vPosition4.xyz / vPosition4.w;//gl_Position.xyz / gl_Position.w;
   lightIntensity = 0.5 + dot(-lightDirection*0.0 - (vPosition-vLightPosition), vNormal) * 0.5; 
+  vTexCoord = texMatrix * vec4(texCoord, 1.0, 1.0);
 }

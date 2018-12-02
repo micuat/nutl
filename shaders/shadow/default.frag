@@ -15,8 +15,9 @@ float unpackDepth(vec4 color) {
   return color.r + color.g / 255.0; 
 } 
 
-uniform sampler2D shadowMap; 
-uniform vec3 lightDirection; 
+uniform sampler2D colorTexture;
+uniform sampler2D shadowMap;
+uniform vec3 lightDirection;
 uniform vec3 vLightPosition;
 uniform vec3 uLightColor;
 // uniform vec3 uBaseColor;
@@ -32,6 +33,7 @@ uniform mat4 viewMatrix;
 varying vec4 vertColor;
 varying vec3 vNormal;
 varying vec3 vPosition;
+varying vec4 vTexCoord;
 varying vec4 shadowCoord; 
 varying float lightIntensity; 
 
@@ -115,7 +117,7 @@ void main(void) {
 	float NoH				= saturate( dot( N, H ) );
 
 	// deduce the diffuse and specular color from the baseColor and how metallic the material is
-	vec3 uBaseColor = vertColor.rgb;
+	vec3 uBaseColor = texture2D(colorTexture, vTexCoord.st).rgb * vertColor.rgb;
 	vec3 diffuseColor		= uBaseColor - uBaseColor * uMetallic;
 	vec3 specularColor = mix( vec3( 0.08 * uSpecular ), uBaseColor, uMetallic );
 	float distribution		= getNormalDistribution( uRoughness, NoH );

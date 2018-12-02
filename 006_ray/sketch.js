@@ -18,8 +18,12 @@ S006PBR.prototype = Object.create(SRendererShadow.prototype, {
 
       let w = p.map(t % 2, 0, 2, 0, 2);
       if(w > 1) w = 2 - w;
-      w *= 30;
+      w = 40;
 
+      if(isShadow == false)
+        this.defaultShader.set("colorTexture", this.rayPg);
+      // if(this.rayPg != undefined) {
+      // }
       for(let i = -3; i <= 3; i++) {
         for(let j = -3; j <= 3; j++) {
           let idx = Math.floor(p.map(i, -3, 3, 0, 4));
@@ -34,8 +38,6 @@ S006PBR.prototype = Object.create(SRendererShadow.prototype, {
       }
       canvas.popMatrix();
 
-      canvas.fill(0);
-      canvas.box(6600, 5, 6600);
       canvas.popMatrix();
     }
   },
@@ -112,6 +114,8 @@ var s = function (p) {
   let s006PBR = new S006PBR(p);
   let s006Ray = new S006Ray(p);
 
+  let pg = p.createGraphics(400, 400, p.P3D);
+
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(30);
@@ -123,11 +127,18 @@ var s = function (p) {
   p.draw = function () {
     let t = p.millis() * 0.001;
 
-    if(t % 4 < 2) {
+    pg.beginDraw();
+    pg.background(0);
+    pg.noStroke();
+    pg.fill(255);
+    pg.rect(0, 0, 400, 400);
+    pg.endDraw();
+    if(false && t % 4 < 2) {
       s006Ray.draw(t);
       p.image(s006Ray.pg, 0, 0);
     }
     else {
+      s006PBR.rayPg = pg;
       s006PBR.draw(t);
       p.image(s006PBR.pg, 0, 0);
     }
