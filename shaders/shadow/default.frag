@@ -16,7 +16,9 @@ float unpackDepth(vec4 color) {
 } 
 
 uniform sampler2D colorTexture;
+uniform sampler2D normalTexture;
 uniform sampler2D shadowMap;
+uniform mat3 normalMatrix; 
 uniform vec3 lightDirection;
 uniform vec3 vLightPosition;
 uniform vec3 uLightColor;
@@ -107,7 +109,7 @@ float getAttenuation( vec3 lightPosition, vec3 vertexPosition, float lightRadius
 void main(void) {
 	vec4 vlp4 = viewMatrix * vec4(vLightPosition*0.0-(vPosition-vLightPosition), 1.0);
 	vec3 vlp = vlp4.xyz / vlp4.w;
-	vec3 N                  = normalize( vNormal );
+	vec3 N                  = normalize(vNormal + normalMatrix * (texture2D(normalTexture, vTexCoord.st).rgb - vec3(0.5)));
 	vec3 L                  = normalize( vlp - vPosition );
 	vec3 V                  = normalize( -vPosition );
 	vec3 H					= normalize(V + L);

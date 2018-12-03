@@ -4,6 +4,7 @@ function S006PBR (p) {
   this.angle = 0;
   this.colorScheme = new ColorScheme("26547c-ef476f-ffd166-06d6a0-fffcf9");
   this.colorTexture = p.createGraphics(400, 400, p.P3D);
+  this.normalTexture = p.createGraphics(400, 400, p.P3D);
 }
 
 S006PBR.prototype = Object.create(SRendererShadow.prototype, {
@@ -23,7 +24,7 @@ S006PBR.prototype = Object.create(SRendererShadow.prototype, {
 
       if(isShadow == false) {
         this.colorTexture.beginDraw();
-        this.colorTexture.background(0);
+        this.colorTexture.background(255);
         this.colorTexture.noStroke();
         this.colorTexture.fill(255);
         this.colorTexture.rect(0, p.map(t % 2, 0, 2, -200, 400), 200, 200);
@@ -31,6 +32,17 @@ S006PBR.prototype = Object.create(SRendererShadow.prototype, {
         this.colorTexture.endDraw();
 
         this.defaultShader.set("colorTexture", this.colorTexture);
+
+        this.normalTexture.beginDraw();
+        this.normalTexture.background(128, 128, 255);
+        this.normalTexture.noStroke();
+        this.normalTexture.fill(128, 20, 255);
+        for(let i = 0; i < 20; i++) {
+          this.normalTexture.rect(0, i * 20, 400, 10);
+        }
+        this.normalTexture.endDraw();
+
+        this.defaultShader.set("normalTexture", this.normalTexture);
       }
 
       for(let i = -3; i <= 3; i++) {
