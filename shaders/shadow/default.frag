@@ -120,7 +120,7 @@ void main(void) {
 	float NoH				= saturate( dot( N, H ) );
 
 	// deduce the diffuse and specular color from the baseColor and how metallic the material is
-	vec3 uBaseColor = texture2D(texture, vTexCoord.st * vec2(1.0, 0.5) + vec2(1.0, 0.5)).rgb * vertColor.rgb;
+	vec3 uBaseColor = texture2D(texture, vTexCoord.st * vec2(1.0, -0.5) + vec2(0.0, 1.0)).rgb * vertColor.rgb;
 	vec3 diffuseColor		= uBaseColor - uBaseColor * uMetallic;
 	vec3 specularColor = mix( vec3( 0.08 * uSpecular ), uBaseColor, uMetallic );
 	float distribution		= getNormalDistribution( uRoughness, NoH );
