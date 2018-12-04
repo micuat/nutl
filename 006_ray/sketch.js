@@ -2,9 +2,13 @@ function S006PBR (p) {
   SRendererShadow.call(this, p);
   this.angleVel = 0;
   this.angle = 0;
-  this.colorScheme = new ColorScheme("26547c-ef476f-ffd166-06d6a0-fffcf9");
-  this.colorTexture = p.createGraphics(400, 400, p.P3D);
-  this.normalTexture = p.createGraphics(400, 400, p.P3D);
+  this.colorScheme = new ColorScheme("efbdeb-b68cb8-6461a0-314cb6-0a81d1");
+  this.colorTextures = [];
+  this.normalTextures = [];
+  for(let i = 0; i < 7; i++) {
+    this.colorTextures.push(p.createGraphics(400, 800, p.P3D));
+    this.normalTextures.push(p.createGraphics(400, 400, p.P3D));
+  }
 }
 
 S006PBR.prototype = Object.create(SRendererShadow.prototype, {
@@ -23,29 +27,30 @@ S006PBR.prototype = Object.create(SRendererShadow.prototype, {
       w = 40;
 
       if(isShadow == false) {
-        this.colorTexture.beginDraw();
-        this.colorTexture.background(255);
-        this.colorTexture.noStroke();
-        this.colorTexture.fill(255);
-        this.colorTexture.rect(0, p.map(t % 2, 0, 2, -200, 400), 200, 200);
-        this.colorTexture.rect(200, p.map((t + 1) % 2, 0, 2, 400, -200), 200, 200);
-        this.colorTexture.endDraw();
+        for(let i = 0; i < this.colorTextures.length; i++) {
+          let ct = this.colorTextures[i];
 
-        this.defaultShader.set("colorTexture", this.colorTexture);
+          ct.beginDraw();
+          ct.background(100);
+          ct.noStroke();
+          ct.fill(255);
+          // ct.rect(0, p.map(t % 2, 0, 2, -200, 400), 200, 200);
+          // ct.rect(200, p.map((t + 1) % 2, 0, 2, 400, -200), 200, 200);
+          ct.rect(0, 0, 400, 400 * i / 7.0);
 
-        this.normalTexture.beginDraw();
-        this.normalTexture.background(128, 128, 255);
-        this.normalTexture.noStroke();
-        this.normalTexture.fill(128, 20, 255);
-        for(let i = 0; i < 20; i++) {
-          this.normalTexture.rect(0, i * 20, 400, 10);
+          ct.translate(0, 400);
+          ct.fill(128, 128, 255);
+          ct.rect(0, 0, 400, 400);
+          ct.fill(128, 20, 255);
+          for(let j = 0; j < 10 - i; j++) {
+            ct.rect(j * 40, 0, 10, 400);
+          }
+          ct.endDraw();
         }
-        this.normalTexture.endDraw();
-
-        this.defaultShader.set("normalTexture", this.normalTexture);
       }
 
       for(let i = -3; i <= 3; i++) {
+        canvas.textureMode(p.NORMAL);
         for(let j = -3; j <= 3; j++) {
           let idx = Math.floor(p.map(i, -3, 3, 0, 4));
           canvas.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
@@ -53,10 +58,34 @@ S006PBR.prototype = Object.create(SRendererShadow.prototype, {
           canvas.translate(i * 60, 0, j * 60);
           canvas.rotateX(this.angle + p.millis() * 0.0006 + i * 0.2);
           canvas.rotateY(p.millis() * 0.0006 + j * 0.2);
-          canvas.box(w, 3, w);
+          // canvas.box(w, 3, w);
+
+          canvas.beginShape();
+          //this.defaultShader.set("colorTexture", this.colorTextures[i + 3]);
+          // this.defaultShader.set("normalTexture", this.normalTextures[i + 3]);
+          canvas.texture(this.colorTextures[i + 3]);
+          canvas.normal(0, -1, 0)
+          canvas.vertex(-w/2, -1.5, -w/2, 0, 0);
+          canvas.vertex(w/2, -1.5, -w/2, 1, 0);
+          canvas.vertex(w/2, -1.5, w/2, 1, 1);
+          canvas.vertex(-w/2, -1.5, w/2, 0, 1);
+          canvas.endShape();
+
+          canvas.beginShape();
+          //this.defaultShader.set("colorTexture", this.colorTextures[i + 3]);
+          // this.defaultShader.set("normalTexture", this.normalTextures[i + 3]);
+          canvas.texture(this.colorTextures[i + 3]);
+          canvas.normal(0, 1, 0)
+          canvas.vertex(-w/2, 1.5, -w/2, 0, 0);
+          canvas.vertex(w/2, 1.5, -w/2, 1, 0);
+          canvas.vertex(w/2, 1.5, w/2, 1, 1);
+          canvas.vertex(-w/2, 1.5, w/2, 0, 1);
+          canvas.endShape();
+
           canvas.popMatrix();
         }
       }
+
       canvas.popMatrix();
 
       canvas.popMatrix();
@@ -135,6 +164,7 @@ var s = function (p) {
   let s006PBR = new S006PBR(p);
   let s006Ray = new S006Ray(p);
 
+  let pg = p.createGraphics(400, 400, p.P3D);
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(30);
@@ -146,7 +176,7 @@ var s = function (p) {
   p.draw = function () {
     let t = p.millis() * 0.001;
 
-    s006Ray.draw(t);
+    // s006Ray.draw(t);
     if(false && t % 4 < 2) {
       s006Ray.draw(t);
       p.image(s006Ray.pg, 0, 0);
@@ -155,6 +185,10 @@ var s = function (p) {
       s006PBR.draw(t);
       p.image(s006PBR.pg, 0, 0);
     }
+
+    pg.beginDraw();
+    pg.background(255, 0, 0);
+    pg.endDraw();
   }
 
   p.oscEvent = function(m) {
