@@ -24,6 +24,8 @@ import toxi.physics3d.behaviors.*;
 import toxi.physics3d.constraints.*;
 import toxi.geom.*;
 
+import geomerative.*;
+
 import oscP5.*;
 import netP5.*;
 
@@ -76,6 +78,8 @@ void setup() {
   //hint(ENABLE_TEXTURE_MIPMAPS);
 
   oscP5 = new OscP5(this, 7000);
+
+  RG.init(this);
 
   size(400, 400, P3D);
   surface.setResizable(true);
