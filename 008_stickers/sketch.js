@@ -18,7 +18,7 @@ S008.prototype = Object.create(SRenderer.prototype, {
       // pg.stroke(0);
       // pg.strokeWeight(2);
       pg.noStroke();
-      pg.translate(pg.width / 2, pg.height / 2 + 180.0 / 4.0);
+      pg.translate(pg.width / 2, pg.height / 2);
       // pg.textAlign(p.CENTER, p.CENTER);
 
       Packages.geomerative.RCommand.setSegmentLength(5); // 5 = many points; 125 = only a few points
@@ -31,22 +31,34 @@ S008.prototype = Object.create(SRenderer.prototype, {
         {
           let grp = this.font.toGroup('MMCK');
           pg.fill(255);
+          pg.pushMatrix();
+          pg.translate(0, 180.0 / 4.0);
           grp.draw(pg);
+          pg.popMatrix();
           let rpoints = grp.getPoints();
-          let rot = 0.3;
-          // pg.stroke(255);
           for (let i = 0; i < rpoints.length - 1; i++) {
+            let rot = Math.PI * 0.25;
             let x = rpoints[i].x;
-            let y = rpoints[i].y;
+            let y = rpoints[i].y + 180.0 / 4.0;
             let n = 8;
-            let nx = (Math.floor(x / n) + 0.5) * n;
-            let ny = (Math.floor(y / n) + 0.5) * n;
-            // let nx = x * Math.cos(rot) + y * -Math.sin(rot);
-            // let ny = x * Math.sin(rot) + y * Math.cos(rot);
-            // pg.line(x, y, nx, ny);
+            // let nx = (Math.floor(x / n) + 0.5) * n;
+            // let ny = (Math.floor(y / n) + 0.5) * n;
+            let nx = x * Math.cos(rot) + y * -Math.sin(rot);
+            let ny = x * Math.sin(rot) + y * Math.cos(rot);
             let idx = Math.floor(p.map(x, -256, 256, 0, 10)) % 5;
-            pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
-            pg.ellipse(nx, ny, n, n);
+            pg.stroke(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+            // pg.ellipse(nx, ny, n, n);
+            pg.line(x, y, nx, ny);
+
+            rot += Math.PI * 0.25;
+            let nnx = x * Math.cos(rot) + y * -Math.sin(rot);
+            let nny = x * Math.sin(rot) + y * Math.cos(rot);
+            pg.line(nnx, nny, nx, ny);
+
+            rot += Math.PI * 0.25;
+            nx = x * Math.cos(rot) + y * -Math.sin(rot);
+            ny = x * Math.sin(rot) + y * Math.cos(rot);
+            pg.line(nnx, nny, nx, ny);
           }
         }
         // pg.textFont(this.font);
