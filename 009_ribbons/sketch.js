@@ -111,7 +111,6 @@ function S009PBR (p) {
   SRendererDof.call(this, p, 800, 800);
   this.angleVel = 0;
   this.angle = 0;
-  this.colorScheme = new ColorScheme("efbdeb-b68cb8-6461a0-314cb6-0a81d1");
   this.colorTextures = [];
   this.normalTextures = [];
   for(let i = 0; i < 7; i++) {
@@ -123,80 +122,70 @@ function S009PBR (p) {
   this.maxDepth = 100.0;
   this.maxBlur = 0.5;
   this.aperture = 0.05;
+
+  this.signal = [];
+  for(let i = -100; i <= 100; i++) {
+    this.signal[i + 100] = 0;
+  }
+  this.sigFuncs = [
+    function (args) {
+      return 100 * args.p.random(-1, 1);
+    },
+    function (args) {
+      return 0;
+    },
+    function (args) {
+      return 100 * Math.sin(args.j * 0.1 + args.t * 10.0);
+    },
+    function (args) {
+      return Math.sin(args.p.frameCount / 30.0 + args.j * 0.3 + args.i * 2.0) * 50;
+    },
+    function (args) {
+      let y = Math.sin(args.p.frameCount / 30.0 * 15.0 + args.j * 0.3 + args.i * 2.0);
+      return args.p.constrain(args.p.map(y, 0.95, 1, 0, 1), 0, 1) * -200;
+    }
+  ];
+  this.sigFunc = this.sigFuncs[0];
+  this.sigFunc2 = this.sigFuncs[0];
 }
 
 S009PBR.prototype = Object.create(SRendererDof.prototype, {
   drawScene: {
     value: function (pg, args, isDepth) {
       let p = this.p;
-      let t = p.millis() * 0.001;
       pg.clear();
-      pg.background(0);
-      pg.pushMatrix();
 
       pg.pushMatrix();
-      pg.translate(0, -20, 0);
 
-      let w = p.map(t % 2, 0, 2, 0, 2);
-      if(w > 1) w = 2 - w;
-      w = 40;
+      for(let i = -5; i <= 5; i++) {
 
-      // if(isDepth == false) {
-      //   for(let i = 0; i < this.colorTextures.length; i++) {
-      //     let ct = this.colorTextures[i];
-
-      //     let idx = Math.floor(p.map(i, -3, 3, 0, 4));
-      //     ct.beginDraw();
-      //     ct.fill(200, 150, 100);
-      //     // ct.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
-      //     ct.noStroke();
-      //     ct.rect(0, 0, 400, 400);
-
-      //     ct.translate(0, 400);
-      //     ct.fill(128, 128, 255);
-      //     ct.rect(0, 0, 400, 400);
-      //     ct.fill(128, 60, 255);
-      //     for(let j = 0; j < 10 - i; j++) {
-      //       ct.rect(0, j * 40, 400, 10);
-      //     }
-      //     if(this.rayPg != undefined) {
-      //       ct.image(this.ray.pg, 0, 0, 400, 400);
-      //     }
-      //     ct.endDraw();
-      //   }
-      // }
-
-      for(let i = -4; i <= 4; i++) {
-        pg.pushMatrix();
-        pg.translate(i * 70, 0, 0);
-
-        let idx = Math.floor(p.map(i, -4, 4, 0, 4));
-        pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
-
-        pg.textureMode(this.p.NORMAL);
-        // pg.fill(255);
-        pg.noStroke();
         pg.beginShape(p.TRIANGLE_STRIP);
-        // pg.texture(this.colorTextures[i + 3]);
-        for(let j = -30; j <= 30; j++) {
-          let z;
+        pg.noStroke();
+        if(i == 0) {
+          pg.fill(255, 0, 0);
+        }
+        else {
+          pg.fill(255);
+        }
+        for(let j = -100; j <= 100; j++) {
+          let y;
           if(i != 0) {
-            z = p.sin(p.frameCount / 30.0 + j * 0.3 + i * 2.0) * 50;
+            y = this.sigFunc2({t: p.frameCount / 30.0, j: j, i: i, p: p});
           }
           else {
-            z = p.random(-50, 50);
+            let yy = this.sigFunc({t: p.frameCount / 30.0, j: j, i: i, p: p});
+            // this.signal[j + 100] = p.lerp(this.signal[j + 100], yy, 0.3);
+            // y = this.signal[j + 100];
+            y = yy;
           }
           let w = 15;
-          // pg.normal(1, 0, 0);
-          pg.vertex(-w, z, j * 60, p.map(j, -10, 10, 0, 1), 0);
-          pg.vertex(w, z, j * 60, p.map(j, -10, 10, 0, 1), 1);
+          let x = i * 70;
+          let z = j * 30;
+          pg.vertex(x - w, y, z, p.map(j, -10, 10, 0, 1), 0);
+          pg.vertex(x + w, y, z, p.map(j, -10, 10, 0, 1), 1);
         }
         pg.endShape();
-        pg.popMatrix();
       }
-
-      pg.popMatrix();
-
       pg.popMatrix();
     }
   },
@@ -208,6 +197,8 @@ S009PBR.prototype = Object.create(SRendererDof.prototype, {
         this.cameraPositionTo = p5.Vector.random3D();
         this.cameraPositionTo.mult(500);
         this.cameraPositionTo.y = -Math.abs(this.cameraPositionTo.y) - 50;
+        this.sigFunc = p.random(this.sigFuncs);
+        this.sigFunc2 = p.random(this.sigFuncs);
       }
       this.angle += this.angleVel;
       this.angleVel = Math.max(this.angleVel * 0.95, 0);
@@ -242,7 +233,6 @@ function S009Ray (p) {
   SRenderer.call(this, p);
   this.angleVel = 0;
   this.angle = 0;
-  this.colorScheme = new ColorScheme("ff934f-c2e812-91f5ad-ffffff-bfcbc2");
   this.shader = p.loadShader(p.sketchPath(p.folderName + "/frag.glsl"));
   this.angle = 0;
 }
@@ -251,10 +241,6 @@ S009Ray.prototype = Object.create(SRenderer.prototype, {
   draw: {
     value: function (t) {
       let p = this.p;
-      if (p.frameCount % 60 == 0) {
-        // this.shader = p.loadShader(p.sketchPath(p.folderName + "/frag.glsl"));
-      }
-  
       let pg = this.pg;
 
       p.background(0);
