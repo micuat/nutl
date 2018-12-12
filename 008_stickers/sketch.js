@@ -1,6 +1,8 @@
 function S008 (p) {
   SRenderer.call(this, p);
-  this.colorScheme = new ColorScheme("1be7ff-6eeb83-e4ff1a-ffb800-ff5714");
+  this.colorScheme = new ColorScheme("edae49-d1495b-00798c-30638e-003d5b");
+  this.fontS = new Packages.geomerative.RFont("assets/fonts/Avenir-Medium.ttf", 100, p.CENTER);
+  this.fontL = new Packages.geomerative.RFont("assets/fonts/Avenir-Medium.ttf", 150, p.CENTER);
 }
 
 S008.prototype = Object.create(SRenderer.prototype, {
@@ -9,14 +11,10 @@ S008.prototype = Object.create(SRenderer.prototype, {
       let p = this.p;
       let pg = this.pg;
 
-      if(this.font == undefined || this.font == null) {
-        this.font = new Packages.geomerative.RFont("assets/fonts/Avenir.ttf", 180, p.CENTER);
-      }
-
       pg.beginDraw();
       pg.clear();
       // pg.stroke(0);
-      // pg.strokeWeight(2);
+      pg.strokeWeight(2);
       pg.noStroke();
       pg.translate(pg.width / 2, pg.height / 2);
       // pg.textAlign(p.CENTER, p.CENTER);
@@ -25,107 +23,126 @@ S008.prototype = Object.create(SRenderer.prototype, {
       Packages.geomerative.RCommand.setSegmentator(Packages.geomerative.RCommand.UNIFORMLENGTH);
 
       // pg.noFill();
-      let mode = 0;
+      let mode = 2;
       switch (mode) {
         case 0:
         {
-          let grp = this.font.toGroup('MMCK');
-          pg.fill(255);
-          pg.pushMatrix();
-          pg.translate(0, 180.0 / 4.0);
-          grp.draw(pg);
-          pg.popMatrix();
-          let rpoints = grp.getPoints();
-          for (let i = 0; i < rpoints.length - 1; i++) {
-            let rot = Math.PI * 0.25;
-            let x = rpoints[i].x;
-            let y = rpoints[i].y + 180.0 / 4.0;
-            let n = 8;
-            // let nx = (Math.floor(x / n) + 0.5) * n;
-            // let ny = (Math.floor(y / n) + 0.5) * n;
-            let nx = x * Math.cos(rot) + y * -Math.sin(rot);
-            let ny = x * Math.sin(rot) + y * Math.cos(rot);
-            let idx = Math.floor(p.map(x, -256, 256, 0, 10)) % 5;
-            pg.stroke(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
-            // pg.ellipse(nx, ny, n, n);
-            pg.line(x, y, nx, ny);
-
-            rot += Math.PI * 0.25;
-            let nnx = x * Math.cos(rot) + y * -Math.sin(rot);
-            let nny = x * Math.sin(rot) + y * Math.cos(rot);
-            pg.line(nnx, nny, nx, ny);
-
-            rot += Math.PI * 0.25;
-            nx = x * Math.cos(rot) + y * -Math.sin(rot);
-            ny = x * Math.sin(rot) + y * Math.cos(rot);
-            pg.line(nnx, nny, nx, ny);
+          let fshape = this.fontL.toShape('MMCK');
+          for(let ci = 0; ci < fshape.children.length; ci++) {
+            let rpoints = fshape.children[ci].getPoints();
+            pg.beginShape();
+            for (let i = 0; i < rpoints.length - 1; i++) {
+              let x = rpoints[i].x;
+              let y = rpoints[i].y + 50.0;
+              let idx = Math.floor(p.map(x, -256, 256, 0, 20)) % 5;
+              pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b, 255);
+              // pg.stroke(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b, 255);
+              pg.noStroke();
+              // if(ci == 3) {
+              //   x += Math.sin(y * 0.5) * 4;
+              // }
+              let n = 16;
+              x = Math.floor(x / n) * n;
+              y = Math.floor(y / n) * n;
+              pg.vertex(x, y);
+              // pg.beginShape();
+              // pg.noFill();
+              // pg.strokeWeight(3);
+              // for (let j = 0; j < 300; j++) {
+              //   pg.stroke(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b, p.map(j, 0, 300, 155, 0));
+              //   // let rot = j * Math.PI / 8.0 / 2.0;
+              //   // let nx = x * Math.cos(rot) + y * -Math.sin(rot);
+              //   // let ny = x * Math.sin(rot) + y * Math.cos(rot);
+              //   let nx = x + Math.sin(j * 0.1) * j * 0.1;
+              //   let ny = y + j * 1 - 100;
+              //   pg.vertex(nx, ny);
+              // }
+              // pg.endShape();
+            }
+            pg.endShape(p.CLOSE);
           }
         }
-        // pg.textFont(this.font);
-        // for(let i = 0; i < 10; i++) {
-        //   pg.pushMatrix();
-        //   pg.translate(0, p.map(i, 0, 9, -100, 100));
-        //   let s = p.map(i, 0, 9, 0.8, 1);
-        //   pg.scale(s, s);
-        //   let idx = Math.floor(p.map(i, 0, 9, 0, 4));
-        //   s = p.map(i, 0, 9, 0.5, 1);
-        //   pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b, s * 255);
-        //   pg.text("MMCK", 0, 0);
-        //   pg.popMatrix();
-        // }
         break;
 
         case 1:
-        pg.textFont(this.font);
         pg.pushMatrix();
         pg.text("STUPID", 0, 0);
         pg.popMatrix();
         break;
 
         case 2:
-        pg.textFont(this.font);
-        pg.pushMatrix();
-        pg.text("IGNORE ME", 0, 0);
-        pg.popMatrix();
+        {
+          let str = ["IGNORE", "ME"];
+          for(let k = 0; k < str.length; k++) {
+            let fshape = this.fontS.toShape(str[k]);
+            for(let ci = 0; ci < fshape.children.length; ci++) {
+              let rpoints = fshape.children[ci].getPoints();
+              pg.beginShape();
+              for (let i = 0; i < rpoints.length; i++) {
+                let x = rpoints[i].x;
+                let y = rpoints[i].y + 40.0 + p.map(k, 0, 1, -50, 50);
+                let idx = ci % 5;//Math.floor(p.map(x, -256, 256, 0, 20)) % 5;
+                pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b, 255);
+                // pg.stroke(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b, 255);
+                pg.noStroke();
+                if(ci == 3) {
+                  x += Math.sin(y * 0.5) * 4;
+                }
+                let n = 4;
+                // x = Math.floor(x / n) * n;
+                // y = Math.floor(y / n) * n;
+                pg.vertex(x, y);
+                // pg.beginShape();
+                // pg.noFill();
+                // pg.strokeWeight(3);
+                // for (let j = 0; j < 300; j++) {
+                //   pg.stroke(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b, p.map(j, 0, 300, 155, 0));
+                //   // let rot = j * Math.PI / 8.0 / 2.0;
+                //   // let nx = x * Math.cos(rot) + y * -Math.sin(rot);
+                //   // let ny = x * Math.sin(rot) + y * Math.cos(rot);
+                //   let nx = x + Math.sin(j * 0.1) * j * 0.1;
+                //   let ny = y + j * 1 - 100;
+                //   pg.vertex(nx, ny);
+                // }
+                // pg.endShape();
+              }
+              pg.endShape(p.CLOSE);
+            }
+          }
+        }
         break;
 
         case 3:
-        pg.textFont(this.font);
         pg.pushMatrix();
         pg.text("I'm suffering but fine", 0, 0);
         pg.popMatrix();
         break;
 
         case 4:
-        pg.textFont(this.font);
         pg.pushMatrix();
         pg.text("ICE CREAM", 0, 0);
         pg.popMatrix();
         break;
 
         case 5:
-        pg.textFont(this.font);
         pg.pushMatrix();
         pg.text("ONIGIRI", 0, 0);
         pg.popMatrix();
         break;
 
         case 6:
-        pg.textFont(this.font);
         pg.pushMatrix();
         pg.text("YOU EAT A LOT", 0, 0);
         pg.popMatrix();
         break;
 
         case 7:
-        pg.textFont(this.font);
         pg.pushMatrix();
         pg.text("Don't talk about me", 0, 0);
         pg.popMatrix();
         break;
 
         case 8:
-        pg.textFont(this.font);
         pg.pushMatrix();
         pg.text("I'm screaming but fine", 0, 0);
         pg.popMatrix();
