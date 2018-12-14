@@ -1,112 +1,3 @@
-function SRendererDof(p, w, h) {
-  SRenderer.call(this, p);
-  this.cameraPosition = p.createVector(0.0, 0.0, 200.0);
-  this.cameraTarget = p.createVector(0.0, 0.0, 0.0);
-
-  this.minDepth = 0.0;
-  this.maxDepth = 255.0;
-  this.focus = 0.5;
-  this.maxBlur = 0.1;
-  this.aperture = 0.1;
-
-  this.src = p.createGraphics(w, h, p.P3D);
-  this.dest = p.createGraphics(w, h, p.P3D);
-  this.dest2 = p.createGraphics(w, h, p.P3D);
-  this.depth = p.createGraphics(w, h, p.P3D);
-  this.depth.smooth(8);
-
-  this.defaultShader = p.loadShader("shaders/dof/default.frag", "shaders/dof/default.vert");
-  this.depthShader = p.loadShader("shaders/dof/depthfrag.glsl",
-      "shaders/dof/depthvert.glsl");
-      this.depthShader.set("minDepth", this.minDepth);
-      this.depthShader.set("maxDepth", this.maxDepth);
-
-  this.dof = p.loadShader("shaders/dof/dof.glsl");
-  this.dof.set("aspect", parseFloat(p.width) / p.height);
-
-  this.src.shader(this.defaultShader);
-  this.depth.shader(this.depthShader);
-}
-
-SRendererDof.prototype = Object.create(SRenderer.prototype, {
-  draw: {
-    value: function (that, args) {
-      if(that == undefined) that = this;
-      let p = that.p;
-      p.background(0);
-
-      that.src.beginDraw();
-      that.defaultShader.set("vLightPosition", 0, -100, -100);
-      that.defaultShader.set("uLightColor", 0.75, 0.75, 0.75);
-      that.defaultShader.set("uMetallic", 0.4);
-      that.defaultShader.set("uRoughness", 0.1);
-      that.defaultShader.set("uSpecular", 0.99);
-      that.defaultShader.set("uLightRadius", 500.0);
-      that.defaultShader.set("uExposure", 2.0);
-      that.defaultShader.set("uGamma", 0.8);
-      let viewMatrix = new Packages.processing.core.PMatrix3D(
-        0.5, 0.0, 0.0, 0.5,
-        0.0, 0.5, 0.0, 0.5,
-        0.0, 0.0, 0.5, 0.5,
-        0.0, 0.0, 0.0, 1.0
-      );
-      viewMatrix.translate(that.cameraPosition.x, that.cameraPosition.y, that.cameraPosition.z);
-      that.defaultShader.set("viewMatrix", new Packages.processing.core.PMatrix3D(
-        viewMatrix.m00, viewMatrix.m10, viewMatrix.m20, viewMatrix.m30,
-        viewMatrix.m01, viewMatrix.m11, viewMatrix.m21, viewMatrix.m31,
-        viewMatrix.m02, viewMatrix.m12, viewMatrix.m22, viewMatrix.m32,
-        viewMatrix.m03, viewMatrix.m13, viewMatrix.m23, viewMatrix.m33
-      ));
-      that.src.camera(that.cameraPosition.x, that.cameraPosition.y, that.cameraPosition.z, that.cameraTarget.x, that.cameraTarget.y, that.cameraTarget.z, 0, 1, 0);
-      that.drawScene(that.src, args, false);
-      that.src.endDraw();
-      that.depth.beginDraw();
-      that.depth.camera(that.cameraPosition.x, that.cameraPosition.y, that.cameraPosition.z, that.cameraTarget.x, that.cameraTarget.y, that.cameraTarget.z, 0, 1, 0);
-      that.drawScene(that.depth, args, true);
-      that.depth.endDraw();
-
-      that.depthShader.set("minDepth", that.minDepth);
-      that.depthShader.set("maxDepth", that.maxDepth); 
-      
-      that.dest.beginDraw();
-      that.dof.set("tDepth", that.depth);
-      that.dest.shader(that.dof);
-
-      that.dof.set("maxBlur", that.maxBlur);
-      that.dof.set("focus", that.focus);
-      that.dof.set("aperture", that.aperture);
-
-      that.dest.image(that.src, 0, 0);
-      that.dest.endDraw();
-
-      for(let i = 0; i < 2; i++) {
-        that.dest2.beginDraw();
-        that.dof.set("tDepth", that.depth);
-        that.dest2.shader(that.dof);
-    
-        that.dof.set("maxBlur", that.maxBlur);
-        that.dof.set("focus", that.focus);
-        that.dof.set("aperture", that.aperture);
-    
-        that.dest2.image(that.dest, 0, 0);
-        that.dest2.endDraw();
-        
-        let destTemp = that.dest;
-        that.dest = that.dest2;
-        that.dest2 = destTemp;
-      }
-      that.pg = that.dest2;
-    }
-  },
-  drawScene: {
-    value: function (that, pg, args, isDepth) {
-      if(that == undefined) that = this;
-    }
-  }
-});
-
-SRendererDof.prototype.constructor = SRendererDof;
-
 function Agent (params) {
   let p = params.p;
   this.col = params.col;
@@ -216,7 +107,7 @@ function Agent (params) {
 }
 
 function S004 (p) {
-  SRendererDof.call(this, p, 800, 800);
+  SRendererDof.call(this, p, 1500, 1050);
   this.colorScheme = new ColorScheme("97ead2-55d6be-7d5ba6-dddddd-fc6471");
   this.minDepth = -100.0;
   this.maxDepth = 100.0;
@@ -259,7 +150,7 @@ S004.prototype = Object.create(SRendererDof.prototype, {
       let mid = 400;
       this.minDepth = mid - 200.0;
       this.maxDepth = mid + 200.0;
-      if(p.random(1) > 0.95) {
+      if(p.random(1) > 0.92) {
         let idx = Math.floor(p.random(0, 5));
         this.agents.push(new Agent({p: p, pos: p.createVector(0, 200, -200), col: this.colorScheme.get(idx)}));
         if(this.agents.length > 15) this.agents.shift();
@@ -296,9 +187,8 @@ S004.prototype.constructor = S004;
 
 
 function S004a (p, solid) {
-  SRenderer.call(this, p, 800, 800);
+  SRenderer.call(this, p, 1500, 1050);
   this.solid = solid;
-  this.pg = p.createGraphics(800, 800, p.P3D);
 }
 
 S004a.prototype = Object.create(SRenderer.prototype, {
@@ -327,16 +217,19 @@ S004a.prototype.constructor = S004a;
 var s = function (p) {
   let s004 = new S004(p);
   let s004a = new S004a(p, s004);
-  let postProcess0 = new PostProcess(p);
-  let postProcess0a = new PostProcess(p);
-  let postProcess1a = new PostProcess(p);
+  let postProcess0 = new PostProcess(p, 1500, 1050);
+  // let postProcess0a = new PostProcess(p, 1500, 1050);
+  let postProcess1a = new PostProcess(p, 1500, 1050);
   let startFrame;
 
   p.setup = function () {
-    p.createCanvas(800, 800);
+    p.createCanvas(1500, 1050);
     p.frameRate(30);
 
     s004.setup();
+    s004a.setup();
+    postProcess0.setup();
+    postProcess1a.setup();
     startFrame = p.frameCount;
   }
 
@@ -347,8 +240,8 @@ var s = function (p) {
     s004.draw(t);
     s004a.draw(t);
     postProcess0.draw("bloom", s004.pg, {delta: 0.003, num: 2});
-    postProcess0a.draw("bloom", s004a.pg, {delta: 0.001, num: 6});
-    postProcess1a.draw("rgbshift", postProcess0a.pg, {delta: 100.0, num: 2});
+    // postProcess0a.draw("bloom", s004a.pg, {delta: 0.001, num: 6});
+    postProcess1a.draw("rgbshift", s004a.pg, {delta: 100.0, num: 2});
  
     p.blendMode(p.ADD);
     p.tint(255);

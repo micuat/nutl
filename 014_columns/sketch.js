@@ -1,5 +1,5 @@
 function S014 (p) {
-  SRendererShadow.call(this, p, 800, 800);
+  SRendererShadow.call(this, p, 1500, 1050);
   this.colorScheme = new ColorScheme("006e90-f18f01-41bbd9-adcad6-99c24d");
   this.texture = p.createGraphics(40, 40, p.P3D);
   this.texture.beginDraw();
@@ -222,7 +222,7 @@ var s = function (p) {
   let s014 = new S014(p);
 
   p.setup = function () {
-    p.createCanvas(800, 800);
+    p.createCanvas(1500, 1050);
     p.frameRate(30);
 
     s014.setup();
@@ -263,6 +263,10 @@ var s = function (p) {
     p.background(0);
     s014.draw(t);
     p.image(s014.pg, 0, 0);
+  }
+
+  p.mousePressed = function () {
+    p.saveFrame();
   }
 
   p.oscEvent = function(m) {

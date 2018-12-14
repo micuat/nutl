@@ -1,5 +1,5 @@
 function S012 (p) {
-  SRendererDof.call(this, p, 800, 800);
+  SRendererDof.call(this, p, 1500, 1050);
   this.colorScheme = new ColorScheme("edae49-d1495b-00798c-30638e-003d5b");
   this.minDepth = -0.0;
   this.maxDepth = 100.0;
@@ -114,7 +114,7 @@ S012.prototype = Object.create(SRendererDof.prototype, {
       let p = this.p;
       let v = this.cameraPosition.copy();
       v.sub(p.createVector(40 * this.cubeprop.x.cur, 0, 40 * this.cubeprop.z.cur));
-      let mid = v.mag() - 20;
+      let mid = v.mag() - 80;
       this.minDepth = mid - 300.0;
       this.maxDepth = mid + 300.0;
 
@@ -126,7 +126,7 @@ S012.prototype = Object.create(SRendererDof.prototype, {
 S012.prototype.constructor = S012;
 
 function S012Wire (p) {
-  SRenderer.call(this, p, 800, 800);
+  SRenderer.call(this, p, 1500, 1050);
 }
 
 S012Wire.prototype = Object.create(SRenderer.prototype, {
@@ -156,7 +156,7 @@ S012Wire.prototype = Object.create(SRenderer.prototype, {
 S012Wire.prototype.constructor = S012Wire;
 
 function S012PBR (p) {
-  SRendererShadow.call(this, p);
+  SRendererShadow.call(this, p, 1500, 1050);
   this.texture = p.createGraphics(40, 40, p.P3D);
   this.texture.beginDraw();
   this.texture.background(255);
@@ -226,7 +226,7 @@ var s = function (p) {
   let s012Wire = new S012Wire(p);
 
   p.setup = function () {
-    p.createCanvas(800, 800);
+    p.createCanvas(1500, 1050);
     p.frameRate(30);
 
     s012.setup();
@@ -280,7 +280,10 @@ var s = function (p) {
     p.image(s012Wire.pg, 0, 0);
     p.tint(255, 255 - fader);
     p.image(solid.pg, 0, 0);
-    // p.image(s012Wire.pg, 0, 0);
+  }
+
+  p.mousePressed = function () {
+    p.saveFrame();
   }
 
   p.oscEvent = function(m) {

@@ -86,8 +86,6 @@ void setup() {
   frameRate(60);
 
   scriptPaths.add(sketchPath(folderName + "/sketch.js"));
-
-  initNashorn();
 }
 
 void initNashorn() {
@@ -233,6 +231,7 @@ void initNashorn() {
 
 void draw() {
   if (libInited == false) {
+    initNashorn();
     try {
       readLibs(libPaths);
       libInited = true;

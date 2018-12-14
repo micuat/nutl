@@ -1,5 +1,5 @@
-function SRendererShadow (p) {
-  SRenderer.call(this, p);
+function SRendererShadow (p, w, h) {
+  SRenderer.call(this, p, w, h);
   this.lightPos;
   this.defaultShader;
   this.shadowMap;
