@@ -4,7 +4,8 @@ function S016 (p) {
   this.minDepth = -0.0;
   this.maxDepth = 100.0;
   this.maxBlur = 0.5;
-  this.aperture = 0.05;
+  this.aperture = 0.01;
+  this.blurIteration = 5;
 }
 
 S016.prototype = Object.create(SRendererGlow.prototype, {
@@ -24,13 +25,31 @@ S016.prototype = Object.create(SRendererGlow.prototype, {
       for (let i = -10; i <= 10; i++) {
         pg.pushMatrix();
         pg.translate(i * 20, 0, 0);
-        let idx = (i + 22) % 5;
-        pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+        let idx = (i + 22) % 4;
         for (let j = -10; j <= 10; j++) {
-          let z = p.map(Math.sin(t * (i * 0.5 + 0.5) + j * 0.5), -1, 1, -50, 50);
+          let z = 0;//p.map(Math.sin(t * (i * 0.5 + 0.5) + j * 0.5), -1, 1, -50, 50);
           pg.pushMatrix();
           pg.translate(-5, j * 40, z);
-          pg.box(15, 15, 15);
+          let r = 5 * p.sin(t * Math.PI * 4 + i * 0.5) * p.sin(t * 0.5);
+          if(j < r) {
+            if(isDepth) {
+              pg.fill(255);
+            }
+            else {
+              pg.fill(255, 0, 0);
+            }
+            pg.sphere(15 * 0.5 * Math.min(r - j, 1.0));
+          }
+
+          if(isDepth) {
+            pg.fill(0);
+          }
+          else {
+            // pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+            pg.fill(100);
+          }
+          pg.translate(0, 0, -10);
+          pg.box(15);
           pg.popMatrix();
         }
         pg.popMatrix();

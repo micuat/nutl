@@ -5,9 +5,10 @@ function SRendererGlow(p, w, h) {
 
   this.minDepth = 0.0;
   this.maxDepth = 255.0;
-  this.focus = 0.5;
+  this.focus = 0.0;
   this.maxBlur = 0.05;
   this.aperture = 0.1;
+  this.blurIteration = 2;
 
   this.src = p.createGraphics(w, h, p.P3D);
   this.dest = p.createGraphics(w, h, p.P3D);
@@ -79,7 +80,7 @@ SRendererGlow.prototype = Object.create(SRenderer.prototype, {
       that.dest.image(that.src, 0, 0);
       that.dest.endDraw();
 
-      for(let i = 0; i < 2; i++) {
+      for(let i = 0; i < that.blurIteration; i++) {
         that.dest2.beginDraw();
         that.glow.set("tDepth", that.depth);
         that.dest2.shader(that.glow);
