@@ -1,11 +1,35 @@
 function S016 (p) {
   SRendererGlow.call(this, p, 800, 800);
-  this.colorScheme = new ColorScheme("ff934f-c2e812-91f5ad-ffffff-bfcbc2");
+  this.colorScheme = new ColorScheme("5e2bff-c04cfd-fc6dab-f7f6c5-f3fae1");
   this.minDepth = -0.0;
-  this.maxDepth = 100.0;
-  this.maxBlur = 0.015;
+  this.maxDepth = 255.0;
+  this.maxBlur = 0.05;
   this.aperture = 0.01;
-  this.blurIteration = 4;
+  this.focus = 1.0;
+  this.blurIteration = 2;
+
+  this.shapes = [];
+  for (let i = -5; i <= 5; i++) {
+    for (let j = -5; j <= 5; j++) {
+      let idx = (i + j + 22) % 5;
+      let s = p.createShape();
+      s.beginShape(p.TRIANGLES);
+      s.translate((i + (j % 2) * 0.5) * 30, 50, j * 30);
+      s.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b, 255);
+      s.noStroke();
+      Polygons.Hexagon(s, 0, 0, 0, 10, 100);
+      s.endShape();
+      s.disableStyle();
+      this.shapes.push(s);
+    }
+  }
+
+  this.freqs = [];
+  for (let i = -5; i <= 5; i++) {
+    for (let j = -5; j <= 5; j++) {
+      this.freqs.push(p.random(0.1, 1));
+    }
+  }
 }
 
 S016.prototype = Object.create(SRendererGlow.prototype, {
@@ -18,45 +42,16 @@ S016.prototype = Object.create(SRendererGlow.prototype, {
         pg.lights();
       pg.pushMatrix();
       pg.noStroke();
-      pg.fill(250);
-      pg.rotateX(Math.PI * 0.3);
-      pg.rotateZ(Math.PI * 0.2);
-    
-      for (let i = -5; i <= 5; i++) {
-        pg.pushMatrix();
-        pg.translate(i * 20, 0, 0);
-        let idx = (i + 22) % 4;
-        for (let j = -5; j <= 5; j++) {
-          let z = 0;//p.map(Math.sin(t * (i * 0.5 + 0.5) + j * 0.5), -1, 1, -50, 50);
-          pg.pushMatrix();
-          pg.translate(-5, j * 40, z);
-          let r = 5 * p.sin(t * Math.PI * 4 + i * 0.5) * p.sin(t * 0.5);
-          if(j < r) {
-            if(isDepth) {
-              pg.fill(255);
-            }
-            else {
-              pg.fill(255, 0, 0);
-            }
-            pg.sphere(15 * 0.5 * Math.min(r - j, 1.0));
-          }
 
-          if(isDepth) {
-            pg.fill(0);
-          }
-          else {
-            // pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
-            pg.fill(100);
-          }
-          pg.translate(0, 0, -10);
-          pg.box(5, 5, 100);
-          pg.popMatrix();
-        }
-        pg.popMatrix();
+      for(let i in this.shapes) {
+        let idx = i % 5;
+        let s = this.shapes[i];
+        let glow = p.map(Math.sin(t * this.freqs[i] * Math.PI), -1, 1, 0, 1);
+        pg.fill(this.colorScheme.get(idx).r * glow, this.colorScheme.get(idx).g * glow, this.colorScheme.get(idx).b * glow);
+        pg.shape(this.shapes[i], 0, 0);
       }
+    
       pg.popMatrix();
-      pg.translate(0, 0, -1000);
-      pg.box(3000, 3000, 1);
     }
   },
   draw: {
@@ -74,6 +69,8 @@ S016.prototype.constructor = S016;
 
 var s = function (p) {
   let s016 = new S016(p);
+  let postProcess0 = new PostProcess(p);
+  let postProcess1 = new PostProcess(p);
   let startFrame;
 
   p.setup = function () {
@@ -81,6 +78,8 @@ var s = function (p) {
     p.frameRate(30);
 
     s016.setup();
+    postProcess0.setup();
+    postProcess1.setup();
     startFrame = p.frameCount;
   }
 
@@ -93,9 +92,16 @@ var s = function (p) {
       print(p.frameRate())
     }
 
+    let angle = t * 0.2;
+    s016.cameraPosition = p.createVector(300.0 * Math.cos(angle), -200.0, 300.0 * Math.sin(angle));
+    s016.cameraTarget = p.createVector(0.0, 0.0, 0.0);
     s016.draw(t);
+    postProcess0.draw("bloom", s016.pg, {delta: 0.001, num: 4});
+    postProcess1.draw("rgbshift", postProcess0.pg, {
+      delta: 40.0
+    });
     p.background(0, 255, 0);
-    p.image(s016.pg, 0, 0);
+    p.image(postProcess1.pg, 0, 0);
   }
 
 };

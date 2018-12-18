@@ -8,9 +8,7 @@ uniform float minDepth;
 uniform float maxDepth;
 
 void main() {
-  float depth = gl_FragCoord.z / gl_FragCoord.w;
-  float d = 1.0 - (depth-minDepth)/(maxDepth-minDepth);
-  d = vertColor.r;
+  float d = vertColor.a;
   d = max(0.0, min(1.0, d));
   gl_FragColor = vec4(vec3(d), 1.0);
 }

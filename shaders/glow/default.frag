@@ -120,5 +120,5 @@ void main(void) {
 	color					= color * whiteScale;
 	color					= pow( color, vec3( 1.0f / uGamma ) );
 
-    gl_FragColor = vec4(color, vertColor.a); 
+    gl_FragColor = vec4(color, 1.0); 
 }
