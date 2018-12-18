@@ -10,74 +10,6 @@ function S014 (p) {
   this.uSpecular = 0.9;
   this.uExposure = 3.0;
 
-  function Cube (shape, x0, y0, z0, x1, y1, z1, tx0, ty0, tx1, ty1) {
-    // +Z "front" face
-    shape.normal( 0,  0,  1);
-    shape.vertex(x0, y0, z1, tx0, ty0);
-    shape.vertex(x1, y0, z1, tx1, ty0);
-    shape.vertex(x1, y1, z1, tx1, ty1);
-    shape.vertex(x0, y1, z1, tx0, ty1);
-
-    // -Z "back" face
-    shape.normal( 0,  0, -1);
-    shape.vertex(x1, y0, z0, tx0, ty0);
-    shape.vertex(x0, y0, z0, tx1, ty0);
-    shape.vertex(x0, y1, z0, tx1, ty1);
-    shape.vertex(x1, y1, z0, tx0, ty1);
-
-    // +Y "bottom" face
-    shape.normal( 0,  1,  0);
-    shape.vertex(x0, y1, z1, tx0, ty0);
-    shape.vertex(x1, y1, z1, tx1, ty0);
-    shape.vertex(x1, y1, z0, tx1, ty1);
-    shape.vertex(x0, y1, z0, tx0, ty1);
-
-    // -Y "top" face
-    shape.normal( 0, -1,  0);
-    shape.vertex(x0, y0, z0, tx0, ty0);
-    shape.vertex(x1, y0, z0, tx1, ty0);
-    shape.vertex(x1, y0, z1, tx1, ty1);
-    shape.vertex(x0, y0, z1, tx0, ty1);
-
-    // +X "right" face
-    shape.normal( 1,  0,  0);
-    shape.vertex(x1, y0, z1, tx0, ty0);
-    shape.vertex(x1, y0, z0, tx1, ty0);
-    shape.vertex(x1, y1, z0, tx1, ty1);
-    shape.vertex(x1, y1, z1, tx0, ty1);
-
-    // -X "left" face
-    shape.normal(-1,  0,  0);
-    shape.vertex(x0, y0, z0, tx0, ty0);
-    shape.vertex(x0, y0, z1, tx1, ty0);
-    shape.vertex(x0, y1, z1, tx1, ty1);
-    shape.vertex(x0, y1, z0, tx0, ty1);
-  }
-  function Hexagon (shape, x0, y0, z0, r, h) {
-    let n = 6.0;
-    for(let i = 0; i < n; i++) {
-      shape.normal(0, -1, 0);
-      shape.vertex(x0, y0 - h, z0, 0, 0);
-      let x1 = x0 + r * Math.cos(i * 2.0 * Math.PI / n);
-      let y1 = y0 - h;
-      let z1 = z0 + r * Math.sin(i * 2.0 * Math.PI / n);
-      shape.vertex(x1, y1, z1, 0, 0);
-      let x2 = x0 + r * Math.cos((i+1) * 2.0 * Math.PI / n);
-      let y2 = y0 - h;
-      let z2 = z0 + r * Math.sin((i+1) * 2.0 * Math.PI / n);
-      shape.vertex(x2, y2, z2, 0, 0);
-
-      shape.normal(Math.cos((i + 0.5) * 2.0 * Math.PI / n), 0, Math.sin((i + 0.5) * 2.0 * Math.PI / n));
-      shape.vertex(x2, y2, z2, 0, 0);
-      shape.vertex(x1, y1, z1, 0, 0);
-      shape.vertex(x1, y0 + h, z1, 0, 0);
-
-      shape.vertex(x2, y2, z2, 0, 0);
-      shape.vertex(x1, y0 + h, z1, 0, 0);
-      shape.vertex(x2, y0 + h, z2, 0, 0);
-
-    }
-  }
   this.shape = p.createShape();
   
   // Cube(this.shape, -100, -100, -100, 100, 100, 100, 0, 0, 1, 1);
@@ -96,7 +28,7 @@ function S014 (p) {
     this.shape.noStroke();
     this.shape.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
     // Cube(this.shape, x - w/2, y - w/2, z - w/2, x + w/2, y + w/2, z + w/2, 0, 0, 1, 1);
-    Hexagon(this.shape, x, 50, z, w / Math.sqrt(3) * 0.9, Math.pow(2, 4 - idx + 3));
+    Polygons.Hexagon(this.shape, x, 50, z, w / Math.sqrt(3) * 0.9, Math.pow(2, 4 - idx + 3));
     this.shape.endShape(this.p.CLOSE);
   }
 
