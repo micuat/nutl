@@ -3,9 +3,9 @@ function S016 (p) {
   this.colorScheme = new ColorScheme("ff934f-c2e812-91f5ad-ffffff-bfcbc2");
   this.minDepth = -0.0;
   this.maxDepth = 100.0;
-  this.maxBlur = 0.5;
+  this.maxBlur = 0.015;
   this.aperture = 0.01;
-  this.blurIteration = 5;
+  this.blurIteration = 4;
 }
 
 S016.prototype = Object.create(SRendererGlow.prototype, {
@@ -13,7 +13,7 @@ S016.prototype = Object.create(SRendererGlow.prototype, {
     value: function (pg, args, isDepth) {
       let t = args.t;
       let p = this.p;
-      pg.background(30);
+      pg.clear();
       if (isDepth != true)
         pg.lights();
       pg.pushMatrix();
@@ -22,11 +22,11 @@ S016.prototype = Object.create(SRendererGlow.prototype, {
       pg.rotateX(Math.PI * 0.3);
       pg.rotateZ(Math.PI * 0.2);
     
-      for (let i = -10; i <= 10; i++) {
+      for (let i = -5; i <= 5; i++) {
         pg.pushMatrix();
         pg.translate(i * 20, 0, 0);
         let idx = (i + 22) % 4;
-        for (let j = -10; j <= 10; j++) {
+        for (let j = -5; j <= 5; j++) {
           let z = 0;//p.map(Math.sin(t * (i * 0.5 + 0.5) + j * 0.5), -1, 1, -50, 50);
           pg.pushMatrix();
           pg.translate(-5, j * 40, z);
@@ -49,7 +49,7 @@ S016.prototype = Object.create(SRendererGlow.prototype, {
             pg.fill(100);
           }
           pg.translate(0, 0, -10);
-          pg.box(15);
+          pg.box(5, 5, 100);
           pg.popMatrix();
         }
         pg.popMatrix();
@@ -88,7 +88,13 @@ var s = function (p) {
 
   p.draw = function () {
     t = (getCount() / 30.0);
+
+    if(p.frameCount % 30 == 0) {
+      print(p.frameRate())
+    }
+
     s016.draw(t);
+    p.background(0, 255, 0);
     p.image(s016.pg, 0, 0);
   }
 

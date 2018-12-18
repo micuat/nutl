@@ -34,7 +34,6 @@ SRendererGlow.prototype = Object.create(SRenderer.prototype, {
     value: function (that, args) {
       if(that == undefined) that = this;
       let p = that.p;
-      p.background(0);
 
       that.src.beginDraw();
       that.defaultShader.set("vLightPosition", 0, -100, -100);
@@ -70,6 +69,7 @@ SRendererGlow.prototype = Object.create(SRenderer.prototype, {
       that.depthShader.set("maxDepth", that.maxDepth); 
       
       that.dest.beginDraw();
+      that.dest.clear();
       that.glow.set("tDepth", that.depth);
       that.dest.shader(that.glow);
 
@@ -82,6 +82,7 @@ SRendererGlow.prototype = Object.create(SRenderer.prototype, {
 
       for(let i = 0; i < that.blurIteration; i++) {
         that.dest2.beginDraw();
+        that.dest2.clear();
         that.glow.set("tDepth", that.depth);
         that.dest2.shader(that.glow);
     
