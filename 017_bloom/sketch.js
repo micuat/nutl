@@ -11,8 +11,11 @@ function S017 (p, w, h) {
   this.uExposure = 4.0;
 
   this.shape = p.createShape(p.GROUP);
+  this.shapeBloom = p.createShape(p.GROUP);
   
   for(let i = 0; i < 500; i++) {
+    let bloom = p.random(1.0) > 0.9;
+
     let v = p5.Vector.random2D();
     let idx = Math.floor(p.random(0, 5));
     let radius = Math.pow(2, (idx + p.random(1)) + 4);
@@ -30,10 +33,20 @@ function S017 (p, w, h) {
     s.translate(0, y, 0);
     // this.shape.beginShape(this.p.QUADS);
     s.noStroke();
-    s.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+    // if(bloom) {
+    //   s.fill(255);
+    // }
+    // else {
+      s.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+    // }
     Polygons.Hexagon(s, x, 50, z, w / Math.sqrt(3) * 0.9, Math.pow(2, -idx + 7));
     s.endShape(this.p.CLOSE);
-    this.shape.addChild(s);
+    if(bloom) {
+      this.shapeBloom.addChild(s);
+    }
+    else {
+      this.shape.addChild(s);
+    }
   }
 }
 
@@ -46,14 +59,24 @@ S017.prototype = Object.create(SRendererShadow.prototype, {
       // pg.textureMode(p.NORMAL);
       // pg.texture(this.texture);
 
-      pg.shape(this.shape, 0, 0);
-
       if(!isShadow) {
         this.defaultShader.set("uMetallic", 0.9);
-        this.defaultShader.set("uRoughness", 0.1);
+        this.defaultShader.set("uRoughness", 0.02);
         this.defaultShader.set("uSpecular", 0.9);
         // pg.shader(this.defaultShader);
       }
+
+      pg.shape(this.shape, 0, 0);
+
+      if(!isShadow) {
+        this.defaultShader.set("uMetallic", EasingFunctions.easeInOutCubic(p.sin(p.millis() * 0.002) * 0.5 + 0.5) * 0.9);
+        this.defaultShader.set("uRoughness", 0.01);
+        this.defaultShader.set("uSpecular", 0.1);
+        // pg.shader(this.defaultShader);
+      }
+
+      pg.shape(this.shapeBloom, 0, 0);
+
       pg.popMatrix();
 
       pg.fill(150);
@@ -78,12 +101,14 @@ S017.prototype.constructor = S017;
 
 var s = function (p) {
   let s017 = new S017(p, 800, 800);
+  let postProcess0 = new PostProcess(p);
 
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(30);
 
     s017.setup();
+    postProcess0.setup();
   }
 
   p.draw = function () {
@@ -100,7 +125,13 @@ var s = function (p) {
     p.resetShader();
     p.background(0);
     s017.draw(t);
+    postProcess0.draw("bloom", s017.pg, {delta: 0.002, num: 6});
+    p.tint(255);
+    p.blendMode(p.BLEND);
     p.image(s017.pg, 0, 0);
+    p.tint(128);
+    p.blendMode(p.SCREEN);
+    p.image(postProcess0.pg, 0, 0);
   }
 
   p.mousePressed = function () {

@@ -19,22 +19,20 @@ void main(void) {
 
   int j;
   int i;
-  for(i=-3; i<3; i++){
-    for (j=-3; j<3; j++){
+  for(i=-2; i<=2; i++){
+    for (j=-2; j<=2; j++){
       vec2 tc = vertTexCoord.st + vec2(j, i) * delta;
-      sum += texture2D(texture, tc) * 0.25;
+      vec4 c = texture2D(texture, tc);
+      sum += texture2D(texture, tc) / 25.0;
     }
   }
 
+  float threshold = 0.3;
   vec4 outputColor;
-  if (texture2D(texture, vertTexCoord.st).r < 0.3){
-      outputColor = sum * sum * 0.012 + texture2D(texture, vertTexCoord.st);
+  if (length(sum.rgb) < threshold){
+    outputColor = col;
   } else {
-      if (texture2D(texture, vertTexCoord.st).r < 0.5){
-          outputColor = sum * sum * 0.009 + texture2D(texture, vertTexCoord.st);
-      } else {
-          outputColor = sum * sum * 0.0075 + texture2D(texture, vertTexCoord.st);
-      }
+    outputColor = sum * sum * 0.9 + col;
   }
   gl_FragColor = outputColor * vertColor;
 }
