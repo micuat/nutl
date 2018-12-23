@@ -13,6 +13,7 @@ function SRendererShadow (p, w, h) {
   this.uLightRadius = 500.0;
   this.uExposure = 2.0;
   this.uGamma = 0.8;
+  this.uVignette = 0.75;
   this.name;
 }
 
@@ -102,6 +103,7 @@ SRendererShadow.prototype = Object.create(SRenderer.prototype, {
       that.defaultShader.set("uLightRadius", that.uLightRadius);
       that.defaultShader.set("uExposure", that.uExposure);
       that.defaultShader.set("uGamma", that.uGamma);
+      that.defaultShader.set("uVignette", that.uVignette);
     
       that.defaultShader.set("vLightPosition", that.lightPos.x, that.lightPos.y, that.lightPos.z);
     
