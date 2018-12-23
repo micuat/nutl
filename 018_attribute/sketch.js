@@ -38,21 +38,28 @@ function S018 (p, w, h) {
     s.beginShape(this.p.TRIANGLE_STRIP);
     s.noStroke();
     let idx = 1;
-    s.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+    s.fill(100);
+    // s.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
     for(let j = -200; j < 200; j+=di) {
       for(let ii = di; ii >= 0; ii-=di) {
         let n;
         n = p.noise((i+ii) * 0.05, j * 0.05);
         s.attribPosition("aPbr", n, 1.0-n, 0.1);
-        s.vertex(j * 2, -n * 150, (i + ii) * 2);
+        s.vertex(j * 2, -n * 150, (i + ii * 0.5) * 2);
 
-        let theta = p.map(i + ii, -200, 200, -Math.PI, Math.PI);
+        let theta = p.map(i + ii * 0.5, -200, 200, -Math.PI, Math.PI);
         let phi = p.map(j, -200, 200, 0, Math.PI);
         let r = 100 + n * 100;
         let x0 = r * Math.sin(phi) * Math.cos(theta);
         let y0 = r * Math.sin(phi) * Math.sin(theta);
         let z0 = r * Math.cos(phi);
-        s.attribPosition("tweened", x0, y0, z0);
+        s.attribPosition("tweened0", x0, y0, z0);
+        r = 100;
+        theta = p.map(i + ii * 1.0, -200, 200, -Math.PI, Math.PI);
+        x0 = r * Math.sin(phi) * Math.cos(theta * 2.0) + ((i >= 0) ? 100 : -100);
+        y0 = r * Math.sin(phi) * Math.sin(theta * 2.0);
+        z0 = r * Math.cos(phi);
+        s.attribPosition("tweened1", x0, y0, z0);
       }
     }
     s.endShape(this.p.CLOSE);
@@ -66,7 +73,7 @@ S018.prototype = Object.create(SRendererPbr.prototype, {
       let p = this.p;
       pg.clear();
       let idx = 0;
-      pg.background(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+      // pg.background(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
       pg.pushMatrix();
 
       for(let i in this.shape) {
@@ -81,7 +88,12 @@ S018.prototype = Object.create(SRendererPbr.prototype, {
       this.lightPos.set(100, -130, 100);
       // this.lightPos = this.cameraPosition;
       this.lightDirection = this.lightPos;//p.createVector(0, 1, 1);
-      this.defaultShader.set("tween", EasingFunctions.easeInOutCubic(p.map(Math.sin(t), -1, 1, 0, 1)));
+      if(Math.sin(t) > 0) {
+        this.defaultShader.set("tween0", EasingFunctions.easeInOutCubic(Math.sin(t)));
+      }
+      else {
+        this.defaultShader.set("tween1", EasingFunctions.easeInOutCubic(-Math.sin(t)));
+      }
       Object.getPrototypeOf(S018.prototype).draw(this);
     }
   }
@@ -111,7 +123,7 @@ var s = function (p) {
     s018.cameraTarget = p.createVector(0.0, 0.0, 0.0);
 
     p.resetShader();
-    p.background(0);
+    p.background(255);
     s018.draw(t);
     p.image(s018.pg, 0, 0);
   }

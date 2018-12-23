@@ -8,14 +8,16 @@ uniform mat3 normalMatrix;
 uniform mat4 shadowTransform;
 uniform vec3 lightDirection;
 uniform vec3 vLightPosition;
-uniform float tween;
+uniform float tween0;
+uniform float tween1;
 
 attribute vec4 vertex; 
 attribute vec4 color; 
 attribute vec3 normal; 
 attribute vec2 texCoord;
 attribute vec4 aPbr;
-attribute vec4 tweened;
+attribute vec4 tweened0;
+attribute vec4 tweened1;
 
 varying vec4 vertColor;
 varying vec3 vNormal;
@@ -33,7 +35,8 @@ void main() {
   vTexCoord = texMatrix * vec4(texCoord, 1.0, 1.0);
   vPbr = aPbr.rgb;
 
-  vec4 newVertex = vertex * (1.0 - tween) + tweened * tween;
+  vec4 newVertex = vertex * (1.0 - tween0) + tweened0 * tween0;
+  newVertex = newVertex * (1.0 - tween1) + tweened1 * tween1;
   vec4 vPosition4 = modelview * newVertex; // Get vertex position in model view space
   vPosition = vPosition4.xyz / vPosition4.w;
   gl_Position = transform * newVertex;
