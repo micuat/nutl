@@ -111,6 +111,48 @@ SSphere.prototype = Object.create(SObject.prototype, {
 
 SSphere.prototype.constructor = SSphere;
 
+function SRibbonSphere (p) {
+  SObject.call(this, p);
+  this.shape = p.createShape(p.GROUP);
+  let n = 32;
+  let r = 100;
+  for(let i = -n; i <= n; i+=2) {
+    let s = p.createShape();
+    s.beginShape(this.p.TRIANGLE_STRIP);
+    s.noStroke();
+    s.fill(255);
+    for(let j = -n; j <= n; j++) {
+      for(let ii = 1; ii >= 0; ii--) {
+        let theta = p.map(j, -n, n, -Math.PI, Math.PI);
+        let phi = p.map(i + ii, -n, n, 0, Math.PI);
+        let x0 = r * Math.sin(phi) * Math.cos(theta);
+        let y0 = r * Math.sin(phi) * Math.sin(theta);
+        let z0 = r * Math.cos(phi);
+        s.normal(x0, y0, z0);
+        s.vertex(x0, y0, z0, phi / Math.PI, (theta / Math.PI) * 0.5 + 0.5);
+      }
+    }
+    s.endShape(this.p.CLOSE);
+    this.shape.addChild(s);
+  }
+}
+
+SRibbonSphere.prototype = Object.create(SObject.prototype, {
+  draw: {
+    value: function (pg) {
+      let p = this.p;
+      let scale = EasingFunctions.easeInOutCubic(this.fadeIn * (1.0 - this.fadeOut));
+      pg.pushMatrix();
+      pg.scale(scale, scale, scale);
+      pg.shape(this.shape, 0, 0);
+      pg.popMatrix();
+      Object.getPrototypeOf(SRibbonSphere.prototype).draw(this);
+    }
+  }
+});
+
+SRibbonSphere.prototype.constructor = SRibbonSphere;
+
 function SWeirdSphere (p) {
   SObject.call(this, p);
   this.shape = p.createShape(p.GROUP);
@@ -174,7 +216,7 @@ function S020 (p, w, h) {
 
   let box = new SWeirdSphere(p);
   box.fadeSpeed = 2.0;
-  let sphere = new SSphere(p);
+  let sphere = new SRibbonSphere(p);
   sphere.fadeSpeed = 2.0;
   this.shapes = [];
   this.shapes.push(box);
