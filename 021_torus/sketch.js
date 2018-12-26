@@ -129,8 +129,10 @@ function STorus (p) {
       this.latheAngle+=360.0/this.segments;
     }
     s.endShape();
+    s.disableStyle();
     this.shape.addChild(s);
   }
+  this.shape.disableStyle();
 }
 
 STorus.prototype = Object.create(SObject.prototype, {
@@ -139,7 +141,7 @@ STorus.prototype = Object.create(SObject.prototype, {
       let p = this.p;
       let scale = EasingFunctions.easeInOutCubic(this.fadeIn * (1.0 - this.fadeOut));
       pg.pushMatrix();
-      // pg.scale(scale, scale, scale);
+      pg.scale(scale, scale, scale);
       pg.shape(this.shape, 0, 0);
       pg.popMatrix();
       Object.getPrototypeOf(STorus.prototype).draw(this);
@@ -151,18 +153,17 @@ STorus.prototype.constructor = STorus;
 
 function S021 (p, w, h) {
   SRendererShadow.call(this, p, w, h);
-  this.colorScheme = new ColorScheme("8a6552-462521-ca2e55-dde0b5-bdb246");
-  this.texture = p.createGraphics(40, 40, p.P3D);
-  this.texture.beginDraw();
-  this.texture.background(255);
-  this.texture.endDraw();
+  this.colorScheme = new ColorScheme("006e90-f18f01-adcad6-99c24d-41bbd9");
   this.uMetallic = 0.3;
   this.uRoughness = 0.5;
   this.uSpecular = 0.9;
   this.uExposure = 4.0;
   this.uVignette = 0.0;
 
-  this.shape = new STorus(p);
+  this.shapes = [];
+  for(let i = 0; i < 3; i++) {
+    this.shapes.push(new STorus(p));
+  }
 }
 
 S021.prototype = Object.create(SRendererShadow.prototype, {
@@ -172,13 +173,20 @@ S021.prototype = Object.create(SRendererShadow.prototype, {
       pg.clear();
       pg.pushMatrix();
     
-      pg.rotateX(p.frameCount*Math.PI/150);
-      pg.rotateY(p.frameCount*Math.PI/170);
-      pg.rotateZ(p.frameCount*Math.PI/90);
-      this.shape.draw(pg);
+      for(let i in this.shapes) {
+        pg.pushMatrix();
+        let idx = i;
+        pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+        pg.translate(p.map(i, 0, 2, -200, 200), 0, 0);
+        pg.rotateX((p.frameCount+i*30)*Math.PI/150);
+        pg.rotateY((p.frameCount+i*30)*Math.PI/170);
+        pg.rotateZ((p.frameCount+i*30)*Math.PI/90);
+        this.shapes[i].draw(pg);
+        pg.popMatrix();
+      }
       pg.popMatrix();
 
-      let idx = 4;
+      let idx = 3;
       pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
       pg.pushMatrix();
       pg.translate(0, 280, 0);
@@ -191,7 +199,20 @@ S021.prototype = Object.create(SRendererShadow.prototype, {
       let p = this.p;
       this.lightPos.set(100, -300, 200);
       this.lightDirection = this.lightPos;
+      let cycle = 90;
+      for(let i = 0; i < this.shapes.length; i++) {
+        let shape = this.shapes[i];
+        if(p.frameCount % cycle == i * 30 % cycle) {
+          shape.in();
+        }
+        if(p.frameCount % cycle == (i * 30 + 60) % cycle) {
+          shape.out();
+        }
+      }
 
+      for(let i in this.shapes) {
+        this.shapes[i].update();
+      }
       Object.getPrototypeOf(S021.prototype).draw(this);
     }
   }
