@@ -30,6 +30,7 @@ uniform float uLightRadius;
 uniform float uExposure;
 uniform float uGamma;
 uniform float uVignette;
+uniform int uUseTexture;
 
 uniform mat4 viewMatrix;
 
@@ -110,9 +111,14 @@ float getAttenuation( vec3 lightPosition, vec3 vertexPosition, float lightRadius
 void main(void) {
 	vec4 vlp4 = viewMatrix * vec4(vLightPosition*0.0-(vPosition-vLightPosition), 1.0);
 	vec3 vlp = vlp4.xyz / vlp4.w;
-	vec3 N                  = normalize(vNormal);
-	// vec3 N                  = normalize(vNormal + normalMatrix * (texture2D(texture, vTexCoord.st * vec2(1.0, 0.5) + vec2(0.0, 0.0)).rgb - vec3(0.5)));
-	// vec3 N                  = normalize(vNormal + normalMatrix * (texture2D(normalTexture, vTexCoord.st).rgb - vec3(0.5)));
+	vec3 N;
+	if(uUseTexture > 0) {
+		N                  = normalize(vNormal + normalMatrix * (texture2D(texture, vTexCoord.st * vec2(1.0, 0.5) + vec2(0.0, 0.0)).rgb - vec3(0.5)));
+	}
+	else {
+		N                  = normalize(vNormal);
+	}
+
 	vec3 L                  = normalize( vlp - vPosition );
 	vec3 V                  = normalize( -vPosition );
 	vec3 H					= normalize(V + L);
@@ -122,8 +128,13 @@ void main(void) {
 	float NoH				= saturate( dot( N, H ) );
 
 	// deduce the diffuse and specular color from the baseColor and how metallic the material is
-	vec3 uBaseColor = vertColor.rgb * saturate(1.0 - uVignette * length(vTexCoord.st - vec2(0.5)));
-	// vec3 uBaseColor = texture2D(texture, vTexCoord.st * vec2(1.0, -0.5) + vec2(0.0, 1.0)).rgb * vertColor.rgb;
+	vec3 uBaseColor;
+	if(uUseTexture > 0) {
+		uBaseColor = texture2D(texture, vTexCoord.st * vec2(1.0, -0.5) + vec2(0.0, 1.0)).rgb * vertColor.rgb;
+	}
+	else {
+		uBaseColor = vertColor.rgb * saturate(1.0 - uVignette * length(vTexCoord.st - vec2(0.5)));
+	}
 	vec3 diffuseColor		= uBaseColor - uBaseColor * uMetallic;
 	vec3 specularColor = mix( vec3( 0.08 * uSpecular ), uBaseColor, uMetallic );
 	float distribution		= getNormalDistribution( uRoughness, NoH );
