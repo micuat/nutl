@@ -42,6 +42,49 @@ Polygons = {
     shape.vertex(x0, y1, z1, tx1, ty1);
     shape.vertex(x0, y1, z0, tx0, ty1);
   },
+  Dice: function (shape, x0, y0, z0, x1, y1, z1) {
+    // +Z "front" face
+    shape.normal( 0,  0,  1);
+    shape.vertex(x0, y0, z1, 0.25, 0.25);
+    shape.vertex(x1, y0, z1, 0.5 , 0.25);
+    shape.vertex(x1, y1, z1, 0.5 , 0.5);
+    shape.vertex(x0, y1, z1, 0.25, 0.5);
+
+    // -Z "back" face
+    shape.normal( 0,  0, -1);
+    shape.vertex(x1, y0, z0, 0.5 , 1.0);
+    shape.vertex(x0, y0, z0, 0.25, 1.0);
+    shape.vertex(x0, y1, z0, 0.25, 0.75);
+    shape.vertex(x1, y1, z0, 0.5 , 0.75);
+
+    // +Y "bottom" face
+    shape.normal( 0,  1,  0);
+    shape.vertex(x0, y1, z1, 0.25, 0.5);
+    shape.vertex(x1, y1, z1, 0.5 , 0.5);
+    shape.vertex(x1, y1, z0, 0.5 , 0.75);
+    shape.vertex(x0, y1, z0, 0.25, 0.75);
+
+    // -Y "top" face
+    shape.normal( 0, -1,  0);
+    shape.vertex(x0, y0, z0, 0.25, 0.0);
+    shape.vertex(x1, y0, z0, 0.5 , 0.0);
+    shape.vertex(x1, y0, z1, 0.5 , 0.25);
+    shape.vertex(x0, y0, z1, 0.25, 0.25);
+
+    // +X "right" face
+    shape.normal( 1,  0,  0);
+    shape.vertex(x1, y0, z1, 0.25, 0.5);
+    shape.vertex(x1, y0, z0, 0.25, 0.75);
+    shape.vertex(x1, y1, z0, 0.5 , 0.75);
+    shape.vertex(x1, y1, z1, 0.5 , 0.5);
+
+    // -X "left" face
+    shape.normal(-1,  0,  0);
+    shape.vertex(x0, y0, z0, 0.25, 0.0);
+    shape.vertex(x0, y0, z1, 0.25, 0.25);
+    shape.vertex(x0, y1, z1, 0.5 , 0.25);
+    shape.vertex(x0, y1, z0, 0.5 , 0.0);
+  },
   Hexagon: function (shape, x0, y0, z0, r, h) {
     let n = 6.0;
     for(let i = 0; i < n; i++) {

@@ -1,7 +1,7 @@
 function S022 (p, w, h) {
   SRendererShadow.call(this, p, w, h);
-  this.uMetallic = 0.3;
-  this.uRoughness = 0.5;
+  this.uMetallic = 0.8;
+  this.uRoughness = 0.1;
   this.uSpecular = 0.9;
   this.uExposure = 4.0;
   this.uVignette = 0.0;
@@ -13,11 +13,12 @@ S022.prototype = Object.create(SRendererShadow.prototype, {
     value: function () {
       let p = this.p;
       this.shape = p.createShape();
-      this.shape.disableStyle();
+      // this.shape.disableStyle();
       this.shape.beginShape(p.QUADS);
       this.shape.texture(this.texture);
       this.shape.textureMode(p.NORMAL);
-      Polygons.Cube(this.shape, -100, -100, -100, 100, 100, 100, 0, 0, 1, 1);
+      this.shape.noStroke();
+      Polygons.Dice(this.shape, -100, -100, -100, 100, 100, 100);
       this.shape.endShape();
       Object.getPrototypeOf(S022.prototype).setup(this);
     }
@@ -32,27 +33,27 @@ S022.prototype = Object.create(SRendererShadow.prototype, {
       pg.fill(255);
       // let idx = 1;
       // pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
-      pg.rotateX((p.frameCount+i*30)*Math.PI/150);
-      pg.rotateY((p.frameCount+i*30)*Math.PI/170);
-      pg.rotateZ((p.frameCount+i*30)*Math.PI/90);
+      // pg.rotateX((p.frameCount+i*30)*Math.PI/150);
+      // pg.rotateY((p.frameCount+i*30)*Math.PI/170);
+      // pg.rotateZ((p.frameCount+i*30)*Math.PI/90);
       pg.shape(this.shape);
       pg.popMatrix();
 
       pg.popMatrix();
 
-      if(!isShadow) this.defaultShader.set("uUseTexture", 0);
-      idx = 1;
-      pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
-      pg.pushMatrix();
-      pg.translate(0, 280, 0);
-      pg.box(6000, 40, 6000);
-      pg.popMatrix();
+      // if(!isShadow) this.defaultShader.set("uUseTexture", 0);
+      // idx = 1;
+      // pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+      // pg.pushMatrix();
+      // pg.translate(0, 280, 0);
+      // pg.box(6000, 40, 6000);
+      // pg.popMatrix();
     }
   },
   draw: {
     value: function (t) {
       let p = this.p;
-      this.lightPos.set(400, -400, 400);
+      this.lightPos.set(-400, -200, 400);
       this.lightDirection = this.lightPos;
       let cycle = 90;
       Object.getPrototypeOf(S022.prototype).draw(this);
@@ -64,9 +65,10 @@ S022.prototype.constructor = S022;
 
 function S022Tex(p) {
   this.p = p;
-  this.pg = p.createGraphics(400, 800, p.P3D);
-  this.pgC = p.createGraphics(400, 400, p.P3D);
-  this.pgN = p.createGraphics(400, 400, p.P3D);
+  this.width = 800, this.height = 800;
+  this.pg = p.createGraphics(this.width, this.height * 2, p.P3D);
+  this.pgC = p.createGraphics(this.width, this.height, p.P3D);
+  this.pgN = p.createGraphics(this.width, this.height, p.P3D);
 
   this.pass = 0;
   function createTexture(w, h){
@@ -82,7 +84,6 @@ function S022Tex(p) {
   }
   this.shader_grayscott = p.loadShader("shaders/grayscott/grayscott2.frag");
   this.shader_render = p.loadShader("shaders/grayscott/render2.frag");
-  this.width = 400, this.height = 400;
   this.pg_src = createTexture(this.width, this.height);
   this.pg_dst = createTexture(this.width, this.height);
    
@@ -92,7 +93,7 @@ function S022Tex(p) {
   this.pg_src.fill(0, 0, 255, 255);
   this.pg_src.noStroke();
   this.pg_src.rectMode(p.CENTER);
-  this.pg_src.rect(200, 200, 20, 20);
+  this.pg_src.rect(this.width * 3 / 8.0, this.height * 3 / 8.0, 10, 10);
   this.pg_src.endDraw();
 }
 
@@ -127,12 +128,12 @@ S022Tex.prototype.draw = function(t) {
   let pgC = this.pgC;
   let pgN = this.pgN;
   pgC.beginDraw();
-  let idx = 0;
-  pgC.background(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
-  pgC.noStroke();
-  idx = 4;
-  pgC.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
-  pgC.rect(0, 0, 400 / 2.0, 400);
+  // let idx = 0;
+  // pgC.background(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+  // pgC.noStroke();
+  // idx = 4;
+  // pgC.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+  // pgC.rect(0, 0, this.width / 2.0, this.height);
   pgC.endDraw();
 
   for(let i = 0; i < 30; i++){
@@ -153,8 +154,8 @@ S022Tex.prototype.draw = function(t) {
   pgN.endDraw();
 
   pg.beginDraw();
-  pg.image(pgC, 0, 0);
-  pg.image(pgN, 0, 400);
+  pg.image(pgN, 0, 0);
+  pg.image(pgN, 0, this.height);
   pg.endDraw();
 }
 
@@ -180,19 +181,20 @@ var s = function (p) {
       print(p.frameRate())
     }
 
-    let angle = t * 0.2;
-    s022.cameraPosition = p.createVector(300.0 * Math.cos(angle), -200.0, 300.0 * Math.sin(angle));
+    let angle = t * 0.1;
+    s022.cameraPosition = p.createVector(300.0 * Math.cos(angle), -150.0, 300.0 * Math.sin(angle));
     s022.cameraTarget = p.createVector(0.0, 0.0, 0.0);
     // s022.cameraPosition = p.createVector(0.0, 0.0, 500.0);
     // s022.cameraTarget = p.createVector(0.0, 0.0, 0.0);
 
-    p.resetShader();
     p.background(0);
+    s022Tex.draw(t);
+    p.image(s022Tex.pg, 0, 0, 800 / 3.0 * 4.0, 1600 / 3.0 * 4.0);
+
+    p.resetShader();
     s022.draw(t);
     p.image(s022.pg, 0, 0);
 
-    s022Tex.draw(t);
-    // p.image(s022Tex.pg, 0, 0);
   }
 
   p.oscEvent = function(m) {

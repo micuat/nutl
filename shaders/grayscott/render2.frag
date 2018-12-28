@@ -28,5 +28,5 @@ vec4 encode(vec2 dataf){
  
 void main () {
   vec2 val = decode(texture(tex, gl_FragCoord.xy * wh_rcp));
-  fragColor = vec4(vec3(1.0 - val.g), 1);
+  fragColor = vec4(vec3(1.0 - val.g, 0.0, val.g), 1);
 }

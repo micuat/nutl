@@ -130,7 +130,7 @@ void main(void) {
 	// deduce the diffuse and specular color from the baseColor and how metallic the material is
 	vec3 uBaseColor;
 	if(uUseTexture > 0) {
-		uBaseColor = texture2D(texture, vTexCoord.st * vec2(1.0, -0.5) + vec2(0.0, 1.0)).rgb * vertColor.rgb;
+		uBaseColor = texture2D(texture, vTexCoord.st * vec2(1.0, 0.5) + vec2(0.0, 0.5)).rgb * vertColor.rgb;
 	}
 	else {
 		uBaseColor = vertColor.rgb * saturate(1.0 - uVignette * length(vTexCoord.st - vec2(0.5)));
