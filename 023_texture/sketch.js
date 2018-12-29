@@ -14,7 +14,7 @@ S023.prototype = Object.create(SRendererShadow.prototype, {
       let p = this.p;
       this.shape = p.createShape(p.GROUP);
       let n = 64;
-      let r = 100;
+      let r = 150;
       for(let i = -n; i < n; i++) {
         let s = p.createShape();
         s.beginShape(this.p.TRIANGLE_STRIP);
@@ -156,6 +156,10 @@ S023Tex.prototype.draw = function(t) {
   pgC.beginDraw();
 
   // display result (color)
+  let cA = this.colorScheme.get(0);
+  let cB = this.colorScheme.get(1);
+  this.shader_render.set("colorA", cA.r/255.0, cA.g/255.0, cA.b/255.0);
+  this.shader_render.set("colorB", cB.r/255.0, cB.g/255.0, cB.b/255.0);
   this.shader_render.set("wh_rcp", 1.0/this.width, 1.0/this.height);
   this.shader_render.set("tex"   , this.pg_src);
   pgC.shader(this.shader_render);
@@ -169,6 +173,8 @@ S023Tex.prototype.draw = function(t) {
   pgN.beginDraw();
  
   // display result (normal)
+  this.shader_render.set("colorB", 1.0, 0.0, 0.0);
+  this.shader_render.set("colorA", 0.0, 0.0, 1.0);
   this.shader_render.set("wh_rcp", 1.0/this.width, 1.0/this.height);
   this.shader_render.set("tex"   , this.pg_src);
   pgN.shader(this.shader_render);
@@ -189,7 +195,7 @@ S023Tex.prototype.draw = function(t) {
 var s = function (p) {
   let s023 = new S023(p, 800, 800);
   let s023Tex = new S023Tex(p, 800, 800);
-  let colorScheme = new ColorScheme("e8ac14-ff001d-ff0072-f200de-910060");
+  let colorScheme = new ColorScheme("ed254e-25ced1-ffffff-fceade-ff8a5b");
 
   p.setup = function () {
     p.createCanvas(800, 800);
