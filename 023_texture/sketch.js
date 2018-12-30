@@ -146,7 +146,7 @@ S023Tex.prototype.draw = function(t) {
   this.pg_src.noStroke();
   this.pg_src.rectMode(p.CENTER);
   let x = (this.width * 0.5 + t * 0.1 / Math.PI / 2 * this.width + this.width*0.1) % this.width;
-  this.pg_src.rect(x, this.height * 0.5, 50, 50);
+  this.pg_src.rect(x, this.height * 0.5, 10, 10);
   this.pg_src.endDraw();
 
   for(let i = 0; i < 30; i++){
@@ -195,7 +195,7 @@ S023Tex.prototype.draw = function(t) {
 var s = function (p) {
   let s023 = new S023(p, 800, 800);
   let s023Tex = new S023Tex(p, 800, 800);
-  let colorScheme = new ColorScheme("ed254e-25ced1-ffffff-fceade-ff8a5b");
+  let colorScheme = new ColorScheme("25ced1-ed254e-ffffff-fceade-ff8a5b");
 
   p.setup = function () {
     p.createCanvas(800, 800);

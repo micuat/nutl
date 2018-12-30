@@ -113,7 +113,11 @@ void main(void) {
 	vec3 vlp = vlp4.xyz / vlp4.w;
 	vec3 N;
 	if(uUseTexture > 0) {
-		N                  = normalize(vNormal + normalMatrix * (texture2D(texture, vTexCoord.st * vec2(1.0, 0.5) + vec2(0.0, 0.0)).rgb - vec3(0.5)));
+		float h01 = texture2D(texture, vTexCoord.st * vec2(1.0, 0.5) - vec2(1.0/800.0, 0.0) + vec2(0.0, 0.0)).r;
+		float h21 = texture2D(texture, vTexCoord.st * vec2(1.0, 0.5) + vec2(1.0/800.0, 0.0) + vec2(0.0, 0.0)).r;
+		float h10 = texture2D(texture, vTexCoord.st * vec2(1.0, 0.5) - vec2(0.0, 1.0/800.0) + vec2(0.0, 0.0)).r;
+		float h12 = texture2D(texture, vTexCoord.st * vec2(1.0, 0.5) + vec2(0.0, 1.0/800.0) + vec2(0.0, 0.0)).r;
+		N                  = normalize(vNormal + 2.0 * normalMatrix * vec3(h21 - h01, 0.0, h10 - h12));
 	}
 	else {
 		N                  = normalize(vNormal);
