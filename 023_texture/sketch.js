@@ -72,6 +72,16 @@ function S023Tex(p) {
   this.pg = p.createGraphics(this.width, this.height * 2, p.P3D);
   this.pgC = p.createGraphics(this.width, this.height, p.P3D);
   this.pgN = p.createGraphics(this.width, this.height, p.P3D);
+  this.rdParam = p.createGraphics(this.width, this.height, p.P3D);
+  this.rdParam.beginDraw();
+  this.rdParam.noStroke();
+  for(let i = 0; i < this.height; i++) {
+    for(let j = 0; j < this.width; j++) {
+      this.rdParam.fill(p.noise(j*0.005, i*0.005) * 255, p.noise(j*0.005 + 0.1, i*0.005 - 0.2) * 255, 0);
+      this.rdParam.rect(j, i, 1, 1);
+    }
+  }
+  this.rdParam.endDraw();
 
   this.pass = 0;
   function createTexture(w, h){
@@ -120,6 +130,7 @@ S023Tex.prototype.reactionDiffusionPass = function (){
   this.shader_grayscott.set("dt"    , 1.0  );
   this.shader_grayscott.set("wh_rcp", 1.0/this.width, 1.0/this.height);
   this.shader_grayscott.set("tex"   , this.pg_src);
+  this.shader_grayscott.set("paramTex"   , this.rdParam);
   this.pg_dst.shader(this.shader_grayscott);
   this.pg_dst.rectMode(this.p.CORNER);
   this.pg_dst.rect(0, 0, this.width, this.height);

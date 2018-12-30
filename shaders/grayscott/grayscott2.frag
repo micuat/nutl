@@ -7,6 +7,7 @@ out vec4 fragColor;
  
 uniform vec2 wh_rcp;
 uniform sampler2D tex;
+uniform sampler2D paramTex;
  
 uniform float dA   = 1.0;
 uniform float dB   = 0.5;
@@ -29,7 +30,7 @@ vec4 encode(vec2 dataf){
   int a = (datai.g     ) & 0xFF;
   return vec4(r,g,b,a) / 255.0;
 }
- 
+
 void main () {
  
   vec2 posn = gl_FragCoord.xy * wh_rcp;
@@ -45,9 +46,11 @@ void main () {
   laplace += decode(textureOffset(tex, posn, ivec2(+1,-1))) * + 0.05;
   laplace += decode(textureOffset(tex, posn, ivec2(-1,+1))) * + 0.05;
   laplace += decode(textureOffset(tex, posn, ivec2(+1,+1))) * + 0.05;
-   
-  float nA = val.r + (dA * laplace.r - val.r * val.g * val.g + (feed * (1.0 - val.r))) * dt;
-  float nB = val.g + (dB * laplace.g + val.r * val.g * val.g - ((kill + feed) * val.g)) * dt;
+
+  float feedx = feed + (texture2D(paramTex, posn).r - 0.5) * 0.02;
+  float killx = kill + (texture2D(paramTex, posn).g - 0.5) * 0.02;
+  float nA = val.r + (dA * laplace.r - val.r * val.g * val.g + (feedx * (1.0 - val.r))) * dt;
+  float nB = val.g + (dB * laplace.g + val.r * val.g * val.g - ((killx + feedx) * val.g)) * dt;
  
   fragColor = encode(clamp(vec2(nA, nB), vec2(0), vec2(1)));
 }
