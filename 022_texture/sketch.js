@@ -65,7 +65,7 @@ S022.prototype.constructor = S022;
 
 function S022Tex(p) {
   this.p = p;
-  this.width = 800, this.height = 800;
+  this.width = 400, this.height = 400;
   this.pg = p.createGraphics(this.width, this.height * 2, p.P3D);
   this.pgC = p.createGraphics(this.width, this.height, p.P3D);
   this.pgN = p.createGraphics(this.width, this.height, p.P3D);
@@ -86,6 +86,9 @@ function S022Tex(p) {
   this.shader_render = p.loadShader("shaders/grayscott/render2.frag");
   this.pg_src = createTexture(this.width, this.height);
   this.pg_dst = createTexture(this.width, this.height);
+  this.params = {
+    kill: 0.062
+  };
    
   // init
   this.pg_src.beginDraw();
@@ -110,7 +113,7 @@ S022Tex.prototype.reactionDiffusionPass = function (){
   this.shader_grayscott.set("dA"    , 1.0  );
   this.shader_grayscott.set("dB"    , 0.5  );
   this.shader_grayscott.set("feed"  , 0.055);
-  this.shader_grayscott.set("kill"  , 0.062);
+  this.shader_grayscott.set("kill"  , this.params.kill);
   this.shader_grayscott.set("dt"    , 1.0  );
   this.shader_grayscott.set("wh_rcp", 1.0/this.width, 1.0/this.height);
   this.shader_grayscott.set("tex"   , this.pg_src);
@@ -136,6 +139,20 @@ S022Tex.prototype.draw = function(t) {
   // pgC.rect(0, 0, this.width / 2.0, this.height);
   pgC.endDraw();
 
+  this.pg_src.beginDraw();
+  this.pg_src.resetShader();
+  if(p.frameCount % 300 == 0) {
+    this.params = {
+      kill: p.randomGaussian(0.062, 0.001)
+    };  
+    this.pg_src.background(255, 255, 0, 0);
+    this.pg_src.fill(0, 0, 255, 255);
+    this.pg_src.noStroke();
+    this.pg_src.rectMode(p.CENTER);
+    this.pg_src.rect(this.width * 3 / 8.0, this.height * 3 / 8.0, 10, 10);
+  }
+  this.pg_src.endDraw();
+
   for(let i = 0; i < 30; i++){
     this.reactionDiffusionPass();
   }
@@ -145,6 +162,8 @@ S022Tex.prototype.draw = function(t) {
   // display result
   this.shader_render.set("wh_rcp", 1.0/this.width, 1.0/this.height);
   this.shader_render.set("tex"   , this.pg_src);
+  this.shader_render.set("colorB", 1.0, 0.0, 0.0);
+  this.shader_render.set("colorA", 0.0, 0.0, 1.0);
   pgN.shader(this.shader_render);
   pgN.rectMode(p.CORNER);
   pgN.noStroke();
@@ -154,6 +173,7 @@ S022Tex.prototype.draw = function(t) {
   pgN.endDraw();
 
   pg.beginDraw();
+  pg.tint(255, 50);
   pg.image(pgN, 0, 0);
   pg.image(pgN, 0, this.height);
   pg.endDraw();
@@ -181,7 +201,7 @@ var s = function (p) {
       print(p.frameRate())
     }
 
-    let angle = t * 0.1;
+    let angle = t * 0.3;
     s022.cameraPosition = p.createVector(300.0 * Math.cos(angle), -150.0, 300.0 * Math.sin(angle));
     s022.cameraTarget = p.createVector(0.0, 0.0, 0.0);
     // s022.cameraPosition = p.createVector(0.0, 0.0, 500.0);
