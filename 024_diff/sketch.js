@@ -28,52 +28,53 @@ S024Tex.prototype.draw = function(t) {
   let _K0 = -20.0/6.0; // center weight
   let _K1 = 4.0/6.0; // edge-neighbors
   let _K2 = 1.0/6.0; // vertex-neighbors
-  for(let i = 1; i < this.H - 1; i++) {
-    for(let j = 1; j < this.W - 1; j++) {
-      let cs = 0.256;
-      let ws = 0.128;
-      let amp = 1.001;
-      let sp = 0.2;
-      let lps = 0.06;
-      let lps2 = -0.08;
-      let ps = 0.0;
-      let sq2 = Math.sqrt(2.0)/2.0;
-      let wds = 2 + 2 * Math.sqrt(2.0);
+  let cs = 0.256;
+  let ws = 0.128;
+  let amp = 1.001;
+  let sp = 0.2;
+  let lps = 0.06;
+  let lps2 = -0.08;
+  let ps = 0.0;
+  let sq2 = Math.sqrt(2.0)/2.0;
+  let wds = 2 + 2 * Math.sqrt(2.0);
+  for(let i = 0; i < this.H; i++) {
+    for(let j = 0; j < this.W; j++) {
 
       let a    = this.pixels[i  ][j  ].a;
-      let a_n  = this.pixels[i-1][j  ].a;
-      let a_ne = this.pixels[i-1][j+1].a;
-      let a_e  = this.pixels[i  ][j+1].a;
-      let a_se = this.pixels[i+1][j+1].a;
-      let a_s  = this.pixels[i+1][j  ].a;
-      let a_sw = this.pixels[i+1][j-1].a;
-      let a_w  = this.pixels[i  ][j-1].a;
-      let a_nw = this.pixels[i-1][j-1].a;
+      let a_n  = this.pixels[(i+this.H-1)%this.H][j  ].a;
+      let a_ne = this.pixels[(i+this.H-1)%this.H][(j+1)%this.W].a;
+      let a_e  = this.pixels[i  ][(j+1)%this.W].a;
+      let a_se = this.pixels[(i+1)%this.H][(j+1)%this.W].a;
+      let a_s  = this.pixels[(i+1)%this.H][j  ].a;
+      let a_sw = this.pixels[(i+1)%this.H][(j+this.W-1)%this.W].a;
+      let a_w  = this.pixels[i  ][(j+this.W-1)%this.W].a;
+      let a_nw = this.pixels[(i+this.H-1)%this.H][(j+this.W-1)%this.W].a;
 
       let b    = this.pixels[i  ][j  ].b;
-      let b_n  = this.pixels[i-1][j  ].b;
-      let b_ne = this.pixels[i-1][j+1].b;
-      let b_e  = this.pixels[i  ][j+1].b;
-      let b_se = this.pixels[i+1][j+1].b;
-      let b_s  = this.pixels[i+1][j  ].b;
-      let b_sw = this.pixels[i+1][j-1].b;
-      let b_w  = this.pixels[i  ][j-1].b;
-      let b_nw = this.pixels[i-1][j-1].b;
+      let b_n  = this.pixels[(i+this.H-1)%this.H][j  ].b;
+      let b_ne = this.pixels[(i+this.H-1)%this.H][(j+1)%this.W].b;
+      let b_e  = this.pixels[i  ][(j+1)%this.W].b;
+      let b_se = this.pixels[(i+1)%this.H][(j+1)%this.W].b;
+      let b_s  = this.pixels[(i+1)%this.H][j  ].b;
+      let b_sw = this.pixels[(i+1)%this.H][(j+this.W-1)%this.W].b;
+      let b_w  = this.pixels[i  ][(j+this.W-1)%this.W].b;
+      let b_nw = this.pixels[(i+this.H-1)%this.H][(j+this.W-1)%this.W].b;
 
       let p    = this.pixels[i  ][j  ].p;
-      let p_n  = this.pixels[i-1][j  ].p;
-      let p_ne = this.pixels[i-1][j+1].p;
-      let p_e  = this.pixels[i  ][j+1].p;
-      let p_se = this.pixels[i+1][j+1].p;
-      let p_s  = this.pixels[i+1][j  ].p;
-      let p_sw = this.pixels[i+1][j-1].p;
-      let p_w  = this.pixels[i  ][j-1].p;
-      let p_nw = this.pixels[i-1][j-1].p;
+      let p_n  = this.pixels[(i+this.H-1)%this.H][j  ].p;
+      let p_ne = this.pixels[(i+this.H-1)%this.H][(j+1)%this.W].p;
+      let p_e  = this.pixels[i  ][(j+1)%this.W].p;
+      let p_se = this.pixels[(i+1)%this.H][(j+1)%this.W].p;
+      let p_s  = this.pixels[(i+1)%this.H][j  ].p;
+      let p_sw = this.pixels[(i+1)%this.H][(j+this.W-1)%this.W].p;
+      let p_w  = this.pixels[i  ][(j+this.W-1)%this.W].p;
+      let p_nw = this.pixels[(i+this.H-1)%this.H][(j+this.W-1)%this.W].p;
   
       let laplacian_p = p_n*_K1 + p_ne*_K2 + p_e*_K1 + p_se*_K2 + p_s*_K1 + p_sw*_K2 + p_w*_K1 + p_nw*_K2 + p*_K0;
 
       let v  = (a_n - a_s - b_e + b_w + sq2 * (a_nw + b_nw) + sq2 * (a_ne - b_ne) + sq2 * (b_sw - a_sw) - sq2 * (b_se + a_se));
-      let sv = cs * (v > 0 ? 1 : -1) * Math.pow(Math.abs(v), sp);
+      let vsign = v > 0 ? 1 : (v == 0 ? 0 : -1);
+      let sv = cs * vsign * Math.pow(Math.abs(v), sp);
   
       let wa = a_w + a_e + sq2 * (a_nw + a_ne + a_se + a_sw) - wds * a;
       let wb = b_s + b_n + sq2 * (b_nw + b_ne + b_se + b_sw) - wds * b;
@@ -84,7 +85,7 @@ S024Tex.prototype.draw = function(t) {
       p = b_s - b_n - a_e + a_w + sq2 * (a_nw - b_nw) - sq2 * (a_ne + b_ne) + sq2 * (a_sw + b_sw) + sq2 * (b_se - a_se);
   
       let theta = Math.atan2(b, a);
-      let mag = Math.sqrt(a*a + b*b);
+      // let mag = Math.sqrt(a*a + b*b);
       let cost = Math.cos(theta);
       let sint = Math.sin(theta);
       let ta = amp * a + ws * wa - lps * cost * laplacian_p + lps2 * a * p;
@@ -100,6 +101,11 @@ S024Tex.prototype.draw = function(t) {
     }
   }
 
+  // for(let i = -60; i <= 60; i++) {
+  //   this.pixels_dst[this.H/2 + Math.floor(Math.sin(t)*60)][this.W/2+i].a = 1.0;
+  //   this.pixels_dst[this.H/2 + Math.floor(Math.sin(t)*60)][this.W/2+i].b = 1.0;
+  // }
+  
   let tmp = this.pixels;
   this.pixels = this.pixels_dst;
   this.pixels_dst = tmp;
@@ -109,7 +115,7 @@ S024Tex.prototype.draw = function(t) {
   for(let i = 0; i < this.H; i++) {
     for(let j = 0; j < this.W; j++) {
       let pix = this.pixels[i][j];
-      pg.fill(pix.a * 128 + 128, pix.b * 128 + 128, pix.c * 128 + 128);
+      pg.fill(p.map(pix.p, -0.5, 0.5, 0, 255));
       let x = p.map(j, 0, this.W, 0, this.width);
       let y = p.map(i, 0, this.H, 0, this.height);
       pg.rect(x, y, w, h);
