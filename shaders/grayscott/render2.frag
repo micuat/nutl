@@ -7,6 +7,7 @@ out vec4 fragColor;
 
 uniform vec3 colorA;
 uniform vec3 colorB;
+uniform vec3 colorC;
 uniform vec2 wh_rcp;
 uniform sampler2D tex;
  
@@ -30,6 +31,13 @@ vec4 encode(vec2 dataf){
  
 void main () {
   vec2 val = decode(texture(tex, gl_FragCoord.xy * wh_rcp));
-  float v = clamp((val.g - 0.1) / (0.5 - 0.1), 0.0, 1.0);
-  fragColor = vec4(mix(colorA, colorB, v), 1);
+  float v = clamp((val.g - 0.1) / (0.4 - 0.1), 0.0, 1.0);
+  vec3 col;
+  if(v < 0.5) {
+    col = mix(colorA, colorB, v * 2.0);
+  }
+  else {
+    col = mix(colorB, colorC, v * 2.0 - 1.0);
+  }
+  fragColor = vec4(col, 1);
 }

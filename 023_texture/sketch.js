@@ -156,11 +156,13 @@ S023Tex.prototype.draw = function(t) {
   this.pg_src.fill(0, 0, 255, 255);
   this.pg_src.noStroke();
   this.pg_src.rectMode(p.CENTER);
-  let x = (this.width * 0.5 + t * 0.1 / Math.PI / 2 * this.width + this.width*0.1) % this.width;
-  this.pg_src.rect(x, this.height * 0.5, 10, 10);
+  for(let i = -2; i <= 2; i++) {
+    let x = (this.width * 0.5 + t * 0.1 / Math.PI / 2 * this.width + this.width*0.1) % this.width;
+    this.pg_src.rect(x, this.height * 0.5 + i * 100, 10, 10);
+  }
   this.pg_src.endDraw();
 
-  for(let i = 0; i < 30; i++){
+  for(let i = 0; i < 50; i++){
     this.reactionDiffusionPass();
   }
 
@@ -169,8 +171,10 @@ S023Tex.prototype.draw = function(t) {
   // display result (color)
   let cA = this.colorScheme.get(0);
   let cB = this.colorScheme.get(1);
+  let cC = this.colorScheme.get(2);
   this.shader_render.set("colorA", cA.r/255.0, cA.g/255.0, cA.b/255.0);
   this.shader_render.set("colorB", cB.r/255.0, cB.g/255.0, cB.b/255.0);
+  this.shader_render.set("colorC", cC.r/255.0, cC.g/255.0, cC.b/255.0);
   this.shader_render.set("wh_rcp", 1.0/this.width, 1.0/this.height);
   this.shader_render.set("tex"   , this.pg_src);
   pgC.shader(this.shader_render);
@@ -184,8 +188,9 @@ S023Tex.prototype.draw = function(t) {
   pgN.beginDraw();
  
   // display result (normal)
-  this.shader_render.set("colorB", 1.0, 0.0, 0.0);
   this.shader_render.set("colorA", 0.0, 0.0, 1.0);
+  this.shader_render.set("colorB", 0.0, 0.0, 0.0);
+  this.shader_render.set("colorC", 1.0, 0.0, 0.0);
   this.shader_render.set("wh_rcp", 1.0/this.width, 1.0/this.height);
   this.shader_render.set("tex"   , this.pg_src);
   pgN.shader(this.shader_render);
@@ -206,7 +211,7 @@ S023Tex.prototype.draw = function(t) {
 var s = function (p) {
   let s023 = new S023(p, 800, 800);
   let s023Tex = new S023Tex(p, 800, 800);
-  let colorScheme = new ColorScheme("25ced1-ed254e-ffffff-fceade-ff8a5b");
+  let colorScheme = new ColorScheme("6564db-f896d8-edf67d-ca7df9-564592");
 
   p.setup = function () {
     p.createCanvas(800, 800);
