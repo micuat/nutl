@@ -1,4 +1,4 @@
-function S024Tex(p) {
+function S025Tex(p) {
   this.p = p;
   this.width = 800, this.height = 800;
   this.dwgl = Packages.com.thomasdiewald.pixelflow.java.dwgl;
@@ -50,7 +50,7 @@ function S024Tex(p) {
   imageprocessing.filter.DwFilter.get(this.context).copy.apply(this.tex_render, this.tex_grayscott.src);
 }
 
-S024Tex.prototype.reactionDiffusionPass = function() {
+S025Tex.prototype.reactionDiffusionPass = function() {
   this.context.beginDraw(this.tex_grayscott.dst);
   this.shader_grayscott.begin();
   this.shader_grayscott.uniform2f     ("wh_rcp", 1.0/this.width, 1.0/this.height);
@@ -61,7 +61,7 @@ S024Tex.prototype.reactionDiffusionPass = function() {
   this.tex_grayscott.swap();
 }
 
-S024Tex.prototype.draw = function(t) {
+S025Tex.prototype.draw = function(t) {
   let p = this.p;
 
   // multipass rendering, ping-pong 
@@ -83,7 +83,7 @@ S024Tex.prototype.draw = function(t) {
 }
 
 var s = function (p) {
-  let s024Tex = new S024Tex(p, 800, 800);
+  let s025Tex = new S025Tex(p, 800, 800);
   let colorScheme = new ColorScheme("6564db-f896d8-edf67d-ca7df9-564592");
   // with(p) {
   //   print(random(100))
@@ -93,7 +93,7 @@ var s = function (p) {
     p.createCanvas(800, 800);
     p.frameRate(30);
 
-    s024Tex.colorScheme = colorScheme;
+    s025Tex.colorScheme = colorScheme;
   }
 
   p.draw = function () {
@@ -104,12 +104,12 @@ var s = function (p) {
     }
 
     p.background(0);
-    s024Tex.draw(t);
-    p.image(s024Tex.tex_render, 0, 0, 800, 800);
+    s025Tex.draw(t);
+    p.image(s025Tex.tex_render, 0, 0, 800, 800);
   }
 
   p.oscEvent = function(m) {
   }
 };
 
-var p024 = new p5(s);
+var p025 = new p5(s);
