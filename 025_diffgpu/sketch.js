@@ -152,6 +152,7 @@ S025Tex.prototype.draw = function(t) {
   this.context.beginDraw(this.tex_render);
   this.shader_render.begin();
   this.shader_render.uniform2f     ("wh_rcp", 1.0/this.width, 1.0/this.height);
+  this.shader_render.uniform1f     ("amplitude", 10.0);
   this.shader_render.uniformTexture("tex", this.tex_grayscott.src);
   this.shader_render.drawFullScreenQuad();
   this.shader_render.end();
@@ -160,6 +161,7 @@ S025Tex.prototype.draw = function(t) {
   this.context.beginDraw(this.tex_render_normal);
   this.shader_render_mono.begin();
   this.shader_render_mono.uniform2f     ("wh_rcp", 1.0/this.width, 1.0/this.height);
+  this.shader_render_mono.uniform1f     ("amplitude", 10.0);
   this.shader_render_mono.uniformTexture("tex", this.tex_grayscott.src);
   this.shader_render_mono.drawFullScreenQuad();
   this.shader_render_mono.end();

@@ -6,11 +6,12 @@
 out vec4 fragColor;
 
 uniform vec2 wh_rcp;
+uniform float amplitude = 1.0;
 uniform sampler2D tex;
 
 void main () {
   vec4 val = texture(tex, gl_FragCoord.xy * wh_rcp).rgba;
-  float rate = clamp(abs(val.a) * 10 + 0, 0, 1);
+  float rate = clamp(abs(val.a) * amplitude + 0, 0, 1);
   vec3 colB = vec3(176/255.0, 219/255.0, 67/255.0);
   vec3 colC = vec3(219/255.0, 39/255.0, 99/255.0);
   vec3 colA = vec3(18/255.0, 234/255.0, 234/255.0);
