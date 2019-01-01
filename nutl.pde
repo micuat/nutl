@@ -17,7 +17,15 @@ import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
+import processing.core.PApplet;
+import processing.opengl.PGraphics2D;
 import processing.awt.PSurfaceAWT;
+
+import com.jogamp.opengl.GL2;
+import com.thomasdiewald.pixelflow.java.DwPixelFlow;
+import com.thomasdiewald.pixelflow.java.dwgl.DwGLSLProgram;
+import com.thomasdiewald.pixelflow.java.dwgl.DwGLTexture;
+import com.thomasdiewald.pixelflow.java.imageprocessing.filter.DwFilter;
 
 import toxi.physics3d.*;
 import toxi.physics3d.behaviors.*;
@@ -31,6 +39,8 @@ import netP5.*;
 
 public OscP5 oscP5;
 NetAddress myRemoteLocation;
+
+public DwPixelFlow pfContext;
 
 private static ScriptEngineManager engineManager;
 private static ScriptEngine nashorn;
@@ -71,7 +81,7 @@ void setup() {
       libPaths.add(sketchPath("libs/" + l));
     }
   }
-
+  
   noSmooth();
   //hint(DISABLE_TEXTURE_MIPMAPS);
   //smooth();
@@ -80,6 +90,11 @@ void setup() {
   oscP5 = new OscP5(this, 7000);
 
   RG.init(this);
+
+  // pixelflow context
+  pfContext = new DwPixelFlow(this);
+  pfContext.print();
+  pfContext.printGL();
 
   size(400, 400, P3D);
   surface.setResizable(true);

@@ -49,11 +49,37 @@ function S024Tex(p) {
   let imageprocessing = Packages.com.thomasdiewald.pixelflow.java.imageprocessing;
   imageprocessing.filter.DwFilter.get(this.context).copy.apply(this.tex_render, this.tex_grayscott.src);
 }
+
+S024Tex.prototype.reactionDiffusionPass = function() {
+  this.context.beginDraw(this.tex_grayscott.dst);
+  this.shader_grayscott.begin();
+  this.shader_grayscott.uniform2f     ("wh_rcp", 1.0/this.width, 1.0/this.height);
+  this.shader_grayscott.uniformTexture("tex", this.tex_grayscott.src);
+  this.shader_grayscott.drawFullScreenQuad();
+  this.shader_grayscott.end();
+  this.context.endDraw("reactionDiffusionPass()"); 
+  this.tex_grayscott.swap();
+}
+
 S024Tex.prototype.draw = function(t) {
   let p = this.p;
-  let pg = this.pg;
 
+  // multipass rendering, ping-pong 
+  this.context.begin();
 
+  for (let i = 0; i < 2; i++) {
+    this.reactionDiffusionPass();
+  }
+
+  // create display texture
+  this.context.beginDraw(this.tex_render);
+  this.shader_render.begin();
+  this.shader_render.uniform2f     ("wh_rcp", 1.0/this.width, 1.0/this.height);
+  this.shader_render.uniformTexture("tex", this.tex_grayscott.src);
+  this.shader_render.drawFullScreenQuad();
+  this.shader_render.end();
+  this.context.endDraw("render()"); 
+  this.context.end();
 }
 
 var s = function (p) {
@@ -79,10 +105,7 @@ var s = function (p) {
 
     p.background(0);
     s024Tex.draw(t);
-    // p.image(s024Tex.pg, 0, 0, 800, 800);
-
-    
-    p.box(300);
+    p.image(s024Tex.tex_render, 0, 0, 800, 800);
   }
 
   p.oscEvent = function(m) {
