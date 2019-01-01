@@ -68,7 +68,7 @@ S025.prototype.constructor = S025;
 
 function S025Tex(p) {
   this.p = p;
-  this.width = 800, this.height = 800;
+  this.width = 1600, this.height = 1600;
   this.dwgl = Packages.com.thomasdiewald.pixelflow.java.dwgl;
 
   this.pg = p.createGraphics(this.width, this.height * 2, p.P3D);
@@ -83,8 +83,9 @@ function S025Tex(p) {
   this.tex_grayscott.dst.setParamWrap(GL.GL_REPEAT);
 
   // glsl shader
-  this.shader_grayscott = this.context.createShader(p.folderName + "/shaders/diff.frag");
-  this.shader_render    = this.context.createShader(p.folderName + "/shaders/render.frag");
+  this.shader_grayscott   = this.context.createShader(p.folderName + "/shaders/diff.frag");
+  this.shader_render      = this.context.createShader(p.folderName + "/shaders/render.frag");
+  this.shader_render_mono = this.context.createShader(p.folderName + "/shaders/render_mono.frag");
 
   // init
   this.tex_render = p.createGraphics(this.width, this.height, p.P3D);
@@ -97,10 +98,10 @@ function S025Tex(p) {
   this.tex_render.background(0, 0, 0, 0);
   this.tex_render.noStroke();
   this.tex_render.rectMode(p.CENTER);
-  for(let i = 0; i < 3; i++) {
+  for(let i = 0; i < 6; i++) {
     this.tex_render.pushMatrix();
     this.tex_render.translate(p.random(this.width), p.random(this.height));
-    this.tex_render.scale(3, 1);
+    this.tex_render.scale(6, 2);
     this.tex_render.beginShape(p.QUAD);
     this.tex_render.fill(p.random(255), p.random(255), 0, 255);
     this.tex_render.vertex(-100, -100);
@@ -118,6 +119,11 @@ function S025Tex(p) {
   // // copy initial data to source texture
   let imageprocessing = Packages.com.thomasdiewald.pixelflow.java.imageprocessing;
   imageprocessing.filter.DwFilter.get(this.context).copy.apply(this.tex_render, this.tex_grayscott.src);
+
+  this.tex_render_normal = p.createGraphics(this.width, this.height, p.P3D);
+  this.tex_render_normal.smooth(0);
+  this.tex_render_normal.beginDraw();
+  this.tex_render_normal.endDraw();
 }
 
 S025Tex.prototype.reactionDiffusionPass = function() {
@@ -150,11 +156,20 @@ S025Tex.prototype.draw = function(t) {
   this.shader_render.drawFullScreenQuad();
   this.shader_render.end();
   this.context.endDraw("render()"); 
+
+  this.context.beginDraw(this.tex_render_normal);
+  this.shader_render_mono.begin();
+  this.shader_render_mono.uniform2f     ("wh_rcp", 1.0/this.width, 1.0/this.height);
+  this.shader_render_mono.uniformTexture("tex", this.tex_grayscott.src);
+  this.shader_render_mono.drawFullScreenQuad();
+  this.shader_render_mono.end();
+  this.context.endDraw("rendernormal()"); 
+
   this.context.end();
 
   pg.beginDraw();
   pg.image(this.tex_render, 0, 0);
-  pg.image(this.tex_render, 0, this.height);
+  pg.image(this.tex_render_normal, 0, this.height);
   pg.endDraw();
 }
 
