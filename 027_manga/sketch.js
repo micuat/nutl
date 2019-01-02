@@ -93,6 +93,35 @@ TCenterLine.prototype.constructor = TCenterLine;
 
 ////////
 
+function TStripe (p, w, h) {
+  TLayer.call(this, p, w, h);
+  this.pg.smooth(5);
+}
+
+TStripe.prototype = Object.create(TLayer.prototype, {
+  drawLayer: {
+    value: function (pg, key, args) {
+      let p = this.p;
+      pg.background(255);
+      pg.stroke(0);
+      pg.translate(this.width / 2, this.height / 2);
+      pg.rotate(-Math.PI / 4);
+      pg.strokeWeight(10);
+      for(let i = -40; i < 40; i++) {
+        let x0 = -this.width;
+        let y0 = i * 20;
+        let x1 = this.width;
+        let y1 = i * 20;
+        pg.line(x0, y0, x1, y1);
+      }
+    }
+  }
+});
+
+TStripe.prototype.constructor = TStripe;
+
+////////
+
 function TBlurb (p, w, h) {
   TLayer.call(this, p, w, h);
   this.pg.smooth(5);
@@ -239,6 +268,9 @@ function S027Tex(p) {
   this.tCenterLine = new TCenterLine(p, this.width, this.height);
   this.tCenterLine.draw();
 
+  this.tStripe = new TStripe(p, this.width, this.height);
+  this.tStripe.draw();
+
   this.tBlurb = new TBlurb(p, this.width, this.height);
   this.tBlurb.draw();
 
@@ -264,7 +296,8 @@ S027Tex.prototype.draw = function(t) {
 
   pg.beginDraw();
   pg.background(0);
-  this.tCenterLine.drawTo(pg);
+  this.tStripe.drawTo(pg);
+  // this.tCenterLine.drawTo(pg);
   this.tDotOnBox.drawTo(pg);
   this.tBlurb.drawTo(pg);
 
