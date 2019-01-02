@@ -92,8 +92,8 @@ function TBox (p, w, h) {
   this.shape.beginShape(p.QUADS);
   this.shape.fill(255);
   this.shape.noStroke();
-  this.shape.stroke(0);
-  this.shape.strokeWeight(5);
+  // this.shape.stroke(0);
+  // this.shape.strokeWeight(5);
   Polygons.Cube(this.shape, -150, -150, -150, 150, 150, 150, 0, 0, 1, 1);
   this.shape.endShape();
 }
@@ -113,7 +113,6 @@ TBox.prototype = Object.create(TLayer.prototype, {
       this.curRy = p.lerp(this.curRy, this.targetRy, 0.1);
     
       pg.clear();
-      pg.background(0);
       pg.pushMatrix();
       pg.pushStyle();
       pg.translate(pg.width / 2, pg.height / 2);
@@ -130,6 +129,34 @@ TBox.prototype.constructor = TBox;
 
 ////////
 
+function TLayerBlend (p, w, h, args) {
+  TLayer.call(this, p, w, h);
+  this.blendMode = args.mode;
+  this.bottomLayer = args.bottom;
+  this.topLayer = args.top;
+  this.maskLayer = args.mask;
+}
+
+TLayerBlend.prototype = Object.create(TLayer.prototype, {
+  drawLayer: {
+    value: function (pg, args) {
+      let p = this.p;
+      pg.clear();
+      pg.blendMode(p.BLEND);
+      this.bottomLayer.drawTo(pg);
+      pg.blendMode(this.blendMode);
+      this.topLayer.drawTo(pg);
+      if(this.maskLayer != undefined) {
+        pg.mask(this.maskLayer.pg);
+      }
+    }
+  }
+});
+
+TLayerBlend.prototype.constructor = TLayerBlend;
+
+////////
+
 function S027Tex(p) {
   this.p = p;
   this.width = 800, this.height = 800;
@@ -143,6 +170,13 @@ function S027Tex(p) {
   this.tCenterLine.draw();
 
   this.tBox = new TBox(p, this.width, this.height);
+
+  this.tDotOnBox = new TLayerBlend(p, this.width, this.height, {
+    top: this.tDot,
+    bottom: this.tBox,
+    mask: this.tBox,
+    mode: p.MULTIPLY
+  });
 }
 
 S027Tex.prototype.draw = function(t) {
@@ -150,15 +184,12 @@ S027Tex.prototype.draw = function(t) {
   let pg = this.pg;
 
   this.tBox.draw({t: t});
+  this.tDotOnBox.draw();
 
   pg.beginDraw();
   pg.background(0);
-  // this.tCenterLine.drawTo(pg);
-  pg.blendMode(p.ADD);
-  this.tBox.drawTo(pg);
-  pg.blendMode(p.MULTIPLY);
-  this.tDot.drawTo(pg);
-  pg.blendMode(p.BLEND);
+  this.tCenterLine.drawTo(pg);
+  this.tDotOnBox.drawTo(pg);
   pg.pushMatrix();
   pg.pushStyle();
   pg.stroke(0);
