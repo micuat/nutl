@@ -2,18 +2,32 @@ function TLayer (p, w, h) {
   this.p = p;
   this.width = w;
   this.height = h;
-  this.pg = p.createGraphics(this.width, this.height, p.P3D);
+  if(this.numPatterns == undefined) {
+    this.numPatterns = 1;
+  }
+  this.pgs = [];
+  for(let i = 0; i < this.numPatterns; i++) {
+    this.pgs.push(p.createGraphics(this.width, this.height, p.P3D));
+  }
+  this.pg = this.pgs[0];
 }
 
 TLayer.prototype.draw = function (args) {
   let p = this.p;
-  this.pg.beginDraw();
-  this.drawLayer(this.pg, args);
-  this.pg.endDraw();
+  for(let i in this.pgs) {
+    this.pgs[i].beginDraw();
+    this.drawLayer(this.pgs[i], i, args);
+    this.pgs[i].endDraw();
+  }
 }
 
-TLayer.prototype.drawTo = function (pg) {
-  pg.image(this.pg, 0, 0);
+TLayer.prototype.drawTo = function (pg, i) {
+  if(i == undefined) {
+    pg.image(this.pg, 0, 0);
+  }
+  else {
+    pg.image(this.pgs[i], 0, 0);
+  }
 }
 
 ////////
@@ -25,7 +39,7 @@ function TDot (p, w, h) {
 
 TDot.prototype = Object.create(TLayer.prototype, {
   drawLayer: {
-    value: function (pg, args) {
+    value: function (pg, i, args) {
       let p = this.p;
       pg.clear();
       pg.background(255);
@@ -54,7 +68,7 @@ function TCenterLine (p, w, h) {
 
 TCenterLine.prototype = Object.create(TLayer.prototype, {
   drawLayer: {
-    value: function (pg, args) {
+    value: function (pg, i, args) {
       let p = this.p;
       pg.background(255);
       pg.stroke(0);
@@ -79,6 +93,7 @@ TCenterLine.prototype.constructor = TCenterLine;
 ////////
 
 function TBox (p, w, h) {
+  this.numPatterns = 2;
   TLayer.call(this, p, w, h);
 
   this.tLast = 0.0;
@@ -89,35 +104,48 @@ function TBox (p, w, h) {
 
   this.pg.smooth(5);
   this.shape = p.createShape();
+  this.shape.disableStyle();
   this.shape.beginShape(p.QUADS);
-  this.shape.fill(255);
-  this.shape.noStroke();
-  // this.shape.stroke(0);
-  // this.shape.strokeWeight(5);
   Polygons.Cube(this.shape, -150, -150, -150, 150, 150, 150, 0, 0, 1, 1);
   this.shape.endShape();
 }
 
 TBox.prototype = Object.create(TLayer.prototype, {
   drawLayer: {
-    value: function (pg, args) {
+    value: function (pg, i, args) {
       let p = this.p;
       let t = args.t;
-      if(Math.floor(t) - Math.floor(this.tLast) > 0) {
-        this.targetRx = p.random(0, Math.PI * 2);
-        this.targetRy = p.random(0, Math.PI * 2);
+      if(i == 0) {
+        if(Math.floor(t) - Math.floor(this.tLast) > 0) {
+          this.targetRx = p.random(0, Math.PI * 2);
+          this.targetRy = p.random(0, Math.PI * 2);
+        }
+        this.tLast = t;
+      
+        this.curRx = p.lerp(this.curRx, this.targetRx, 0.1);
+        this.curRy = p.lerp(this.curRy, this.targetRy, 0.1);
       }
-      this.tLast = t;
-    
-      this.curRx = p.lerp(this.curRx, this.targetRx, 0.1);
-      this.curRy = p.lerp(this.curRy, this.targetRy, 0.1);
     
       pg.clear();
       pg.pushMatrix();
       pg.pushStyle();
+      if(i == 0) {
+        pg.lights();
+      }
       pg.translate(pg.width / 2, pg.height / 2);
       pg.rotateX(this.curRx);
       pg.rotateY(this.curRy);
+      if(i == 0) {
+        pg.fill(255);
+        pg.stroke(0);
+        pg.strokeWeight(5);
+      }
+      else if(i == 1) {
+        // mask
+        pg.fill(255);
+        pg.stroke(255);
+        pg.strokeWeight(5);
+      }
       pg.shape(this.shape);
       pg.popStyle();
       pg.popMatrix();
@@ -139,15 +167,15 @@ function TLayerBlend (p, w, h, args) {
 
 TLayerBlend.prototype = Object.create(TLayer.prototype, {
   drawLayer: {
-    value: function (pg, args) {
+    value: function (pg, i, args) {
       let p = this.p;
       pg.clear();
       pg.blendMode(p.BLEND);
-      this.bottomLayer.drawTo(pg);
+      pg.image(this.bottomLayer, 0, 0);
       pg.blendMode(this.blendMode);
-      this.topLayer.drawTo(pg);
+      pg.image(this.topLayer, 0, 0);
       if(this.maskLayer != undefined) {
-        pg.mask(this.maskLayer.pg);
+        pg.mask(this.maskLayer);
       }
     }
   }
@@ -172,9 +200,9 @@ function S027Tex(p) {
   this.tBox = new TBox(p, this.width, this.height);
 
   this.tDotOnBox = new TLayerBlend(p, this.width, this.height, {
-    top: this.tDot,
-    bottom: this.tBox,
-    mask: this.tBox,
+    top: this.tDot.pg,
+    bottom: this.tBox.pgs[0],
+    mask: this.tBox.pgs[1],
     mode: p.MULTIPLY
   });
 }
