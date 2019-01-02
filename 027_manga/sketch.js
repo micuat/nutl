@@ -93,6 +93,45 @@ TCenterLine.prototype.constructor = TCenterLine;
 
 ////////
 
+function TBlurb (p, w, h) {
+  TLayer.call(this, p, w, h);
+  this.pg.smooth(5);
+}
+
+TBlurb.prototype = Object.create(TLayer.prototype, {
+  drawLayer: {
+    value: function (pg, key, args) {
+      let p = this.p;
+      pg.pushMatrix();
+      pg.pushStyle();
+      pg.stroke(0);
+      pg.strokeWeight(3);
+      pg.fill(255);
+      pg.translate(150, 400);
+      pg.beginShape();
+      {
+        let angle = 0 / 100.0 * p.TWO_PI;
+        let x = 50 * Math.cos(angle) * 1.5;
+        let y = 150 * Math.sin(angle) * 1.5;
+        pg.vertex(x, y);
+      }
+      for(let i = 2; i < 100 - 2; i++) {
+        let angle = i / 100.0 * p.TWO_PI;
+        let x = 50 * Math.cos(angle);
+        let y = 150 * Math.sin(angle);
+        pg.vertex(x, y);
+      }
+      pg.endShape(p.CLOSE);
+      pg.popStyle();
+      pg.popMatrix();
+    }
+  }
+});
+
+TBlurb.prototype.constructor = TBlurb;
+
+////////
+
 function TBox (p, w, h, args) {
   this.patterns = ["default", "mask"];
   TLayer.call(this, p, w, h);
@@ -200,6 +239,9 @@ function S027Tex(p) {
   this.tCenterLine = new TCenterLine(p, this.width, this.height);
   this.tCenterLine.draw();
 
+  this.tBlurb = new TBlurb(p, this.width, this.height);
+  this.tBlurb.draw();
+
   this.tBox = new TBox(p, this.width, this.height, {
     x: this.width / 2,
     y: this.height / 2
@@ -224,28 +266,7 @@ S027Tex.prototype.draw = function(t) {
   pg.background(0);
   this.tCenterLine.drawTo(pg);
   this.tDotOnBox.drawTo(pg);
-  pg.pushMatrix();
-  pg.pushStyle();
-  pg.stroke(0);
-  pg.strokeWeight(3);
-  pg.fill(255);
-  pg.translate(150, 400);
-  pg.beginShape();
-  {
-    let angle = 0 / 100.0 * p.TWO_PI;
-    let x = 50 * Math.cos(angle) * 1.5;
-    let y = 150 * Math.sin(angle) * 1.5;
-    pg.vertex(x, y);
-  }
-  for(let i = 2; i < 100 - 2; i++) {
-    let angle = i / 100.0 * p.TWO_PI;
-    let x = 50 * Math.cos(angle);
-    let y = 150 * Math.sin(angle);
-    pg.vertex(x, y);
-  }
-  pg.endShape(p.CLOSE);
-  pg.popStyle();
-  pg.popMatrix();
+  this.tBlurb.drawTo(pg);
 
   pg.endDraw();
 }
