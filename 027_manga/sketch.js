@@ -2,31 +2,32 @@ function TLayer (p, w, h) {
   this.p = p;
   this.width = w;
   this.height = h;
-  if(this.numPatterns == undefined) {
-    this.numPatterns = 1;
+  if(this.patterns == undefined) {
+    this.patterns = ["default"];
   }
-  this.pgs = [];
-  for(let i = 0; i < this.numPatterns; i++) {
-    this.pgs.push(p.createGraphics(this.width, this.height, p.P3D));
+  this.pgs = {};
+  for(let i in this.patterns) {
+    let key = this.patterns[i];
+    this.pgs[key] = p.createGraphics(this.width, this.height, p.P3D);
   }
-  this.pg = this.pgs[0];
+  this.pg = this.pgs.default;
 }
 
 TLayer.prototype.draw = function (args) {
   let p = this.p;
-  for(let i in this.pgs) {
-    this.pgs[i].beginDraw();
-    this.drawLayer(this.pgs[i], i, args);
-    this.pgs[i].endDraw();
+  for(let key in this.pgs) {
+    this.pgs[key].beginDraw();
+    this.drawLayer(this.pgs[key], key, args);
+    this.pgs[key].endDraw();
   }
 }
 
-TLayer.prototype.drawTo = function (pg, i) {
-  if(i == undefined) {
+TLayer.prototype.drawTo = function (pg, key) {
+  if(key == undefined) {
     pg.image(this.pg, 0, 0);
   }
   else {
-    pg.image(this.pgs[i], 0, 0);
+    pg.image(this.pgs[key], 0, 0);
   }
 }
 
@@ -39,7 +40,7 @@ function TDot (p, w, h) {
 
 TDot.prototype = Object.create(TLayer.prototype, {
   drawLayer: {
-    value: function (pg, i, args) {
+    value: function (pg, key, args) {
       let p = this.p;
       pg.clear();
       pg.background(255);
@@ -68,7 +69,7 @@ function TCenterLine (p, w, h) {
 
 TCenterLine.prototype = Object.create(TLayer.prototype, {
   drawLayer: {
-    value: function (pg, i, args) {
+    value: function (pg, key, args) {
       let p = this.p;
       pg.background(255);
       pg.stroke(0);
@@ -93,7 +94,7 @@ TCenterLine.prototype.constructor = TCenterLine;
 ////////
 
 function TBox (p, w, h, args) {
-  this.numPatterns = 2;
+  this.patterns = ["default", "mask"];
   TLayer.call(this, p, w, h);
 
   this.tLast = 0.0;
@@ -115,10 +116,10 @@ function TBox (p, w, h, args) {
 
 TBox.prototype = Object.create(TLayer.prototype, {
   drawLayer: {
-    value: function (pg, i, args) {
+    value: function (pg, key, args) {
       let p = this.p;
       let t = args.t;
-      // if(i == 0) {
+      // if(key == "default") {
         if(Math.floor(t) - Math.floor(this.tLast) > 0) {
           this.targetRx = p.random(0, Math.PI * 2);
           this.targetRy = p.random(0, Math.PI * 2);
@@ -132,19 +133,18 @@ TBox.prototype = Object.create(TLayer.prototype, {
       pg.clear();
       pg.pushMatrix();
       pg.pushStyle();
-      if(i == 0) {
+      if(key == "default") {
         pg.lights();
       }
       pg.translate(this.x, this.y);
       pg.rotateX(this.curRx);
       pg.rotateY(this.curRy);
-      if(i == 0) {
+      if(key == "default") {
         pg.fill(255);
         pg.stroke(0);
         pg.strokeWeight(5);
       }
-      else if(i == 1) {
-        // mask
+      else if(key == "mask") {
         pg.fill(255);
         pg.stroke(255);
         pg.strokeWeight(5);
@@ -207,8 +207,8 @@ function S027Tex(p) {
 
   this.tDotOnBox = new TLayerBlend(p, this.width, this.height, {
     top: this.tDot.pg,
-    bottom: this.tBox.pgs[0],
-    mask: this.tBox.pgs[1],
+    bottom: this.tBox.pgs.default,
+    mask: this.tBox.pgs.mask,
     mode: p.MULTIPLY
   });
 }
