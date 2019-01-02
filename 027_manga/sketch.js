@@ -5,15 +5,14 @@ function TLayer (p, w, h) {
   this.pg = p.createGraphics(this.width, this.height, p.P3D);
 }
 
-TLayer.prototype.draw = function(that, args) {
-  if(that == undefined) that = this;
-  let p = that.p;
-  that.pg.beginDraw();
-  that.drawLayer(that.pg, args);
-  that.pg.endDraw();
+TLayer.prototype.draw = function (args) {
+  let p = this.p;
+  this.pg.beginDraw();
+  this.drawLayer(this.pg, args);
+  this.pg.endDraw();
 }
 
-TLayer.prototype.drawTo = function(pg) {
+TLayer.prototype.drawTo = function (pg) {
   pg.image(this.pg, 0, 0);
 }
 
@@ -79,14 +78,61 @@ TCenterLine.prototype.constructor = TCenterLine;
 
 ////////
 
-function S027Tex(p) {
-  this.p = p;
-  this.width = 800, this.height = 800;
+function TBox (p, w, h) {
+  TLayer.call(this, p, w, h);
+
   this.tLast = 0.0;
   this.curRx = 0.0;
   this.curRy = 0.0;
   this.targetRx = 0.0;
   this.targetRy = 0.0;
+
+  this.pg.smooth(5);
+  this.shape = p.createShape();
+  this.shape.beginShape(p.QUADS);
+  this.shape.fill(255);
+  this.shape.noStroke();
+  this.shape.stroke(0);
+  this.shape.strokeWeight(5);
+  Polygons.Cube(this.shape, -150, -150, -150, 150, 150, 150, 0, 0, 1, 1);
+  this.shape.endShape();
+}
+
+TBox.prototype = Object.create(TLayer.prototype, {
+  drawLayer: {
+    value: function (pg, args) {
+      let p = this.p;
+      let t = args.t;
+      if(Math.floor(t) - Math.floor(this.tLast) > 0) {
+        this.targetRx = p.random(0, Math.PI * 2);
+        this.targetRy = p.random(0, Math.PI * 2);
+      }
+      this.tLast = t;
+    
+      this.curRx = p.lerp(this.curRx, this.targetRx, 0.1);
+      this.curRy = p.lerp(this.curRy, this.targetRy, 0.1);
+    
+      pg.clear();
+      pg.background(0);
+      pg.pushMatrix();
+      pg.pushStyle();
+      pg.translate(pg.width / 2, pg.height / 2);
+      pg.rotateX(this.curRx);
+      pg.rotateY(this.curRy);
+      pg.shape(this.shape);
+      pg.popStyle();
+      pg.popMatrix();
+    }
+  }
+});
+
+TBox.prototype.constructor = TBox;
+
+////////
+
+function S027Tex(p) {
+  this.p = p;
+  this.width = 800, this.height = 800;
   this.pg = p.createGraphics(this.width, this.height, p.P3D);
   this.pg.smooth(5);
 
@@ -96,53 +142,22 @@ function S027Tex(p) {
   this.tCenterLine = new TCenterLine(p, this.width, this.height);
   this.tCenterLine.draw();
 
-  this.objectPg = p.createGraphics(this.width, this.height, p.P3D);
-
-  this.shape = p.createShape();
-  this.shape.beginShape(p.QUADS);
-  this.shape.fill(255);
-  this.shape.noStroke();
-  this.shape.stroke(0);
-  this.shape.strokeWeight(3);
-  Polygons.Cube(this.shape, -150, -150, -150, 150, 150, 150, 0, 0, 1, 1);
-  this.shape.endShape();
+  this.tBox = new TBox(p, this.width, this.height);
 }
 
 S027Tex.prototype.draw = function(t) {
   let p = this.p;
   let pg = this.pg;
 
-  if(Math.floor(t) - Math.floor(this.tLast) > 0) {
-    this.targetRx = p.random(0, Math.PI * 2);
-    this.targetRy = p.random(0, Math.PI * 2);
-  }
-  this.tLast = t;
-
-  this.curRx = p.lerp(this.curRx, this.targetRx, 0.1);
-  this.curRy = p.lerp(this.curRy, this.targetRy, 0.1);
-
-  this.tDot.draw();
-
-  this.objectPg.beginDraw();
-  this.objectPg.clear();
-  this.objectPg.background(0);
-  this.objectPg.pushMatrix();
-  this.objectPg.pushStyle();
-  this.objectPg.translate(pg.width / 2, pg.height / 2);
-  this.objectPg.rotateX(this.curRx);
-  this.objectPg.rotateY(this.curRy);
-  this.objectPg.shape(this.shape);
-  this.objectPg.popStyle();
-  this.objectPg.popMatrix();
-  this.objectPg.endDraw();
+  this.tBox.draw({t: t});
 
   pg.beginDraw();
   pg.background(0);
-  this.tCenterLine.drawTo(pg);
+  // this.tCenterLine.drawTo(pg);
   pg.blendMode(p.ADD);
-  pg.image(this.objectPg, 0, 0);
-  // pg.blendMode(p.MULTIPLY);
-  // this.tDot.drawTo(pg);
+  this.tBox.drawTo(pg);
+  pg.blendMode(p.MULTIPLY);
+  this.tDot.drawTo(pg);
   pg.blendMode(p.BLEND);
   pg.pushMatrix();
   pg.pushStyle();
