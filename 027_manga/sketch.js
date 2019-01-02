@@ -92,7 +92,7 @@ TCenterLine.prototype.constructor = TCenterLine;
 
 ////////
 
-function TBox (p, w, h) {
+function TBox (p, w, h, args) {
   this.numPatterns = 2;
   TLayer.call(this, p, w, h);
 
@@ -108,6 +108,9 @@ function TBox (p, w, h) {
   this.shape.beginShape(p.QUADS);
   Polygons.Cube(this.shape, -150, -150, -150, 150, 150, 150, 0, 0, 1, 1);
   this.shape.endShape();
+
+  this.x = args.x;
+  this.y = args.y;
 }
 
 TBox.prototype = Object.create(TLayer.prototype, {
@@ -115,16 +118,16 @@ TBox.prototype = Object.create(TLayer.prototype, {
     value: function (pg, i, args) {
       let p = this.p;
       let t = args.t;
-      if(i == 0) {
+      // if(i == 0) {
         if(Math.floor(t) - Math.floor(this.tLast) > 0) {
           this.targetRx = p.random(0, Math.PI * 2);
           this.targetRy = p.random(0, Math.PI * 2);
         }
         this.tLast = t;
       
-        this.curRx = p.lerp(this.curRx, this.targetRx, 0.1);
-        this.curRy = p.lerp(this.curRy, this.targetRy, 0.1);
-      }
+        this.curRx = p.lerp(this.curRx, this.targetRx, 0.05);
+        this.curRy = p.lerp(this.curRy, this.targetRy, 0.05);
+      // }
     
       pg.clear();
       pg.pushMatrix();
@@ -132,7 +135,7 @@ TBox.prototype = Object.create(TLayer.prototype, {
       if(i == 0) {
         pg.lights();
       }
-      pg.translate(pg.width / 2, pg.height / 2);
+      pg.translate(this.x, this.y);
       pg.rotateX(this.curRx);
       pg.rotateY(this.curRy);
       if(i == 0) {
@@ -197,7 +200,10 @@ function S027Tex(p) {
   this.tCenterLine = new TCenterLine(p, this.width, this.height);
   this.tCenterLine.draw();
 
-  this.tBox = new TBox(p, this.width, this.height);
+  this.tBox = new TBox(p, this.width, this.height, {
+    x: this.width / 2,
+    y: this.height / 2
+  });
 
   this.tDotOnBox = new TLayerBlend(p, this.width, this.height, {
     top: this.tDot.pg,
