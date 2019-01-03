@@ -90,50 +90,72 @@ TDotSimple.prototype.constructor = TDotSimple;
 ////////
 
 function TVoronoi (p, w, h) {
+  this.patterns = ["default", "mask0", "mask1", "mask2", "p0", "p1", "p2"];
   TLayer.call(this, p, w, h);
   this.pg.smooth(5);
-  this.voronoi = new Voronoi();
 
   this.sites = [];
+  let poly = new Packages.toxi.geom.Rect(0, 0, this.width, this.height);
+  this.clip = new Packages.toxi.geom.ConvexPolygonClipper(poly.toPolygon2D());
 }
 
 TVoronoi.prototype = Object.create(TLayer.prototype);
 
 TVoronoi.prototype.drawLayer = function (pg, key, args) {
   let p = this.p;
-  this.voronoi.recycle(this.diagram);
-  this.bbox = {xl: 0, xr: this.width, yt: 0, yb: this.height};
-  this.diagram = this.voronoi.compute(this.sites, this.bbox);
+  if(key == "default") {
+    this.voronoi = new Packages.toxi.geom.mesh2d.Voronoi();
+    for(let i in this.sites) {
+      this.voronoi.addPoint(new Packages.toxi.geom.Vec2D(this.sites[i].x, this.sites[i].y));
+    }
+  }
 
   pg.clear();
-  pg.fill(255, 0, 0);
-  pg.stroke(0);
-  pg.strokeWeight(3);
-  // pg.translate(this.width / 2, this.height / 2);
-  let edges = this.diagram.edges;
-  let iEdge = edges.length;
-  while(iEdge--) {
-    let edge = edges[iEdge];
-    let va = edge.va;
-    let vb = edge.vb;
-    // pg.line(va.x, va.y, vb.x, vb.y);
 
-    if(edge.lSite != undefined) {
-      let vl = p.createVector(edge.lSite.x, edge.lSite.y);
-      let vla = p.createVector(va.x, va.y);
-      let vlb = p.createVector(vb.x, vb.y);
-      vla.lerp(vl, 0.1);
-      vlb.lerp(vl, 0.1);
-      pg.line(vla.x, vla.y, vlb.x, vlb.y);
+  let indices = [];
+  pg.fill(255);
+  pg.strokeWeight(3);
+  if(key == "mask0") {
+    pg.background(0);
+    indices = [0];//this.voronoi.getRegions();
+    pg.stroke(255);
+  }
+  else if(key == "mask1") {
+    pg.background(0);
+    indices = [1];//this.voronoi.getRegions();
+    pg.stroke(255);
+  }
+  else if(key == "mask2") {
+    pg.background(0);
+    indices = [2];//this.voronoi.getRegions();
+    pg.stroke(255);
+  }
+  else if(key == "p0") {
+    indices = [0];
+    pg.stroke(0);
+  }
+  else if(key == "p1") {
+    indices = [1];
+    pg.stroke(0);
+  }
+  else if(key == "p2") {
+    indices = [2];
+    pg.stroke(0);
+  }
+  for(let ii in indices) {
+    let i = indices[ii];
+    let poly = this.clip.clipPolygon(this.voronoi.getRegions()[i]);
+    let vc = poly.getCentroid();
+    pg.beginShape();
+    for(let j in poly.vertices) {
+      let v = poly.vertices[j];
+      let vd = vc.copy();
+      vd.subSelf(v);
+      vd.scaleSelf(0.05);
+      vd.addSelf(v);
+      pg.vertex(vd.x, vd.y);
     }
-    if(edge.rSite != undefined) {
-      let vr = p.createVector(edge.rSite.x, edge.rSite.y);
-      let vra = p.createVector(va.x, va.y);
-      let vrb = p.createVector(vb.x, vb.y);
-      vra.lerp(vr, 0.1);
-      vrb.lerp(vr, 0.1);
-      pg.line(vra.x, vra.y, vrb.x, vrb.y);
-    }
+    pg.endShape(p.CLOSE);
   }
 }
 
@@ -370,10 +392,17 @@ function S027Tex(p) {
       mask: tBox.pgs.mask,
       mode: p.MULTIPLY
     });
-    
+    let layeredVoro = new TLayerBlend(p, this.width, this.height, {
+      top: [this.tCenterLine.pg, this.tDotSimple.pg][i % 2],
+      bottom: this.tVoronoi.pgs["p" + i],
+      mask: this.tVoronoi.pgs["mask" + i],
+      mode: p.MULTIPLY
+    });
+        
     this.tObjects.push({
       tBox: tBox,
-      layeredBox: layeredBox
+      layeredBox: layeredBox,
+      layeredVoro: layeredVoro
     })
     this.tVoronoi.sites.push({x: tBox.x, y: tBox.y});
   }
@@ -394,12 +423,16 @@ S027Tex.prototype.draw = function(t) {
     this.tVoronoi.sites[i] = {x: this.tObjects[i].tBox.x, y: this.tObjects[i].tBox.y};
   }
   this.tVoronoi.draw();
+  for(let i in this.tObjects) {
+    this.tObjects[i].layeredVoro.draw();
+  }
 
   pg.beginDraw();
   pg.background(255);
   // this.tDotSimple.drawTo(pg);
-  this.tCenterLine.drawTo(pg);
-  this.tVoronoi.drawTo(pg);
+  for(let i in this.tObjects) {
+    this.tObjects[i].layeredVoro.drawTo(pg);
+  }
   for(let i in this.tObjects) {
     this.tObjects[i].layeredBox.drawTo(pg);
   }

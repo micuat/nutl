@@ -31,6 +31,7 @@ import toxi.physics3d.*;
 import toxi.physics3d.behaviors.*;
 import toxi.physics3d.constraints.*;
 import toxi.geom.*;
+import toxi.geom.mesh2d.*;
 
 import geomerative.*;
 
