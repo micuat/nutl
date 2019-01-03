@@ -10,9 +10,8 @@ function SRenderer (p, w, h) {
   }
 }
 
-SRenderer.prototype.setup = function (that) { // what "that" f***
-  if(that == undefined) that = this;
-  let p = that.p;
-  that.pg = p.createGraphics(that.width, that.height, p.P3D);
-  that.name = p.folderName;
+SRenderer.prototype.setup = function () {
+  let p = this.p;
+  this.pg = p.createGraphics(this.width, this.height, p.P3D);
+  this.name = p.folderName;
 }

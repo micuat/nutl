@@ -72,54 +72,51 @@ function S014 (p) {
   }
 }
 
-S014.prototype = Object.create(SRendererShadow.prototype, {
-  drawScene: {
-    value: function (pg, isShadow) {
-      let p = this.p;
-      pg.clear();
-      pg.pushMatrix();
-      // pg.textureMode(p.NORMAL);
-      // pg.texture(this.texture);
+S014.prototype = Object.create(SRendererShadow.prototype)
 
-      pg.shape(this.shape, 0, 0);
+S014.prototype.drawScene = function (pg, isShadow) {
+  let p = this.p;
+  pg.clear();
+  pg.pushMatrix();
+  // pg.textureMode(p.NORMAL);
+  // pg.texture(this.texture);
 
-      for(let i in this.cubeprops) {
-        let cubeprop = this.cubeprops[i];
-        pg.pushMatrix();
-        pg.fill(0xad, 0xca, 0xd6);
-        pg.noStroke();
-        pg.translate(this.cubeW * cubeprop.x.cur, -20 - this.cubeW * cubeprop.y.cur, 0);
-        pg.rotateY(Math.PI / 3.0);
-        pg.translate(this.cubeW * cubeprop.z.cur, 0, 0);
-        pg.rotateY(-Math.PI / 3.0);
+  pg.shape(this.shape, 0, 0);
 
-        pg.rotateY(Math.PI / 3.0 * cubeprop.rotY.cur);
+  for(let i in this.cubeprops) {
+    let cubeprop = this.cubeprops[i];
+    pg.pushMatrix();
+    pg.fill(0xad, 0xca, 0xd6);
+    pg.noStroke();
+    pg.translate(this.cubeW * cubeprop.x.cur, -20 - this.cubeW * cubeprop.y.cur, 0);
+    pg.rotateY(Math.PI / 3.0);
+    pg.translate(this.cubeW * cubeprop.z.cur, 0, 0);
+    pg.rotateY(-Math.PI / 3.0);
 
-        pg.beginShape(p.TRIANGLES);
-        Polygons.Hexagon(pg, 0, 0, 0, this.cubeW * cubeprop.sx.cur, this.cubeW);
-        pg.endShape();
-        pg.popMatrix();
-      }
+    pg.rotateY(Math.PI / 3.0 * cubeprop.rotY.cur);
 
-      pg.popMatrix();
-
-      pg.fill(150);
-      pg.pushMatrix();
-      pg.translate(0, 40 + 40, 0);
-      pg.box(1000, 40, 1000);
-      pg.popMatrix();
-    }
-  },
-  draw: {
-    value: function (t) {
-      let p = this.p;
-      this.lightPos.set(100, -130, 100);
-      // this.lightPos = this.cameraPosition;
-      this.lightDirection = this.lightPos;//p.createVector(0, 1, 1);
-      Object.getPrototypeOf(S014.prototype).draw(this);
-    }
+    pg.beginShape(p.TRIANGLES);
+    Polygons.Hexagon(pg, 0, 0, 0, this.cubeW * cubeprop.sx.cur, this.cubeW);
+    pg.endShape();
+    pg.popMatrix();
   }
-});
+
+  pg.popMatrix();
+
+  pg.fill(150);
+  pg.pushMatrix();
+  pg.translate(0, 40 + 40, 0);
+  pg.box(1000, 40, 1000);
+  pg.popMatrix();
+}
+
+S014.prototype.draw = function (t) {
+  let p = this.p;
+  this.lightPos.set(100, -130, 100);
+  // this.lightPos = this.cameraPosition;
+  this.lightDirection = this.lightPos;//p.createVector(0, 1, 1);
+  Object.getPrototypeOf(S014.prototype).draw.call(this);
+}
 
 S014.prototype.constructor = S014;
 

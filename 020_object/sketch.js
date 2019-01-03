@@ -62,7 +62,7 @@ SBox.prototype = Object.create(SObject.prototype, {
       let p = this.p;
       let scale = 100 * EasingFunctions.easeInOutCubic(this.fadeIn * (1.0 - this.fadeOut));
       pg.box(scale);
-      Object.getPrototypeOf(SBox.prototype).draw(this);
+      Object.getPrototypeOf(SBox.prototype).draw.call(this);
     }
   }
 });
@@ -104,7 +104,7 @@ SSphere.prototype = Object.create(SObject.prototype, {
       pg.scale(scale, scale, scale);
       pg.shape(this.shape, 0, 0);
       pg.popMatrix();
-      Object.getPrototypeOf(SSphere.prototype).draw(this);
+      Object.getPrototypeOf(SSphere.prototype).draw.call(this);
     }
   }
 });
@@ -146,7 +146,7 @@ SRibbonSphere.prototype = Object.create(SObject.prototype, {
       pg.scale(scale, scale, scale);
       pg.shape(this.shape, 0, 0);
       pg.popMatrix();
-      Object.getPrototypeOf(SRibbonSphere.prototype).draw(this);
+      Object.getPrototypeOf(SRibbonSphere.prototype).draw.call(this);
     }
   }
 });
@@ -194,7 +194,7 @@ SWeirdSphere.prototype = Object.create(SObject.prototype, {
       pg.scale(scale, scale, scale);
       pg.shape(this.shape, 0, 0);
       pg.popMatrix();
-      Object.getPrototypeOf(SWeirdSphere.prototype).draw(this);
+      Object.getPrototypeOf(SWeirdSphere.prototype).draw.call(this);
     }
   }
 });
@@ -251,7 +251,7 @@ S020.prototype = Object.create(SRendererShadow.prototype, {
       for(let i in this.shapes) {
         this.shapes[i].update();
       }
-      Object.getPrototypeOf(S020.prototype).draw(this);
+      Object.getPrototypeOf(S020.prototype).draw.call(this);
     }
   }
 });

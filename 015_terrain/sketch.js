@@ -95,7 +95,7 @@ S014.prototype = Object.create(SRendererShadow.prototype, {
       this.lightPos.set(100, -130, 100);
       // this.lightPos = this.cameraPosition;
       this.lightDirection = this.lightPos;//p.createVector(0, 1, 1);
-      Object.getPrototypeOf(S014.prototype).draw(this);
+      Object.getPrototypeOf(S014.prototype).draw.call(this);
     }
   }
 });

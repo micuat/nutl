@@ -44,7 +44,7 @@ S001.prototype = Object.create(SRendererShadow.prototype, {
       this.lightDirection = p.createVector(0, 0, 1);
       this.cameraPosition.set(400 * Math.cos(camAngle), 100 * Math.sin(p.frameCount * 0.01) - 200, 400 * Math.sin(camAngle));
       this.cameraTarget.set(0, 0, 0);
-      Object.getPrototypeOf(S001.prototype).draw(this);
+      SRendererShadow.prototype.draw.call(this);
     }
   },
   oscEvent: {
@@ -71,6 +71,9 @@ var s = function (p) {
     p.frameRate(30);
 
     s001.setup();
+    postProcess0.setup();
+    postProcess1.setup();
+    postProcess2.setup();
   }
 
   p.draw = function () {

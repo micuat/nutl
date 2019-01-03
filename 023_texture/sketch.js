@@ -36,7 +36,7 @@ S023.prototype = Object.create(SRendererShadow.prototype, {
         s.endShape(this.p.CLOSE);
         this.shape.addChild(s);
       }
-      Object.getPrototypeOf(S023.prototype).setup(this);
+      Object.getPrototypeOf(S023.prototype).setup.call(this);
     }
   },
   drawScene: {
@@ -59,7 +59,7 @@ S023.prototype = Object.create(SRendererShadow.prototype, {
       // this.lightPos.set(-400, -200, 400);
       this.lightDirection = this.lightPos;
       let cycle = 90;
-      Object.getPrototypeOf(S023.prototype).draw(this);
+      Object.getPrototypeOf(S023.prototype).draw.call(this);
     }
   }
 });

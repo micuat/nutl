@@ -30,77 +30,75 @@ function SRendererDof(p, w, h) {
 
 SRendererDof.prototype = Object.create(SRenderer.prototype, {
   draw: {
-    value: function (that, args) {
-      if(that == undefined) that = this;
-      let p = that.p;
+    value: function (args) {
+      let p = this.p;
       p.background(0);
 
-      that.src.beginDraw();
-      that.defaultShader.set("vLightPosition", 0, -100, -100);
-      that.defaultShader.set("uLightColor", 1.0, 1.0, 1.0);
-      that.defaultShader.set("uMetallic", 0.4);
-      that.defaultShader.set("uRoughness", 0.3);
-      that.defaultShader.set("uSpecular", 0.99);
-      that.defaultShader.set("uLightRadius", 500.0);
-      that.defaultShader.set("uExposure", 3.0);
-      that.defaultShader.set("uGamma", 0.8);
+      this.src.beginDraw();
+      this.defaultShader.set("vLightPosition", 0, -100, -100);
+      this.defaultShader.set("uLightColor", 1.0, 1.0, 1.0);
+      this.defaultShader.set("uMetallic", 0.4);
+      this.defaultShader.set("uRoughness", 0.3);
+      this.defaultShader.set("uSpecular", 0.99);
+      this.defaultShader.set("uLightRadius", 500.0);
+      this.defaultShader.set("uExposure", 3.0);
+      this.defaultShader.set("uGamma", 0.8);
       let viewMatrix = new Packages.processing.core.PMatrix3D(
         0.5, 0.0, 0.0, 0.5,
         0.0, 0.5, 0.0, 0.5,
         0.0, 0.0, 0.5, 0.5,
         0.0, 0.0, 0.0, 1.0
       );
-      viewMatrix.translate(that.cameraPosition.x, that.cameraPosition.y, that.cameraPosition.z);
-      that.defaultShader.set("viewMatrix", new Packages.processing.core.PMatrix3D(
+      viewMatrix.translate(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z);
+      this.defaultShader.set("viewMatrix", new Packages.processing.core.PMatrix3D(
         viewMatrix.m00, viewMatrix.m10, viewMatrix.m20, viewMatrix.m30,
         viewMatrix.m01, viewMatrix.m11, viewMatrix.m21, viewMatrix.m31,
         viewMatrix.m02, viewMatrix.m12, viewMatrix.m22, viewMatrix.m32,
         viewMatrix.m03, viewMatrix.m13, viewMatrix.m23, viewMatrix.m33
       ));
-      that.src.camera(that.cameraPosition.x, that.cameraPosition.y, that.cameraPosition.z, that.cameraTarget.x, that.cameraTarget.y, that.cameraTarget.z, 0, 1, 0);
-      that.drawScene(that.src, args, false);
-      that.src.endDraw();
-      that.depth.beginDraw();
-      that.depth.camera(that.cameraPosition.x, that.cameraPosition.y, that.cameraPosition.z, that.cameraTarget.x, that.cameraTarget.y, that.cameraTarget.z, 0, 1, 0);
-      that.drawScene(that.depth, args, true);
-      that.depth.endDraw();
+      this.src.camera(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z, this.cameraTarget.x, this.cameraTarget.y, this.cameraTarget.z, 0, 1, 0);
+      this.drawScene(this.src, args, false);
+      this.src.endDraw();
+      this.depth.beginDraw();
+      this.depth.camera(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z, this.cameraTarget.x, this.cameraTarget.y, this.cameraTarget.z, 0, 1, 0);
+      this.drawScene(this.depth, args, true);
+      this.depth.endDraw();
 
-      that.depthShader.set("minDepth", that.minDepth);
-      that.depthShader.set("maxDepth", that.maxDepth); 
+      this.depthShader.set("minDepth", this.minDepth);
+      this.depthShader.set("maxDepth", this.maxDepth); 
       
-      that.dest.beginDraw();
-      that.dof.set("tDepth", that.depth);
-      that.dest.shader(that.dof);
+      this.dest.beginDraw();
+      this.dof.set("tDepth", this.depth);
+      this.dest.shader(this.dof);
 
-      that.dof.set("maxBlur", that.maxBlur);
-      that.dof.set("focus", that.focus);
-      that.dof.set("aperture", that.aperture);
+      this.dof.set("maxBlur", this.maxBlur);
+      this.dof.set("focus", this.focus);
+      this.dof.set("aperture", this.aperture);
 
-      that.dest.image(that.src, 0, 0);
-      that.dest.endDraw();
+      this.dest.image(this.src, 0, 0);
+      this.dest.endDraw();
 
       for(let i = 0; i < 2; i++) {
-        that.dest2.beginDraw();
-        that.dof.set("tDepth", that.depth);
-        that.dest2.shader(that.dof);
+        this.dest2.beginDraw();
+        this.dof.set("tDepth", this.depth);
+        this.dest2.shader(this.dof);
     
-        that.dof.set("maxBlur", that.maxBlur);
-        that.dof.set("focus", that.focus);
-        that.dof.set("aperture", that.aperture);
+        this.dof.set("maxBlur", this.maxBlur);
+        this.dof.set("focus", this.focus);
+        this.dof.set("aperture", this.aperture);
     
-        that.dest2.image(that.dest, 0, 0);
-        that.dest2.endDraw();
+        this.dest2.image(this.dest, 0, 0);
+        this.dest2.endDraw();
         
-        let destTemp = that.dest;
-        that.dest = that.dest2;
-        that.dest2 = destTemp;
+        let destTemp = this.dest;
+        this.dest = this.dest2;
+        this.dest2 = destTemp;
       }
-      that.pg = that.dest2;
+      this.pg = this.dest2;
     }
   },
   drawScene: {
-    value: function (that, pg, args, isDepth) {
-      if(that == undefined) that = this;
+    value: function (pg, args, isDepth) {
     }
   }
 });

@@ -20,7 +20,7 @@ S022.prototype = Object.create(SRendererShadow.prototype, {
       this.shape.noStroke();
       Polygons.Dice(this.shape, -100, -100, -100, 100, 100, 100);
       this.shape.endShape();
-      Object.getPrototypeOf(S022.prototype).setup(this);
+      Object.getPrototypeOf(S022.prototype).setup.call(this);
     }
   },
   drawScene: {
@@ -56,7 +56,7 @@ S022.prototype = Object.create(SRendererShadow.prototype, {
       this.lightPos.set(-400, -200, 400);
       this.lightDirection = this.lightPos;
       let cycle = 90;
-      Object.getPrototypeOf(S022.prototype).draw(this);
+      Object.getPrototypeOf(S022.prototype).draw.call(this);
     }
   }
 });

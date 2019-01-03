@@ -63,46 +63,43 @@ function S013 (p) {
   }
 }
 
-S013.prototype = Object.create(SRendererShadow.prototype, {
-  drawScene: {
-    value: function (pg, isShadow) {
-      let p = this.p;
-      pg.clear();
-      pg.pushMatrix();
-      // pg.textureMode(p.NORMAL);
-      // pg.texture(this.texture);
+S013.prototype = Object.create(SRendererShadow.prototype);
 
-      pg.shape(this.shape, 0, 0);
+S013.prototype.drawScene = function (pg, isShadow) {
+  let p = this.p;
+  pg.clear();
+  pg.pushMatrix();
+  // pg.textureMode(p.NORMAL);
+  // pg.texture(this.texture);
+
+  pg.shape(this.shape, 0, 0);
 
 
-      // if(isShadow) {
-      //   pg.fill(0xed, 0xae, 0x49);
-      //   pg.noStroke();
-      //   pg.translate(this.cubeW * this.cubeprop.x.cur, 0, this.cubeW * this.cubeprop.z.cur);
-      //   // pg.rotateX(Math.PI * 0.5 * this.cubeprop.rotX.cur);
-      //   pg.rotateY(Math.PI * 0.5 * this.cubeprop.rotY.cur);
-      //   // pg.rotateZ(Math.PI * 0.5 * this.cubeprop.rotZ.cur);
-      //   pg.box(this.cubeW * this.cubeprop.sx.cur, this.cubeW * 1, this.cubeW);
-      // }
-      pg.popMatrix();
+  // if(isShadow) {
+  //   pg.fill(0xed, 0xae, 0x49);
+  //   pg.noStroke();
+  //   pg.translate(this.cubeW * this.cubeprop.x.cur, 0, this.cubeW * this.cubeprop.z.cur);
+  //   // pg.rotateX(Math.PI * 0.5 * this.cubeprop.rotX.cur);
+  //   pg.rotateY(Math.PI * 0.5 * this.cubeprop.rotY.cur);
+  //   // pg.rotateZ(Math.PI * 0.5 * this.cubeprop.rotZ.cur);
+  //   pg.box(this.cubeW * this.cubeprop.sx.cur, this.cubeW * 1, this.cubeW);
+  // }
+  pg.popMatrix();
 
-      pg.fill(150);
-      pg.pushMatrix();
-      pg.translate(0, 40 + 40, 0);
-      pg.box(1000, 40, 1000);
-      pg.popMatrix();
-    }
-  },
-  draw: {
-    value: function (t) {
-      let p = this.p;
-      this.lightPos.set(100, -130, 100);
-      // this.lightPos = this.cameraPosition;
-      this.lightDirection = this.lightPos;//p.createVector(0, 1, 1);
-      Object.getPrototypeOf(S013.prototype).draw(this);
-    }
-  }
-});
+  pg.fill(150);
+  pg.pushMatrix();
+  pg.translate(0, 40 + 40, 0);
+  pg.box(1000, 40, 1000);
+  pg.popMatrix();
+}
+
+S013.prototype.draw = function (t) {
+  let p = this.p;
+  this.lightPos.set(100, -130, 100);
+  // this.lightPos = this.cameraPosition;
+  this.lightDirection = this.lightPos;//p.createVector(0, 1, 1);
+  Object.getPrototypeOf(S013.prototype).draw.call(this);
+}
 
 S013.prototype.constructor = S013;
 
@@ -110,27 +107,25 @@ function S013Wire (p) {
   SRenderer.call(this, p, 800, 800);
 }
 
-S013Wire.prototype = Object.create(SRenderer.prototype, {
-  draw: {
-    value: function (t) {
-      let p = this.p;
-      let pg = this.pg;
-      pg.beginDraw();
-      pg.clear();
-      pg.camera(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z, this.cameraTarget.x, this.cameraTarget.y, this.cameraTarget.z, 0, 1, 0);
+S013Wire.prototype = Object.create(SRenderer.prototype);
 
-      pg.noFill();
-      pg.stroke(255);
-      pg.strokeWeight(2);
-      pg.translate(this.cubeW * this.cubeprop.x.cur, 0, this.cubeW * this.cubeprop.z.cur);
-      // pg.rotateX(Math.PI * 0.5 * this.cubeprop.rotX.cur);
-      pg.rotateY(Math.PI * 0.5 * this.cubeprop.rotY.cur);
-      // pg.rotateZ(Math.PI * 0.5 * this.cubeprop.rotZ.cur);
-      pg.box(this.cubeW * this.cubeprop.sx.cur, this.cubeW * 1, this.cubeW);
-      pg.endDraw();
-    }
-  }
-});
+S013Wire.prototype.draw = function (t) {
+  let p = this.p;
+  let pg = this.pg;
+  pg.beginDraw();
+  pg.clear();
+  pg.camera(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z, this.cameraTarget.x, this.cameraTarget.y, this.cameraTarget.z, 0, 1, 0);
+
+  pg.noFill();
+  pg.stroke(255);
+  pg.strokeWeight(2);
+  pg.translate(this.cubeW * this.cubeprop.x.cur, 0, this.cubeW * this.cubeprop.z.cur);
+  // pg.rotateX(Math.PI * 0.5 * this.cubeprop.rotX.cur);
+  pg.rotateY(Math.PI * 0.5 * this.cubeprop.rotY.cur);
+  // pg.rotateZ(Math.PI * 0.5 * this.cubeprop.rotZ.cur);
+  pg.box(this.cubeW * this.cubeprop.sx.cur, this.cubeW * 1, this.cubeW);
+  pg.endDraw();
+}
 
 S013Wire.prototype.constructor = S013Wire;
 

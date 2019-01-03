@@ -8,48 +8,43 @@ function SObject (p) {
   this.tLastUpdate = 0.0;
 }
 
-SObject.prototype.setup = function (that) {
-  if(that == undefined) that = this;
-  let p = that.p;
+SObject.prototype.setup = function () {
+  let p = this.p;
 }
 
-SObject.prototype.in = function (that) {
-  if(that == undefined) that = this;
-  let p = that.p;
-  that.doFadeIn = true;
-  that.doFadeOut = false;
-  that.fadeIn = 0.0;
-  that.fadeOut = 0.0;
+SObject.prototype.in = function () {
+  let p = this.p;
+  this.doFadeIn = true;
+  this.doFadeOut = false;
+  this.fadeIn = 0.0;
+  this.fadeOut = 0.0;
 }
 
-SObject.prototype.out = function (that) {
-  if(that == undefined) that = this;
-  let p = that.p;
-  that.doFadeIn = false;
-  that.doFadeOut = true;
-  that.fadeIn = 1.0;
-  that.fadeOut = 0.0;
+SObject.prototype.out = function () {
+  let p = this.p;
+  this.doFadeIn = false;
+  this.doFadeOut = true;
+  this.fadeIn = 1.0;
+  this.fadeOut = 0.0;
 }
 
-SObject.prototype.update = function (that) {
-  if(that == undefined) that = this;
-  let p = that.p;
+SObject.prototype.update = function () {
+  let p = this.p;
   let t = p.millis() * 0.001;
-  let tDiff = t - that.tLastUpdate;
-  if(that.doFadeIn) {
-    that.fadeIn += tDiff * that.fadeSpeed;
-    if(that.fadeIn > 1.0) that.fadeIn = 1.0;
+  let tDiff = t - this.tLastUpdate;
+  if(this.doFadeIn) {
+    this.fadeIn += tDiff * this.fadeSpeed;
+    if(this.fadeIn > 1.0) this.fadeIn = 1.0;
   }
-  if(that.doFadeOut) {
-    that.fadeOut += tDiff * that.fadeSpeed;
-    if(that.fadeOut > 1.0) that.fadeOut = 1.0;
+  if(this.doFadeOut) {
+    this.fadeOut += tDiff * this.fadeSpeed;
+    if(this.fadeOut > 1.0) this.fadeOut = 1.0;
   }
-  that.tLastUpdate = t;
+  this.tLastUpdate = t;
 }
 
-SObject.prototype.draw = function (that, pg) {
-  if(that == undefined) that = this;
-  let p = that.p;
+SObject.prototype.draw = function (pg) {
+  let p = this.p;
 }
 
 function STorus (p) {
@@ -144,7 +139,7 @@ STorus.prototype = Object.create(SObject.prototype, {
       pg.scale(scale, scale, scale);
       pg.shape(this.shape, 0, 0);
       pg.popMatrix();
-      Object.getPrototypeOf(STorus.prototype).draw(this);
+      Object.getPrototypeOf(STorus.prototype).draw.call(this);
     }
   }
 });
@@ -213,7 +208,7 @@ S021.prototype = Object.create(SRendererShadow.prototype, {
       for(let i in this.shapes) {
         this.shapes[i].update();
       }
-      Object.getPrototypeOf(S021.prototype).draw(this);
+      Object.getPrototypeOf(S021.prototype).draw.call(this);
     }
   }
 });

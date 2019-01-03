@@ -46,7 +46,7 @@ S002.prototype = Object.create(SRendererDof.prototype, {
       let mid = 110;
       this.minDepth = mid - 100.0;
       this.maxDepth = mid + 100.0;
-      Object.getPrototypeOf(S002.prototype).draw(this, {t: t});
+      SRendererDof.prototype.draw.call(this, {t: t});
     }
   }
 });
@@ -63,6 +63,7 @@ var s = function (p) {
     p.frameRate(30);
 
     s002.setup();
+    postProcess0.setup();
     startFrame = p.frameCount;
   }
 
