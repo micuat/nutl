@@ -163,6 +163,38 @@ TVoronoi.prototype.constructor = TVoronoi;
 
 ////////
 
+function TBackBoxes (p, w, h) {
+  TLayer.call(this, p, w, h);
+  this.pg.smooth(5);
+}
+
+TBackBoxes.prototype = Object.create(TLayer.prototype);
+
+TBackBoxes.prototype.drawLayer = function (pg, key, args) {
+  let p = this.p;
+  pg.background(255);
+  pg.stroke(0);
+  pg.strokeWeight(3);
+  pg.fill(255);
+  pg.translate(pg.width / 2, pg.height / 2);
+  for(let i = 0; i < 200; i++) {
+    let v = p5.Vector.random3D();
+    v.mult(p.random(0, 400));
+    let w = 20;
+    v.x = Math.floor(v.x/w) * w;
+    v.y = Math.floor(v.y/w) * w;
+    v.z = Math.floor(v.z/w) * w;
+    pg.pushMatrix();
+    pg.translate(v.x, v.y, v.z);
+    pg.box(w);
+    pg.popMatrix();
+  }
+}
+
+TBackBoxes.prototype.constructor = TBackBoxes;
+
+////////
+
 function TCenterLine (p, w, h) {
   TLayer.call(this, p, w, h);
   this.pg.smooth(5);
@@ -376,6 +408,9 @@ function S027Tex(p) {
   this.tCenterLine = new TCenterLine(p, this.width, this.height);
   this.tCenterLine.draw();
 
+  this.tBackBoxes = new TBackBoxes(p, this.width, this.height);
+  this.tBackBoxes.draw();
+
   this.tStripe = new TStripe(p, this.width, this.height);
   this.tStripe.draw();
 
@@ -393,7 +428,7 @@ function S027Tex(p) {
       mode: p.MULTIPLY
     });
     let layeredVoro = new TLayerBlend(p, this.width, this.height, {
-      top: [this.tCenterLine.pg, this.tDotSimple.pg][i % 2],
+      top: [this.tCenterLine.pg, this.tDotSimple.pg, this.tBackBoxes.pg][i % 3],
       bottom: this.tVoronoi.pgs["p" + i],
       mask: this.tVoronoi.pgs["mask" + i],
       mode: p.MULTIPLY
