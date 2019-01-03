@@ -351,8 +351,8 @@ function S027Tex(p) {
 
   this.tVoronoi = new TVoronoi(p, this.width, this.height);
 
-  // this.tCenterLine = new TCenterLine(p, this.width, this.height);
-  // this.tCenterLine.draw();
+  this.tCenterLine = new TCenterLine(p, this.width, this.height);
+  this.tCenterLine.draw();
 
   this.tStripe = new TStripe(p, this.width, this.height);
   this.tStripe.draw();
@@ -365,7 +365,7 @@ function S027Tex(p) {
       size: 75
     });
     let layeredBox = new TLayerBlend(p, this.width, this.height, {
-      top: p.random([this.tDot.pg, this.tStripe.pg]),
+      top: [this.tDot.pg, this.tStripe.pg][i % 2],
       bottom: tBox.pgs.default,
       mask: tBox.pgs.mask,
       mode: p.MULTIPLY
@@ -398,8 +398,8 @@ S027Tex.prototype.draw = function(t) {
   pg.beginDraw();
   pg.background(255);
   // this.tDotSimple.drawTo(pg);
+  this.tCenterLine.drawTo(pg);
   this.tVoronoi.drawTo(pg);
-  // this.tCenterLine.drawTo(pg);
   for(let i in this.tObjects) {
     this.tObjects[i].layeredBox.drawTo(pg);
   }
