@@ -62,6 +62,149 @@ TDot.prototype.constructor = TDot;
 
 ////////
 
+function TDotSimple (p, w, h) {
+  TLayer.call(this, p, w, h);
+  this.pg.smooth(5);
+}
+
+TDotSimple.prototype = Object.create(TLayer.prototype, {
+  drawLayer: {
+    value: function (pg, key, args) {
+      let p = this.p;
+      pg.clear();
+      pg.background(255);
+      pg.fill(0);
+      pg.noStroke();
+      pg.translate(this.width / 2, this.height / 2);
+      pg.rotate(-Math.PI / 4);
+      for(let i = -40; i < 40; i++) {
+        for(let j = -40; j < 40; j++) {
+          let x = (j + 0.5) * 20;
+          let y = (i + 0.5) * 20;
+          let r = 7;
+          pg.ellipse(x, y, r, r);
+        }
+      }
+    }
+  }
+});
+
+TDotSimple.prototype.constructor = TDotSimple;
+
+////////
+
+function TVoronoi (p, w, h) {
+  TLayer.call(this, p, w, h);
+  this.pg.smooth(5);
+  this.voronoi = new Voronoi();
+
+  this.sites = [];
+  // create vertices
+  this.margin = 0.15;
+  let xmargin = this.width*this.margin,
+    ymargin = this.height*this.margin,
+    xo = xmargin,
+    dx = this.width-xmargin*2,
+    yo = ymargin,
+    dy = this.height-ymargin*2,
+    n = 5;
+  for (let i = 0; i < n; i++) {
+    this.sites.push({
+      x: xo + Math.random()*dx + Math.random()/dx,
+      y: yo + Math.random()*dy + Math.random()/dy
+      });
+  }
+  this.voronoi.recycle(this.diagram);
+  this.bbox = {xl: 0, xr: this.width, yt: 0, yb: this.height};
+  this.diagram = this.voronoi.compute(this.sites, this.bbox);
+
+  // let vertices = this.diagram.vertices;
+  // let iVertex = vertices.length;
+  // while(iVertex--) {
+  //   let v = vertices[iVertex];
+  //   print(Object.keys(v))
+  // }
+  // let edges = this.diagram.edges;
+  // let iEdge = edges.length;
+  // while(iEdge--) {
+  //   let edge = edges[iEdge];
+  //   print(Object.keys(edge.lSite))
+  // }
+}
+
+TVoronoi.prototype = Object.create(TLayer.prototype, {
+  drawLayer: {
+    value: function (pg, key, args) {
+      let p = this.p;
+      pg.clear();
+      pg.fill(255, 0, 0);
+      pg.stroke(0);
+      pg.strokeWeight(3);
+      // pg.translate(this.width / 2, this.height / 2);
+      let edges = this.diagram.edges;
+      let iEdge = edges.length;
+      while(iEdge--) {
+        let edge = edges[iEdge];
+        let va = edge.va;
+        let vb = edge.vb;
+        // pg.line(va.x, va.y, vb.x, vb.y);
+
+        if(edge.lSite != undefined) {
+          let vl = p.createVector(edge.lSite.x, edge.lSite.y);
+          let vla = p.createVector(va.x, va.y);
+          let vlb = p.createVector(vb.x, vb.y);
+          vla.lerp(vl, 0.1);
+          vlb.lerp(vl, 0.1);
+          pg.line(vla.x, vla.y, vlb.x, vlb.y);
+        }
+        if(edge.rSite != undefined) {
+          let vr = p.createVector(edge.rSite.x, edge.rSite.y);
+          let vra = p.createVector(va.x, va.y);
+          let vrb = p.createVector(vb.x, vb.y);
+          vra.lerp(vr, 0.1);
+          vrb.lerp(vr, 0.1);
+          pg.line(vra.x, vra.y, vrb.x, vrb.y);
+        }
+      }
+    }
+  }
+});
+
+TVoronoi.prototype.constructor = TVoronoi;
+
+////////
+
+// function TPentagon (p, w, h) {
+//   TLayer.call(this, p, w, h);
+//   this.pg.smooth(5);
+// }
+
+// TPentagon.prototype = Object.create(TLayer.prototype, {
+//   drawLayer: {
+//     value: function (pg, key, args) {
+//       let p = this.p;
+//       pg.clear();
+//       pg.background(255);
+//       pg.fill(0);
+//       pg.noStroke();
+//       pg.translate(this.width / 2, this.height / 2);
+//       pg.rotate(-Math.PI / 4);
+//       for(let i = -40; i < 40; i++) {
+//         for(let j = -40; j < 40; j++) {
+//           let x = (j + 0.5) * 20;
+//           let y = (i + 0.5) * 20;
+//           let r = 7;
+//           pg.ellipse(x, y, r, r);
+//         }
+//       }
+//     }
+//   }
+// });
+
+// TPentagon.prototype.constructor = TPentagon;
+
+////////
+
 function TCenterLine (p, w, h) {
   TLayer.call(this, p, w, h);
   this.pg.smooth(5);
@@ -122,9 +265,11 @@ TStripe.prototype.constructor = TStripe;
 
 ////////
 
-function TBlurb (p, w, h) {
+function TBlurb (p, w, h, args) {
   TLayer.call(this, p, w, h);
   this.pg.smooth(5);
+  this.x = args.x;
+  this.y = args.y;
 }
 
 TBlurb.prototype = Object.create(TLayer.prototype, {
@@ -136,14 +281,17 @@ TBlurb.prototype = Object.create(TLayer.prototype, {
       pg.stroke(0);
       pg.strokeWeight(3);
       pg.fill(255);
-      pg.translate(150, 400);
+      pg.translate(this.x, this.y);
+
+      let pointAngle = 0 / 100.0 * p.TWO_PI;
+      let pointX = 50 * Math.cos(pointAngle) * 1.5;
+      let pointY = 150 * Math.sin(pointAngle) * 1.5;
+
+      pg.translate(-pointX, -pointY);
+
       pg.beginShape();
-      {
-        let angle = 0 / 100.0 * p.TWO_PI;
-        let x = 50 * Math.cos(angle) * 1.5;
-        let y = 150 * Math.sin(angle) * 1.5;
-        pg.vertex(x, y);
-      }
+      pg.vertex(pointX, pointY);
+
       for(let i = 2; i < 100 - 2; i++) {
         let angle = i / 100.0 * p.TWO_PI;
         let x = 50 * Math.cos(angle);
@@ -171,15 +319,17 @@ function TBox (p, w, h, args) {
   this.targetRx = 0.0;
   this.targetRy = 0.0;
 
+  this.x = args.x;
+  this.y = args.y;
+  this.size = args.size;
+
   this.pg.smooth(5);
   this.shape = p.createShape();
   this.shape.disableStyle();
   this.shape.beginShape(p.QUADS);
-  Polygons.Cube(this.shape, -150, -150, -150, 150, 150, 150, 0, 0, 1, 1);
+  let size = this.size;
+  Polygons.Cube(this.shape, -size, -size, -size, size, size, size, 0, 0, 1, 1);
   this.shape.endShape();
-
-  this.x = args.x;
-  this.y = args.y;
 }
 
 TBox.prototype = Object.create(TLayer.prototype, {
@@ -265,41 +415,74 @@ function S027Tex(p) {
   this.tDot = new TDot(p, this.width, this.height);
   this.tDot.draw();
 
-  this.tCenterLine = new TCenterLine(p, this.width, this.height);
-  this.tCenterLine.draw();
+  this.tDotSimple = new TDotSimple(p, this.width, this.height);
+  this.tDotSimple.draw();
+
+  this.tVoronoi = new TVoronoi(p, this.width, this.height);
+  this.tVoronoi.draw();
+
+  // this.tCenterLine = new TCenterLine(p, this.width, this.height);
+  // this.tCenterLine.draw();
 
   this.tStripe = new TStripe(p, this.width, this.height);
   this.tStripe.draw();
 
-  this.tBlurb = new TBlurb(p, this.width, this.height);
-  this.tBlurb.draw();
+  this.tBox0 = new TBox(p, this.width, this.height, {
+    x: this.width / 4,
+    y: this.height / 4 * 3,
+    size: 75
+  });
 
-  this.tBox = new TBox(p, this.width, this.height, {
-    x: this.width / 2,
-    y: this.height / 2
+  this.tBox1 = new TBox(p, this.width, this.height, {
+    x: this.width / 4 * 3,
+    y: this.height / 4,
+    size: 75
   });
 
   this.tDotOnBox = new TLayerBlend(p, this.width, this.height, {
     top: this.tDot.pg,
-    bottom: this.tBox.pgs.default,
-    mask: this.tBox.pgs.mask,
+    bottom: this.tBox0.pgs.default,
+    mask: this.tBox0.pgs.mask,
     mode: p.MULTIPLY
   });
+
+  this.tStripeOnBox = new TLayerBlend(p, this.width, this.height, {
+    top: this.tStripe.pg,
+    bottom: this.tBox1.pgs.default,
+    mask: this.tBox1.pgs.mask,
+    mode: p.MULTIPLY
+  });
+
+  this.tBlurb0 = new TBlurb(p, this.width, this.height, {
+    x: this.tBox0.x - 50, y: this.tBox0.y
+  });
+  this.tBlurb0.draw();
+
+  this.tBlurb1 = new TBlurb(p, this.width, this.height, {
+    x: this.tBox1.x - 50, y: this.tBox1.y
+  });
+  this.tBlurb1.draw();
 }
 
 S027Tex.prototype.draw = function(t) {
   let p = this.p;
   let pg = this.pg;
 
-  this.tBox.draw({t: t});
+  this.tBox0.draw({t: t});
+  this.tBox1.draw({t: t});
   this.tDotOnBox.draw();
+  this.tStripeOnBox.draw();
+  this.tVoronoi.draw();
 
   pg.beginDraw();
-  pg.background(0);
-  this.tStripe.drawTo(pg);
+  pg.background(255);
+  // this.tDotSimple.drawTo(pg);
+  this.tVoronoi.drawTo(pg);
   // this.tCenterLine.drawTo(pg);
   this.tDotOnBox.drawTo(pg);
-  this.tBlurb.drawTo(pg);
+  this.tStripeOnBox.drawTo(pg);
+  // this.tBlurb0.drawTo(pg);
+  // this.tBlurb1.drawTo(pg);
 
   pg.endDraw();
 }
