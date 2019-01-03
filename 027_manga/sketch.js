@@ -378,9 +378,10 @@ function S027Tex(p) {
     this.tVoronoi.sites.push({x: tBox.x, y: tBox.y});
   }
 
-  // let blurb = new TBlurb(p, this.width, this.height, {
-  //   x: this.tBox0.x - 50, y: this.tBox0.y
-  // });
+  this.tBlurb = new TBlurb(p, this.width, this.height, {
+    x: this.width / 2, y: this.height / 2
+  });
+  this.tBlurb.draw();
 }
 
 S027Tex.prototype.draw = function(t) {
@@ -401,8 +402,11 @@ S027Tex.prototype.draw = function(t) {
   // this.tCenterLine.drawTo(pg);
   for(let i in this.tObjects) {
     this.tObjects[i].layeredBox.drawTo(pg);
-    // this.tBlurb0.drawTo(pg);
   }
+  let idx = this.tObjects.length - 1;
+  pg.translate(this.tObjects[idx].tBox.x - 70, this.tObjects[idx].tBox.y);
+  pg.translate(-this.width / 2, -this.height / 2);
+  this.tBlurb.drawTo(pg);
 
   pg.endDraw();
 }
