@@ -99,24 +99,6 @@ function TVoronoi (p, w, h) {
   this.voronoi = new Voronoi();
 
   this.sites = [];
-  // create vertices
-  this.margin = 0.15;
-  let xmargin = this.width*this.margin,
-    ymargin = this.height*this.margin,
-    xo = xmargin,
-    dx = this.width-xmargin*2,
-    yo = ymargin,
-    dy = this.height-ymargin*2,
-    n = 5;
-  for (let i = 0; i < n; i++) {
-    this.sites.push({
-      x: xo + Math.random()*dx + Math.random()/dx,
-      y: yo + Math.random()*dy + Math.random()/dy
-      });
-  }
-  this.voronoi.recycle(this.diagram);
-  this.bbox = {xl: 0, xr: this.width, yt: 0, yb: this.height};
-  this.diagram = this.voronoi.compute(this.sites, this.bbox);
 
   // let vertices = this.diagram.vertices;
   // let iVertex = vertices.length;
@@ -136,6 +118,10 @@ TVoronoi.prototype = Object.create(TLayer.prototype, {
   drawLayer: {
     value: function (pg, key, args) {
       let p = this.p;
+      this.voronoi.recycle(this.diagram);
+      this.bbox = {xl: 0, xr: this.width, yt: 0, yb: this.height};
+      this.diagram = this.voronoi.compute(this.sites, this.bbox);
+
       pg.clear();
       pg.fill(255, 0, 0);
       pg.stroke(0);
@@ -330,6 +316,9 @@ function TBox (p, w, h, args) {
   let size = this.size;
   Polygons.Cube(this.shape, -size, -size, -size, size, size, size, 0, 0, 1, 1);
   this.shape.endShape();
+
+  this.v = p5.Vector.random2D();
+  this.v.mult(5);
 }
 
 TBox.prototype = Object.create(TLayer.prototype, {
@@ -337,7 +326,9 @@ TBox.prototype = Object.create(TLayer.prototype, {
     value: function (pg, key, args) {
       let p = this.p;
       let t = args.t;
-      // if(key == "default") {
+      if(key == "default") {
+        this.x = (this.x + this.v.x + this.width) % this.width;
+        this.y = (this.y + this.v.y + this.height) % this.height;
         if(Math.floor(t) - Math.floor(this.tLast) > 0) {
           this.targetRx = p.random(0, Math.PI * 2);
           this.targetRy = p.random(0, Math.PI * 2);
@@ -346,7 +337,7 @@ TBox.prototype = Object.create(TLayer.prototype, {
       
         this.curRx = p.lerp(this.curRx, this.targetRx, 0.05);
         this.curRy = p.lerp(this.curRy, this.targetRy, 0.05);
-      // }
+      }
     
       pg.clear();
       pg.pushMatrix();
@@ -419,7 +410,6 @@ function S027Tex(p) {
   this.tDotSimple.draw();
 
   this.tVoronoi = new TVoronoi(p, this.width, this.height);
-  this.tVoronoi.draw();
 
   // this.tCenterLine = new TCenterLine(p, this.width, this.height);
   // this.tCenterLine.draw();
@@ -427,51 +417,40 @@ function S027Tex(p) {
   this.tStripe = new TStripe(p, this.width, this.height);
   this.tStripe.draw();
 
-  this.tBox0 = new TBox(p, this.width, this.height, {
-    x: this.width / 4,
-    y: this.height / 4 * 3,
-    size: 75
-  });
-
-  this.tBox1 = new TBox(p, this.width, this.height, {
-    x: this.width / 4 * 3,
-    y: this.height / 4,
-    size: 75
-  });
-
-  this.tDotOnBox = new TLayerBlend(p, this.width, this.height, {
-    top: this.tDot.pg,
-    bottom: this.tBox0.pgs.default,
-    mask: this.tBox0.pgs.mask,
-    mode: p.MULTIPLY
-  });
-
-  this.tStripeOnBox = new TLayerBlend(p, this.width, this.height, {
-    top: this.tStripe.pg,
-    bottom: this.tBox1.pgs.default,
-    mask: this.tBox1.pgs.mask,
-    mode: p.MULTIPLY
-  });
-
-  this.tBlurb0 = new TBlurb(p, this.width, this.height, {
-    x: this.tBox0.x - 50, y: this.tBox0.y
-  });
-  this.tBlurb0.draw();
-
-  this.tBlurb1 = new TBlurb(p, this.width, this.height, {
-    x: this.tBox1.x - 50, y: this.tBox1.y
-  });
-  this.tBlurb1.draw();
+  this.tObjects = [];
+  for(let i = 0; i < 3; i++) {
+    let tBox = new TBox(p, this.width, this.height, {
+      x: p.random(this.width),
+      y: p.random(this.height),
+      size: 75
+    });
+    let layeredBox = new TLayerBlend(p, this.width, this.height, {
+      top: p.random([this.tDot.pg, this.tStripe.pg]),
+      bottom: tBox.pgs.default,
+      mask: tBox.pgs.mask,
+      mode: p.MULTIPLY
+    });
+    // let blurb = new TBlurb(p, this.width, this.height, {
+    //   x: this.tBox0.x - 50, y: this.tBox0.y
+    // });
+    
+    this.tObjects.push({
+      tBox: tBox,
+      layeredBox: layeredBox
+    })
+    this.tVoronoi.sites.push({x: tBox.x, y: tBox.y});
+  }
 }
 
 S027Tex.prototype.draw = function(t) {
   let p = this.p;
   let pg = this.pg;
 
-  this.tBox0.draw({t: t});
-  this.tBox1.draw({t: t});
-  this.tDotOnBox.draw();
-  this.tStripeOnBox.draw();
+  for(let i in this.tObjects) {
+    this.tObjects[i].tBox.draw({t: t});
+    this.tObjects[i].layeredBox.draw({t: t});
+    this.tVoronoi.sites[i] = {x: this.tObjects[i].tBox.x, y: this.tObjects[i].tBox.y};
+  }
   this.tVoronoi.draw();
 
   pg.beginDraw();
@@ -479,10 +458,10 @@ S027Tex.prototype.draw = function(t) {
   // this.tDotSimple.drawTo(pg);
   this.tVoronoi.drawTo(pg);
   // this.tCenterLine.drawTo(pg);
-  this.tDotOnBox.drawTo(pg);
-  this.tStripeOnBox.drawTo(pg);
-  // this.tBlurb0.drawTo(pg);
-  // this.tBlurb1.drawTo(pg);
+  for(let i in this.tObjects) {
+    this.tObjects[i].layeredBox.drawTo(pg);
+    // this.tBlurb0.drawTo(pg);
+  }
 
   pg.endDraw();
 }
