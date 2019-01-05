@@ -1,4 +1,4 @@
-var colorScheme = new ColorScheme("6564db-f896d8-edf67d-ca7df9-564592");
+var colorScheme = new ColorScheme("373f51-008dd5-dfbbb1-f56476-e43f6f");
 
 function TLayer (p, w, h) {
   this.p = p;
@@ -73,16 +73,16 @@ TBackBoxes.prototype = Object.create(TLayer.prototype);
 
 TBackBoxes.prototype.drawLayer = function (pg, key, args) {
   let p = this.p;
-  let idx = 0;
+  let idx = 1;
   pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
   pg.noStroke();
   pg.fill(255);
   pg.lights();
   pg.translate(pg.width / 2, pg.height / 2);
-  for(let i = 0; i < 200; i++) {
+  for(let i = 0; i < 400; i++) {
     let v = p5.Vector.random3D();
     v.mult(p.random(0, 400));
-    let w = 20 * Math.floor(p.random(1, 4));
+    let w = 20 * Math.floor(p.random(0, 5));
     v.x = Math.floor(v.x/w) * w;
     v.y = Math.floor(v.y/w) * w;
     v.z = Math.floor(v.z/w) * w;
@@ -90,7 +90,8 @@ TBackBoxes.prototype.drawLayer = function (pg, key, args) {
     pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
     pg.pushMatrix();
     pg.translate(v.x, v.y, v.z);
-    pg.box(w);
+    // pg.box(w);
+    pg.sphere(w/2);
     pg.popMatrix();
   }
 }
@@ -128,24 +129,34 @@ TStripe.prototype.constructor = TStripe;
 
 ////////
 
-function TBox (p, w, h, args) {
+function TRibbons (p, w, h, args) {
   this.patterns = ["default", "mask"];
   TLayer.call(this, p, w, h);
 
+  this.lastT = 0;
   this.curR = p.random(0, Math.PI * 2);
+  this.targetR = 0;
   this.v = p.random(0.5, 1.5);
   this.x = args.x;
   this.y = args.y;
   this.size = args.size;
 
-  this.pg.smooth(5);
+  // this.pg.smooth(5);
 }
 
-TBox.prototype = Object.create(TLayer.prototype);
+TRibbons.prototype = Object.create(TLayer.prototype);
 
-TBox.prototype.drawLayer = function (pg, key, args) {
+TRibbons.prototype.drawLayer = function (pg, key, args) {
   let p = this.p;
-  let t = args.t;
+  let t = args.t * 0.5 + 0.25;
+
+  if(key == "default") {
+    if(Math.floor(t) - Math.floor(this.lastT) > 0) {
+      this.targetR = Math.floor(p.random(-1, 1) * Math.PI);
+    }
+    this.lastT = t;
+    this.curR = p.lerp(this.curR, this.targetR, 0.05);
+  }
 
   pg.clear();
   pg.pushMatrix();
@@ -162,6 +173,77 @@ TBox.prototype.drawLayer = function (pg, key, args) {
   for(let i = -10; i <= 10; i++) {
     pg.rect(0, i * 80, this.width * 2, 20);
   }
+  pg.popStyle();
+  pg.popMatrix();
+}
+
+TRibbons.prototype.constructor = TRibbons;
+
+////////
+
+function TBox (p, w, h, args) {
+  this.patterns = ["default", "mask"];
+  TLayer.call(this, p, w, h);
+
+  this.lastT = 0;
+  this.params = {
+    x: 0,
+    y: 0,
+    z: 0,
+    w: 1,
+    h: 1,
+    d: 1,
+    rz: 0,
+    rx: 0
+  };
+  this.paramsTarget = {
+    x: 0,
+    y: 0,
+    z: 0,
+    w: 0,
+    h: 0,
+    d: 0,
+    rz: 0,
+    rx: 0
+  };
+  this.size = args.size;
+
+  // this.pg.smooth(5);
+}
+
+TBox.prototype = Object.create(TLayer.prototype);
+
+TBox.prototype.drawLayer = function (pg, key, args) {
+  let p = this.p;
+  let t = args.t;
+
+  pg.clear();
+  pg.pushMatrix();
+  pg.pushStyle();
+  pg.noStroke();
+  if(key == "default") {
+    if(Math.floor(t) - Math.floor(this.lastT) > 0) {
+      let key = p.random(Object.keys(this.paramsTarget));
+      this.paramsTarget[key] = Math.floor(p.random(-4, 5));
+      if(key == "w" || key == "h" || key == "d") {
+        this.paramsTarget[key] = Math.abs(this.paramsTarget[key]);
+        if(this.paramsTarget[key] == 0) this.paramsTarget[key] = 1;
+      }
+    }
+    this.lastT = t;
+
+    for(let key in this.params) {
+      this.params[key] = p.lerp(this.params[key], this.paramsTarget[key], 0.1);
+    }
+    // pg.lights();
+  }
+  pg.translate(this.width / 2, this.height / 2);
+  pg.translate(this.params.x * this.size, this.params.y * this.size, this.params.z * this.size);
+  pg.rotateZ(this.params.rz * Math.PI / 2);
+  pg.rotateX(this.params.rx * Math.PI / 2);
+  pg.box(this.size * (this.params.w + 1),
+  this.size * (this.params.h + 1),
+  this.size * (this.params.d + 1));
   pg.popStyle();
   pg.popMatrix();
 }
@@ -212,14 +294,17 @@ function S028Tex(p) {
   this.tStripe.draw();
 
   this.tObjects = [];
-  for(let i = 0; i < 3; i++) {
-    let tBox = new TBox(p, this.width, this.height, {
+  for(let i = 0; i < 6; i++) {
+    let TObj;
+    if(i == 3) TObj = TRibbons;
+    else TObj = TBox;
+    let tBox = new TObj(p, this.width, this.height, {
       x: p.random(this.width),
       y: p.random(this.height),
       size: 75
     });
     let layeredBox = new TLayerBlend(p, this.width, this.height, {
-      top: [this.tDot.pg, this.tStripe.pg][i % 2],
+      top: [this.tDot.pg, this.tStripe.pg, this.tBackBoxes.pg][i % 3],
       bottom: tBox.pgs.default,
       mask: tBox.pgs.mask,
       mode: p.MULTIPLY
