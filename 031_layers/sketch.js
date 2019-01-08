@@ -311,10 +311,10 @@ function TSmoke(p, w, h, args) {
   this.tex_render.background(0, 0, 0, 0);
   this.tex_render.noStroke();
   this.tex_render.rectMode(p.CENTER);
-  for(let i = 0; i < 6; i++) {
+  for(let i = 0; i < 3; i++) {
     this.tex_render.pushMatrix();
     this.tex_render.translate(p.random(this.width), p.random(this.height));
-    this.tex_render.scale(6, 2);
+    this.tex_render.scale(3, 1);
     this.tex_render.beginShape(p.QUAD);
     this.tex_render.fill(p.random(255), p.random(255), 0, 255);
     this.tex_render.vertex(-100, -100);
@@ -423,9 +423,9 @@ function S031Tex(p) {
 
   this.tObjects = [];
   for(let i = 0; i < 4; i++) {
-    let TObj;
-    if(i == 3) TObj = TRibbons;
-    else TObj = TBox;
+    let TObj = TBox;
+    // if(i == 3) TObj = TRibbons;
+    // else TObj = TBox;
     let tBox = new TObj(p, this.width, this.height, {
       x: p.random(this.width),
       y: p.random(this.height),
@@ -433,8 +433,8 @@ function S031Tex(p) {
       delay: i % 2 == 0 ? 0.5 : 0.0
     });
     let layeredBox = new TLayerBlend(p, this.width, this.height, {
-      top: [this.tDot.pg, this.tStripe.pg, this.tSmoke.pg][i % 3],
-      bottom: this.tSmoke.pgs.mono,
+      top: this.tSmoke.pg,//[this.tDot.pg, this.tStripe.pg, this.tSmoke.pg][i % 3],
+      bottom: tBox.pg,
       mask: tBox.pg,
       mode: p.MULTIPLY
     });
@@ -460,7 +460,8 @@ S031Tex.prototype.draw = function(t) {
   pg.beginDraw();
   pg.background(255);
 
-  this.tSmoke.drawTo(pg);
+  // this.tSmoke.drawTo(pg);
+  pg.image(this.tSmoke.pgs.mono, 0, 0);
   for(let i in this.tObjects) {
     this.tObjects[i].layeredBox.drawTo(pg);
   }
