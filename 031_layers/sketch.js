@@ -407,10 +407,8 @@ TSmoke.prototype.constructor = TSmoke;
 
 ////////
 
-function S031Tex(p) {
-  this.p = p;
-  this.width = 800, this.height = 800;
-  this.pg = p.createGraphics(this.width, this.height, p.P3D);
+function S031Tex(p, w, h) {
+  TLayer.call(this, p, w, h);
   this.pg.smooth(5);
 
   this.tDot = new TDot(p, this.width, this.height);
@@ -446,9 +444,11 @@ function S031Tex(p) {
   }
 }
 
-S031Tex.prototype.draw = function(t) {
+S031Tex.prototype = Object.create(TLayer.prototype);
+
+S031Tex.prototype.update = function(args) {
+  let t = args.t;
   let p = this.p;
-  let pg = this.pg;
 
   this.tSmoke.draw({t: t});
 
@@ -456,8 +456,13 @@ S031Tex.prototype.draw = function(t) {
     this.tObjects[i].tBox.draw({t: t});
     this.tObjects[i].layeredBox.draw({t: t});
   }
+}
 
-  pg.beginDraw();
+
+S031Tex.prototype.drawLayer = function(pg, key, args) {
+  let t = args.t;
+  let p = this.p;
+
   pg.background(255);
 
   // this.tSmoke.drawTo(pg);
@@ -465,9 +470,10 @@ S031Tex.prototype.draw = function(t) {
   for(let i in this.tObjects) {
     this.tObjects[i].layeredBox.drawTo(pg);
   }
-
-  pg.endDraw();
 }
+
+S031Tex.prototype.constructor = S031Tex;
+
 
 var s = function (p) {
   let s031Tex = new S031Tex(p, 800, 800);
@@ -485,8 +491,8 @@ var s = function (p) {
     }
 
     p.background(0);
-    s031Tex.draw(t);
-    p.image(s031Tex.pg, 0, 0, 800, 800);
+    s031Tex.draw({t: t});
+    p.image(s031Tex.pg, 0, 0);
   }
 
   p.oscEvent = function(m) {
