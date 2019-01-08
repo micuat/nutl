@@ -282,6 +282,7 @@ TLayerBlend.prototype.constructor = TLayerBlend;
 ////////
 
 function TSmoke(p, w, h, args) {
+  this.patterns = ["default", "mono"];
   TLayer.call(this, p, w, h);
   this.dwgl = Packages.com.thomasdiewald.pixelflow.java.dwgl;
 
@@ -390,11 +391,16 @@ TSmoke.prototype.update = function(args) {
   this.context.end();
 }
 
-TSmoke.prototype.drawLayer = function(pg, i, args) {
+TSmoke.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
 
-  pg.image(this.tex_render, 0, 0);
+  if(key == "default") {
+    pg.image(this.tex_render, 0, 0);
+  }
+  else {
+    pg.image(this.tex_render_normal, 0, 0);
+  }
 }
 
 TSmoke.prototype.constructor = TSmoke;
@@ -428,7 +434,7 @@ function S031Tex(p) {
     });
     let layeredBox = new TLayerBlend(p, this.width, this.height, {
       top: [this.tDot.pg, this.tStripe.pg, this.tSmoke.pg][i % 3],
-      bottom: tBox.pg,
+      bottom: this.tSmoke.pgs.mono,
       mask: tBox.pg,
       mode: p.MULTIPLY
     });
