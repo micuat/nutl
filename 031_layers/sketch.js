@@ -407,6 +407,30 @@ TSmoke.prototype.constructor = TSmoke;
 
 ////////
 
+function TSlide (p, w, h, args) {
+  TLayer.call(this, p, w, h);
+  this.pg.beginDraw();
+  this.pg.clear();
+  // this.pg.background(0);
+  this.pg.endDraw();
+  this.inputs = args.inputs;
+}
+
+TSlide.prototype = Object.create(TLayer.prototype);
+
+TSlide.prototype.drawLayer = function (pg, i, args) {
+  let p = this.p;
+  // this.pg.background(0, 100);
+  pg.tint(255, 20);
+  for(let i in this.inputs) {
+    pg.image(this.inputs[i], 0, 0);
+  }
+}
+
+TSlide.prototype.constructor = TSlide;
+
+////////
+
 function S031Tex(p, w, h) {
   TLayer.call(this, p, w, h);
   this.pg.smooth(5);
@@ -419,7 +443,10 @@ function S031Tex(p, w, h) {
   this.tStripe = new TStripe(p, this.width, this.height);
   this.tStripe.draw();
 
+  this.tBackBoxes = new TBackBoxes(p, this.width, this.height);
+
   this.tObjects = [];
+  this.tLayers = []
   for(let i = 0; i < 4; i++) {
     let TObj = TBox;
     // if(i == 3) TObj = TRibbons;
@@ -431,7 +458,7 @@ function S031Tex(p, w, h) {
       delay: i % 2 == 0 ? 0.5 : 0.0
     });
     let layeredBox = new TLayerBlend(p, this.width, this.height, {
-      top: this.tSmoke.pg,//[this.tDot.pg, this.tStripe.pg, this.tSmoke.pg][i % 3],
+      top: [this.tBackBoxes.pg, this.tStripe.pg, this.tSmoke.pg][i % 3],
       bottom: tBox.pg,
       mask: tBox.pg,
       mode: p.MULTIPLY
@@ -440,8 +467,13 @@ function S031Tex(p, w, h) {
     this.tObjects.push({
       tBox: tBox,
       layeredBox: layeredBox,
-    })
+    });
+    this.tLayers.push(layeredBox.pg);
   }
+
+  this.tSlide = new TSlide(p, this.width, this.height, {
+    inputs: this.tLayers
+  });
 }
 
 S031Tex.prototype = Object.create(TLayer.prototype);
@@ -451,11 +483,13 @@ S031Tex.prototype.update = function(args) {
   let p = this.p;
 
   this.tSmoke.draw({t: t});
+  this.tBackBoxes.draw({t: t});
 
   for(let i in this.tObjects) {
     this.tObjects[i].tBox.draw({t: t});
     this.tObjects[i].layeredBox.draw({t: t});
   }
+  this.tSlide.draw();
 }
 
 
@@ -465,11 +499,12 @@ S031Tex.prototype.drawLayer = function(pg, key, args) {
 
   pg.background(255);
 
-  // this.tSmoke.drawTo(pg);
-  pg.image(this.tSmoke.pgs.mono, 0, 0);
-  for(let i in this.tObjects) {
-    this.tObjects[i].layeredBox.drawTo(pg);
-  }
+  this.tSmoke.drawTo(pg);
+  // pg.image(this.tSmoke.pgs.mono, 0, 0);
+  // for(let i in this.tObjects) {
+  //   this.tObjects[i].layeredBox.drawTo(pg);
+  // }
+  this.tSlide.drawTo(pg);
 }
 
 S031Tex.prototype.constructor = S031Tex;
