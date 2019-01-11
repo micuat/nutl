@@ -28,7 +28,7 @@ function setup() {
     let basicShader = THREE.ShaderLib['standard'];
     uniforms = basicShader.uniforms;
     uniforms.delta = {type: 'f', value: 0.0};
-    uniforms.scale = {type: 'f', value: 1.0};
+    uniforms.scale = {type: 'f', value: 0.5};
 
     let sinusMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,
