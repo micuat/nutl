@@ -1,4 +1,5 @@
-var colorScheme = new ColorScheme("dfbbb1-f56476-e43f6f-373f51-008dd5");
+var colorScheme = new ColorScheme("61e294-7bcdba-9799ca-bd93d8-b47aea");
+// var colorScheme = new ColorScheme("dfbbb1-f56476-e43f6f-373f51-008dd5");
 
 function TLayer (p, w, h) {
   this.p = p;
@@ -93,7 +94,7 @@ TBackBoxes.prototype.drawLayer = function (pg, key, args) {
   pg.noStroke();
   pg.fill(255);
   pg.translate(pg.width / 2, pg.height / 2);
-  pg.rotateY(args.t);
+  pg.rotateZ(args.t);
   for(let i = 0; i < this.data.length; i++) {
     let v = this.data[i].v;
     let w = this.data[i].w;
@@ -225,7 +226,7 @@ TBox.prototype.drawLayer = function (pg, key, args) {
   if(Math.floor(t) - Math.floor(this.lastT) > 0) {
     let key = p.random(Object.keys(this.paramsTarget));
     if(key == "w" || key == "h" || key == "d") {
-      this.paramsTarget[key] = Math.floor(p.random(1, 4));
+      this.paramsTarget[key] = Math.floor(p.random(1, 5));
       if(this.paramsTarget[key] == 0) this.paramsTarget[key] = 1;
     }
     else if(key == "rx" || key == "rz") {
@@ -282,7 +283,7 @@ TLayerBlend.prototype.constructor = TLayerBlend;
 ////////
 
 function TSmoke(p, w, h, args) {
-  this.patterns = ["default", "mono"];
+  // this.patterns = ["default", "mono"];
   TLayer.call(this, p, w, h);
   this.dwgl = Packages.com.thomasdiewald.pixelflow.java.dwgl;
 
@@ -420,9 +421,16 @@ TSlide.prototype = Object.create(TLayer.prototype);
 
 TSlide.prototype.drawLayer = function (pg, i, args) {
   let p = this.p;
+  let t = args.t;
   // this.pg.background(0, 100);
-  pg.tint(255, 20);
   for(let i in this.inputs) {
+    if(i == 0) {
+      pg.tint(255, 5);
+    }
+    else {
+      pg.tint(255, EasingFunctions.easeInOutCubic(
+        p.map(Math.sin((i / 3.0 + 0.1 * t) * Math.PI), -1, 1, 0, 1)) * 150 + 50);
+    }
     pg.image(this.inputs[i], 0, 0);
   }
 }
@@ -446,15 +454,15 @@ function S031Tex(p, w, h) {
   this.tBackBoxes = new TBackBoxes(p, this.width, this.height);
 
   this.tObjects = [];
-  this.tLayers = []
-  for(let i = 0; i < 4; i++) {
+  this.tLayers = [this.tSmoke.pg]
+  for(let i = 0; i < 3; i++) {
     let TObj = TBox;
     // if(i == 3) TObj = TRibbons;
     // else TObj = TBox;
     let tBox = new TObj(p, this.width, this.height, {
       x: p.random(this.width),
       y: p.random(this.height),
-      size: 75,
+      size: 100,
       delay: i % 2 == 0 ? 0.5 : 0.0
     });
     let layeredBox = new TLayerBlend(p, this.width, this.height, {
@@ -489,7 +497,7 @@ S031Tex.prototype.update = function(args) {
     this.tObjects[i].tBox.draw({t: t});
     this.tObjects[i].layeredBox.draw({t: t});
   }
-  this.tSlide.draw();
+  this.tSlide.draw({t: t});
 }
 
 
