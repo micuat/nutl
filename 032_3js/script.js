@@ -91,6 +91,16 @@ function setupFlocking() {
                     options: {
                         callback: {
                             func: (v) => {
+                                if(v/(55/2) < 1) {
+                                    uniforms.uColor.value.x = 219.0/255;
+                                    uniforms.uColor.value.y = 39.0/255;
+                                    uniforms.uColor.value.z = 99.0/255;
+                                }
+                                else {
+                                    uniforms.uColor.value.x = 18.0/255;
+                                    uniforms.uColor.value.y = 234.0/255;
+                                    uniforms.uColor.value.z = 234.0/255;
+                                }
                                 spreadTubes = v*0.05*0.05 + 0.95*spreadTubes;
                                 // camera.position.z = camera.position.z * 0.9 + 0.1 * v * 0.5;
                                 // uniforms.delta.value = uniforms.delta.value * 0.98 + 0.02*v;
@@ -180,12 +190,12 @@ function setup() {
 
     let sphere = new THREE.SphereBufferGeometry(0.5, 16, 8);
 
-    light1 = new THREE.PointLight(0xff0040, 2, 50);
-    light1.add(new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: 0xff0040 })));
+    light1 = new THREE.PointLight(0xffffff, 2, 50);
+    // light1.add(new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: 0xff0040 })));
     scene.add(light1);
 
-    light2 = new THREE.PointLight(0x0040ff, 2, 50);
-    light2.add(new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: 0x0040ff })));
+    light2 = new THREE.PointLight(0xffffff, 2, 50);
+    // light2.add(new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: 0x0040ff })));
     scene.add(light2);
 
     renderer = new THREE.WebGLRenderer();
@@ -196,6 +206,7 @@ function setup() {
     // reuse the fragment shader stuff from the lambert material
     let basicShader = THREE.ShaderLib['standard'];
     uniforms = basicShader.uniforms;
+    uniforms.uColor = { value: new THREE.Vector3() };
     uniforms.delta = { type: 'f', value: 0.0 };
     uniforms.scale = { type: 'f', value: 0.5 };
 
@@ -205,6 +216,7 @@ function setup() {
             getElementById('sinusVertexShader').text,
         fragmentShader: basicShader.fragmentShader,
         lights: true,
+        vertexColors: THREE.VertexColors,
         fog: true
     });
 
@@ -264,7 +276,7 @@ function animate() {
 
     // uniforms.delta.value += 0.1;
     if(Math.random() > 0.95) {
-        console.log("do it")
+        // console.log("do it")
         if(Math.random() > 0.5) {
             // comp.instrument.set("sqnotes.mul", 55);
             // comp.instrument.set("sqnotes.values", [1, 10 / 8, 4 / 3, 3 / 2]);

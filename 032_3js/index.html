@@ -24,6 +24,7 @@
 			varying vec3 vViewPosition;
 			uniform float delta;
 			uniform float scale;
+			uniform vec3 uColor;
 			#ifndef FLAT_SHADED
 				varying vec3 vNormal;
 			#endif
@@ -41,7 +42,9 @@
 			void main() {
 				#include <uv_vertex>
 				#include <uv2_vertex>
-				#include <color_vertex>
+				#ifdef USE_COLOR
+					vColor.xyz = color.xyz * uColor.xyz;
+				#endif
 				#include <beginnormal_vertex>
 				#include <morphnormal_vertex>
 				#include <skinbase_vertex>
