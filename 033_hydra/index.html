@@ -187,6 +187,7 @@
     uniform float delta;
     uniform float scale;
     uniform vec3 uColor;
+    uniform sampler2D map;
     #ifndef FLAT_SHADED
       varying vec3 vNormal;
     #endif
@@ -226,7 +227,8 @@
       // get a 3d noise using the position, low frequency
       float b = 5.0 * pnoise( 0.05 * p, vec3( 100.0 ) );
       // compose both noises
-      float displacement = - 10. * noise + b;
+      float displacement = 0.0;//- 10. * noise + b;
+      displacement = -5.0 * texture2D(map, vUv).g;
 
       vec4 mvPosition = modelViewMatrix * vec4( p + normal * displacement, 1.0 );
       gl_Position = projectionMatrix * mvPosition;

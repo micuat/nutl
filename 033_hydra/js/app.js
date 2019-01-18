@@ -1,25 +1,38 @@
 const Hydra = require('hydra-synth')
 
+let hydra, hydra2;
 
 window.onload = function () {
   let canvas;
   function setupHydra() {
     canvas = document.createElement('canvas');
     canvas.setAttribute("id", "hydra-canvas0-tex");
-    canvas.style.width = "1024px"
-    canvas.style.height = "1024px"
-    canvas.width = 1024;
-    canvas.height = 1024;
+    canvas.style.width = "512px";//"1024px"
+    canvas.style.height = "512px";//"1024px"
+    canvas.width = 512;//1024;
+    canvas.height = 512;//1024;
     document.body.appendChild(canvas)
     canvas.style.display = "none";
 
-    const hydra = new Hydra({ canvas: canvas })
+    hydra = new Hydra({ canvas: canvas, makeGlobal: false })
+
+    canvas = document.createElement('canvas');
+    canvas.setAttribute("id", "hydra-canvas1-tex");
+    canvas.style.width = "512px";//"1024px"
+    canvas.style.height = "512px";//"1024px"
+    canvas.width = 512;//1024;
+    canvas.height = 512;//1024;
+    document.body.appendChild(canvas)
+    canvas.style.display = "none";
+
+    hydra2 = new Hydra({ canvas: canvas, makeGlobal: false })
 
     // by default, hydra makes everything global.
     // see options to change parameters
-    // hydra.osc(() => (100 * Math.sin(time * 0.1))).color(0.1).modulate(noise()).kaleid(2).out();
-    hydra.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out(o1)
-    hydra.src(o1).add(o0,0.95).scale(1.01).out(o0)
+    hydra.osc(10, [2, 0.6], 0.1).color(0.1).modulate(hydra.noise()).kaleid(2).out();
+    // hydra2.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out()
+    hydra2.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out(hydra2.o[1])
+    hydra2.src(hydra2.o[1],1).add(hydra2.o[0],0.95).scale(1.01).out(hydra2.o[0])
   }
   setupHydra();
 
@@ -218,7 +231,7 @@ window.onload = function () {
     });
 
     // create a cube and add to scene
-    cube = new THREE.Mesh(new THREE.SphereGeometry(7, 150, 150), sinusMaterial);
+    cube = new THREE.Mesh(new THREE.SphereGeometry(7, 250, 250), sinusMaterial);
     // cube.name = 'cube';
     scene.add(cube);
 
@@ -251,28 +264,34 @@ window.onload = function () {
         mesh.rotation.x = Math.sin(j * 0.02);
         mesh.matrixAutoUpdate = false;
         mesh.updateMatrix();
-        scene.add(mesh);
+        //scene.add(mesh);
         meshes.push({ mesh: mesh, i: i, j: j });
       }
     }
   }
   setupThreejs();
   setupFlocking();
-  let hydraTexture;
+  rtTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat } );
+
+  let hydraTexture, hydraTexture2;
   function animate() {
     uniforms['time'].value += 0.01;
 
     if (uniforms['map'].value == null) {
       hydraTexture = new THREE.Texture(document.getElementById("hydra-canvas0-tex"));
+      hydraTexture2 = new THREE.Texture(document.getElementById("hydra-canvas1-tex"));
       if (document.getElementById("hydra-canvas0-tex") != null) {
-        // scene.background = hydraTexture;
-        uniforms['map'].value = hydraTexture;
+        scene.background = hydraTexture;
+        uniforms['map'].value = hydraTexture2;
       }
     }
     let time = Date.now() * 0.0005;
     light1.position.x = Math.sin(time * 0.7) * 10;
     light1.position.y = Math.cos(time * 0.5) * 20;
     light1.position.z = Math.cos(time * 0.3) * 10;
+
+    cube.rotation.y += 0.01;
+    cube.updateMatrix();
 
     // light2.position.x = Math.sin(time * 0.3) * 10;
     // light2.position.y = Math.cos(time * 0.5) * 20;
@@ -285,6 +304,7 @@ window.onload = function () {
     }
     requestAnimationFrame(animate);
     hydraTexture.needsUpdate = true;
+    hydraTexture2.needsUpdate = true;
     renderer.render(scene, camera);
   }
   animate();
