@@ -5,74 +5,32 @@ let comp;
 let spreadTubes = 0;
 let meshes = [];
 
-let video;
-let poseNet;
 let poses = [];
 let skeletons = [];
 
+// Grab elements, create settings, etc.
+let video = document.getElementById('video');
 
-var s = function (p) {
-    function modelReady() {
-        p.select('#status').html('Model Loaded');
-    }
+// Create a webcam capture
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+    video.srcObject=stream;
+    video.play();
+  });
+}
 
-    p.setup = function () {
-        p.createCanvas(640, 480);
-        video = p.createCapture(p.VIDEO);
-        video.size(p.width, p.height);
+// Create a new poseNet method with a single detection
+const poseNet = ml5.poseNet(video, modelReady);
+poseNet.on('pose', gotPoses);
 
-        // Create a new poseNet method with a single detection
-        poseNet = ml5.poseNet(video, modelReady);
-        // This sets up an event that fills the global variable "poses"
-        // with an array every time new poses are detected
-        poseNet.on('pose', function (results) {
-            poses = results;
-        });
-        // Hide the video element, and just show the canvas
-        video.hide();
-    };
+// A function that gets called every time there's an update from the model
+function gotPoses(results) {
+  poses = results;
+}
 
-    p.draw = function () {
-        p.image(video, 0, 0, p.width, p.height);
-
-        // We can call both functions to draw all keypoints and the skeletons
-        drawKeypoints();
-        drawSkeleton();
-    };
-    // A function to draw ellipses over the detected keypoints
-    function drawKeypoints() {
-        // Loop through all the poses detected
-        for (let i = 0; i < poses.length; i++) {
-            // For each pose detected, loop through all the keypoints
-            for (let j = 0; j < poses[i].pose.keypoints.length; j++) {
-                // A keypoint is an object describing a body part (like rightArm or leftShoulder)
-                let keypoint = poses[i].pose.keypoints[j];
-                // Only draw an ellipse is the pose probability is bigger than 0.2
-                if (keypoint.score > 0.2) {
-                    p.fill(255, 0, 0);
-                    p.noStroke();
-                    p.ellipse(keypoint.position.x, keypoint.position.y, 10, 10);
-                }
-            }
-        }
-    }
-
-    // A function to draw the skeletons
-    function drawSkeleton() {
-        // Loop through all the skeletons detected
-        for (let i = 0; i < poses.length; i++) {
-            // For every skeleton, loop through all body connections
-            for (let j = 0; j < poses[i].skeleton.length; j++) {
-                let partA = poses[i].skeleton[j][0];
-                let partB = poses[i].skeleton[j][1];
-                p.stroke(255, 0, 0);
-                p.line(partA.position.x, partA.position.y, partB.position.x, partB.position.y);
-            }
-        }
-    }
-};
-
-var myp5 = new p5(s);
+function modelReady() {
+  console.log("model ready")
+}
 
 function setupThree() {
     scene = new THREE.Scene();
