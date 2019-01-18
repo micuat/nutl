@@ -21,6 +21,8 @@ import processing.core.PApplet;
 import processing.opengl.PGraphics2D;
 import processing.awt.PSurfaceAWT;
 
+import processing.video.*;
+
 import com.jogamp.opengl.GL2;
 import com.thomasdiewald.pixelflow.java.DwPixelFlow;
 import com.thomasdiewald.pixelflow.java.dwgl.DwGLSLProgram;
@@ -40,6 +42,8 @@ import netP5.*;
 
 public OscP5 oscP5;
 NetAddress myRemoteLocation;
+
+Movie movie;
 
 public DwPixelFlow pfContext;
 
@@ -97,11 +101,15 @@ void setup() {
   pfContext.print();
   pfContext.printGL();
 
-  size(400, 400, P3D);
+  size(1024, 768, P3D);
   surface.setResizable(true);
   frameRate(60);
 
   scriptPaths.add(sketchPath(folderName + "/sketch.js"));
+}
+
+void movieEvent(Movie m) {
+  m.read();
 }
 
 void initNashorn() {
@@ -246,6 +254,7 @@ void initNashorn() {
 }
 
 void draw() {
+  //surface.setLocation(100, 100);
   if (libInited == false) {
     initNashorn();
     try {
