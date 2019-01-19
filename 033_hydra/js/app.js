@@ -31,8 +31,15 @@ window.onload = function () {
     // see options to change parameters
     hydra.osc(10, [2, 0.6], 0.1).color(0.1).modulate(hydra.noise()).kaleid(2).out();
     // hydra2.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out()
-    hydra2.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out(hydra2.o[1])
-    hydra2.src(hydra2.o[1],1).add(hydra2.o[0],0.95).scale(1.01).out(hydra2.o[0])
+    // hydra2.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out(hydra2.o[1])
+    // hydra2.src(hydra2.o[1],1).add(hydra2.o[0],0.95).scale(1.01).out(hydra2.o[0])
+    hydra2.osc(100, 0.01, 1.4)
+    .color(1.83,0.91,0.99)
+    .rotate(0.1)
+    .pixelate(100,8)
+    .scrollY(0.1,0.2)
+    .modulateRotate(hydra2.osc(2,0.2,0))
+    .out()
   }
   setupHydra();
 
@@ -201,7 +208,7 @@ window.onload = function () {
     scene.add(light1);
 
     light2 = new THREE.PointLight(0xffffff, 2, 50);
-    light2.position.set(0, -5, 15);
+    light2.position.set(0, 15, 15);
     scene.add(light2);
 
     renderer = new THREE.WebGLRenderer();
@@ -216,22 +223,27 @@ window.onload = function () {
     uniforms.delta = { type: 'f', value: 0.0 };
     uniforms.scale = { type: 'f', value: 0.5 };
     uniforms.time = {type: 'f', value: 0.0};
+    uniforms.metalness.value = 1.0;
 
     var defines = {};
     defines["USE_MAP"] = "";
+    defines["USE_DISPLACEMENTMAP"] = "";
     let sinusMaterial = new THREE.ShaderMaterial({
       defines: defines,
       uniforms: uniforms,
-      vertexShader: document.
-        getElementById('sinusVertexShader').text,
+      vertexShader: basicShader.vertexShader,
+      // vertexShader: document.
+      //   getElementById('sinusVertexShader').text,
       fragmentShader: basicShader.fragmentShader,
+      // fragmentShader: document.
+      //   getElementById('sinusFragmentShader').text,
       lights: true,
-      // vertexColors: THREE.VertexColors,
+      vertexColors: THREE.VertexColors,
       fog: true
     });
 
     // create a cube and add to scene
-    cube = new THREE.Mesh(new THREE.SphereGeometry(7, 250, 250), sinusMaterial);
+    cube = new THREE.Mesh(new THREE.SphereGeometry(1, 250, 250), sinusMaterial);
     // cube.name = 'cube';
     scene.add(cube);
 
@@ -277,12 +289,15 @@ window.onload = function () {
   function animate() {
     uniforms['time'].value += 0.01;
 
-    if (uniforms['map'].value == null) {
+    if (scene.background == null) {
       hydraTexture = new THREE.Texture(document.getElementById("hydra-canvas0-tex"));
       hydraTexture2 = new THREE.Texture(document.getElementById("hydra-canvas1-tex"));
       if (document.getElementById("hydra-canvas0-tex") != null) {
         scene.background = hydraTexture;
         uniforms['map'].value = hydraTexture2;
+        uniforms['displacementMap'].value = hydraTexture2;
+        uniforms['displacementScale'].value = -5.0;
+        uniforms['displacementBias'].value = 5.0;
       }
     }
     let time = Date.now() * 0.0005;
