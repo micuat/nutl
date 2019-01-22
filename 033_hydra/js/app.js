@@ -7,10 +7,10 @@ window.onload = function () {
   function setupHydra() {
     canvas = document.createElement('canvas');
     canvas.setAttribute("id", "hydra-canvas0-tex");
-    canvas.style.width = "512px";//"1024px"
-    canvas.style.height = "512px";//"1024px"
-    canvas.width = 512;//1024;
-    canvas.height = 512;//1024;
+    canvas.style.width = "1024px"
+    canvas.style.height = "1024px"
+    canvas.width = 1024;
+    canvas.height = 1024;
     document.body.appendChild(canvas)
     canvas.style.display = "none";
 
@@ -25,21 +25,21 @@ window.onload = function () {
     document.body.appendChild(canvas)
     canvas.style.display = "none";
 
-    hydra2 = new Hydra({ canvas: canvas, makeGlobal: false })
+    // hydra2 = new Hydra({ canvas: canvas, makeGlobal: false })
 
     // by default, hydra makes everything global.
     // see options to change parameters
-    hydra.osc(10, [2, 0.6], 0.1).color(0.1).modulate(hydra.noise()).kaleid(2).out();
+    hydra.osc(10, 0.6, 0.5).color(1,4,1).modulate(hydra.noise(20.0, 2.0), 0.1).colorama(0.001).pixelate(40,40).kaleid(4).out();
     // hydra2.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out()
     // hydra2.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out(hydra2.o[1])
     // hydra2.src(hydra2.o[1],1).add(hydra2.o[0],0.95).scale(1.01).out(hydra2.o[0])
-    hydra2.osc(100, 0.01, 1.4)
-    .color(1.83,0.91,0.99)
-    .rotate(0.1)
-    .pixelate(100,8)
-    .scrollY(0.1,0.2)
-    .modulateRotate(hydra2.osc(2,0.2,0))
-    .out()
+    // hydra2.osc(100, 0.01, 1.4)
+    // .color(1.83,0.91,0.99)
+    // .rotate(0.1)
+    // .pixelate(100,8)
+    // .scrollY(0.1,0.2)
+    // .modulateRotate(hydra2.osc(2,0.2,0))
+    // .out()
   }
   setupHydra();
 
@@ -208,7 +208,7 @@ window.onload = function () {
     scene.add(light1);
 
     light2 = new THREE.PointLight(0xffffff, 2, 50);
-    light2.position.set(0, 15, 15);
+    light2.position.set(0, 5, 15);
     scene.add(light2);
 
     renderer = new THREE.WebGLRenderer();
@@ -291,11 +291,11 @@ window.onload = function () {
 
     if (scene.background == null) {
       hydraTexture = new THREE.Texture(document.getElementById("hydra-canvas0-tex"));
-      hydraTexture2 = new THREE.Texture(document.getElementById("hydra-canvas1-tex"));
+      // hydraTexture2 = new THREE.Texture(document.getElementById("hydra-canvas1-tex"));
       if (document.getElementById("hydra-canvas0-tex") != null) {
         scene.background = hydraTexture;
-        uniforms['map'].value = hydraTexture2;
-        uniforms['displacementMap'].value = hydraTexture2;
+        uniforms['map'].value = hydraTexture;
+        uniforms['displacementMap'].value = hydraTexture;
         uniforms['displacementScale'].value = -5.0;
         uniforms['displacementBias'].value = 5.0;
       }
@@ -319,7 +319,7 @@ window.onload = function () {
     }
     requestAnimationFrame(animate);
     hydraTexture.needsUpdate = true;
-    hydraTexture2.needsUpdate = true;
+    // hydraTexture2.needsUpdate = true;
     renderer.render(scene, camera);
   }
   animate();
