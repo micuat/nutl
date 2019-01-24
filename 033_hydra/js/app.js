@@ -29,7 +29,8 @@ window.onload = function () {
 
     // by default, hydra makes everything global.
     // see options to change parameters
-    hydra.osc(10, 0.6, 0.5).color(1, 4, 1).modulate(hydra.noise(20.0, 2.0), 0.1).colorama(0.001).rotate(Math.PI/2).out();
+    hydra.osc(100, 0.1, 0.1).color(0.1, 0.8, 0.1).add(hydra.osc(100, -0.08, 0.1).color(0.1, 0.1, 0.8)).kaleid(128).out();
+    // hydra.osc(10, 0.6, 0.5).color(1, 4, 1).modulate(hydra.noise(20.0, 2.0), 0.1).colorama(0.001).rotate(Math.PI/2).out();
     // hydra2.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out()
     // hydra2.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out(hydra2.o[1])
     // hydra2.src(hydra2.o[1],1).add(hydra2.o[0],0.95).scale(1.01).out(hydra2.o[0])
@@ -260,10 +261,19 @@ window.onload = function () {
     let geometry = new THREE.TubeGeometry(path, 1024*4, 0.02, 32, false);
 
     // create a cube and add to scene
-    cube = new THREE.Mesh(geometry, sinusMaterial);
-    // cube.name = 'cube';
-    scene.add(cube);
-    meshes.push(cube);
+    // cube = new THREE.Mesh(geometry, sinusMaterial);
+    // scene.add(cube);
+    // meshes.push(cube);
+
+    for(let i = 0; i < 10; i++) {
+      let geometry = new THREE.CylinderGeometry( 0.1, 0.1, 15, 32, 128);
+      cube = new THREE.Mesh(geometry, sinusMaterial);
+      cube.rotation.x = Math.random() * Math.PI;
+      cube.rotation.y = Math.random() * Math.PI;
+      cube.rotation.z = Math.random() * Math.PI;
+      scene.add(cube);
+      meshes.push(cube);
+    }
 
     geometry = new THREE.SphereGeometry(2, 250, 250);
     cube = new THREE.Mesh(geometry, sinusMaterial);
@@ -313,10 +323,12 @@ window.onload = function () {
     light1.position.y = Math.cos(time * 0.5) * 20;
     light1.position.z = Math.cos(time * 0.3) * 10;
 
-    for (let m of meshes) {
-      m.rotation.y += 0.01;
-      m.updateMatrix();
-    }
+    // for (let m of meshes) {
+    //   m.rotation.y += 0.01;
+    //   m.updateMatrix();
+    // }
+    camera.position.set(15 * Math.cos(time), 0, 15 * Math.sin(time));
+    camera.lookAt(0, 0, 0);
 
     // light2.position.x = Math.sin(time * 0.3) * 10;
     // light2.position.y = Math.cos(time * 0.5) * 20;
