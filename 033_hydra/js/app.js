@@ -44,7 +44,7 @@ window.onload = function () {
   setupHydra();
 
   let light1, light2;
-  let renderer, scene, camera, cube;
+  let renderer, scene, camera;
   let uniforms = {};
   let comp;
   let spreadTubes = 2;
@@ -263,27 +263,29 @@ window.onload = function () {
     cube = new THREE.Mesh(geometry, sinusMaterial);
     // cube.name = 'cube';
     scene.add(cube);
+    meshes.push(cube);
 
     geometry = new THREE.SphereGeometry(2, 250, 250);
-    let cube2 = new THREE.Mesh(geometry, sinusMaterial);
-    scene.add(cube2);
+    cube = new THREE.Mesh(geometry, sinusMaterial);
+    scene.add(cube);
+    meshes.push(cube);
 
-    let material = new THREE.MeshStandardMaterial({ color: 0x999999 });
-    let n = 2;
-    for (let i = -n; i <= n; i++) {
-      for (let j = -n; j <= n; j++) {
-        let mesh = new THREE.Mesh(geometry, material);
-        mesh.position.x = j * 5;
-        mesh.position.y = i * 5;
-        mesh.position.z = 0;
-        mesh.rotation.y = Math.sin(i * 0.02);
-        mesh.rotation.x = Math.sin(j * 0.02);
-        mesh.matrixAutoUpdate = false;
-        mesh.updateMatrix();
-        //scene.add(mesh);
-        meshes.push({ mesh: mesh, i: i, j: j });
-      }
-    }
+    // let material = new THREE.MeshStandardMaterial({ color: 0x999999 });
+    // let n = 2;
+    // for (let i = -n; i <= n; i++) {
+    //   for (let j = -n; j <= n; j++) {
+    //     let mesh = new THREE.Mesh(geometry, material);
+    //     mesh.position.x = j * 5;
+    //     mesh.position.y = i * 5;
+    //     mesh.position.z = 0;
+    //     mesh.rotation.y = Math.sin(i * 0.02);
+    //     mesh.rotation.x = Math.sin(j * 0.02);
+    //     mesh.matrixAutoUpdate = false;
+    //     mesh.updateMatrix();
+    //     //scene.add(mesh);
+    //     meshes.push({ mesh: mesh, i: i, j: j });
+    //   }
+    // }
   }
   setupThreejs();
   setupFlocking();
@@ -311,18 +313,20 @@ window.onload = function () {
     light1.position.y = Math.cos(time * 0.5) * 20;
     light1.position.z = Math.cos(time * 0.3) * 10;
 
-    cube.rotation.y += 0.01;
-    cube.updateMatrix();
+    for (let m of meshes) {
+      m.rotation.y += 0.01;
+      m.updateMatrix();
+    }
 
     // light2.position.x = Math.sin(time * 0.3) * 10;
     // light2.position.y = Math.cos(time * 0.5) * 20;
     // light2.position.z = Math.cos(time * 0.7) * 10;
 
-    for (let m of meshes) {
-      m.mesh.position.x = m.j * 5 * spreadTubes;
-      m.mesh.position.y = m.i * 5 * spreadTubes;
-      m.mesh.updateMatrix();
-    }
+    // for (let m of meshes) {
+    //   m.mesh.position.x = m.j * 5 * spreadTubes;
+    //   m.mesh.position.y = m.i * 5 * spreadTubes;
+    //   m.mesh.updateMatrix();
+    // }
     requestAnimationFrame(animate);
     hydraTexture.needsUpdate = true;
     // hydraTexture2.needsUpdate = true;
