@@ -29,7 +29,7 @@ window.onload = function () {
 
     // by default, hydra makes everything global.
     // see options to change parameters
-    hydra.osc(10, 0.6, 0.5).color(1,4,1).modulate(hydra.noise(20.0, 2.0), 0.1).colorama(0.001).pixelate(40,40).kaleid(4).out();
+    hydra.osc(10, 0.6, 0.5).color(1, 4, 1).modulate(hydra.noise(20.0, 2.0), 0.1).colorama(0.001).rotate(Math.PI/2).out();
     // hydra2.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out()
     // hydra2.noise(2,0.5).color(1,0,4).colorama(0.001).scale(0.25).rotate(0, [0, Math.PI*2]).out(hydra2.o[1])
     // hydra2.src(hydra2.o[1],1).add(hydra2.o[0],0.95).scale(1.01).out(hydra2.o[0])
@@ -222,7 +222,7 @@ window.onload = function () {
     uniforms.uColor = { value: new THREE.Vector3() };
     uniforms.delta = { type: 'f', value: 0.0 };
     uniforms.scale = { type: 'f', value: 0.5 };
-    uniforms.time = {type: 'f', value: 0.0};
+    uniforms.time = { type: 'f', value: 0.0 };
     uniforms.metalness.value = 1.0;
 
     var defines = {};
@@ -242,27 +242,31 @@ window.onload = function () {
       fog: true
     });
 
-    // create a cube and add to scene
-    cube = new THREE.Mesh(new THREE.SphereGeometry(1, 250, 250), sinusMaterial);
-    // cube.name = 'cube';
-    scene.add(cube);
-
     class CustomSinCurve extends THREE.Curve {
       constructor(scale = 1) {
         super();
         this.scale = scale;
       }
       getPoint(t) {
-        let tx = t * 3 - 1.5;
-        let ty = Math.sin(2 * Math.PI * t);
-        let tz = Math.cos(2 * Math.PI * t);
+        let tx = Math.sin(2 * Math.PI * t);
+        let ty = Math.sin(4 * Math.PI * t);
+        let tz = Math.cos(6 * Math.PI * t);
 
         return new THREE.Vector3(tx, ty, tz).multiplyScalar(this.scale);
       }
     }
 
-    let path = new CustomSinCurve(10);
-    let geometry = new THREE.TubeGeometry(path, 200, 0.2, 8, false);
+    let path = new CustomSinCurve(4);
+    let geometry = new THREE.TubeGeometry(path, 1024*4, 0.02, 32, false);
+
+    // create a cube and add to scene
+    cube = new THREE.Mesh(geometry, sinusMaterial);
+    // cube.name = 'cube';
+    scene.add(cube);
+
+    geometry = new THREE.SphereGeometry(2, 250, 250);
+    let cube2 = new THREE.Mesh(geometry, sinusMaterial);
+    scene.add(cube2);
 
     let material = new THREE.MeshStandardMaterial({ color: 0x999999 });
     let n = 2;
@@ -283,7 +287,7 @@ window.onload = function () {
   }
   setupThreejs();
   setupFlocking();
-  rtTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat } );
+  rtTexture = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat });
 
   let hydraTexture, hydraTexture2;
   function animate() {
@@ -296,8 +300,10 @@ window.onload = function () {
         scene.background = hydraTexture;
         uniforms['map'].value = hydraTexture;
         uniforms['displacementMap'].value = hydraTexture;
-        uniforms['displacementScale'].value = -5.0;
-        uniforms['displacementBias'].value = 5.0;
+        uniforms['displacementScale'].value = 1.0;
+        uniforms['displacementBias'].value = 0.0;
+        // uniforms['displacementScale'].value = -5.0;
+        // uniforms['displacementBias'].value = 5.0;
       }
     }
     let time = Date.now() * 0.0005;
