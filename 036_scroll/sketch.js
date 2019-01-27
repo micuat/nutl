@@ -75,7 +75,7 @@ function TBox (p, w, h, args) {
   // this.stroke = args.stroke;
 
   this.tBase = 0;
-  // this.pg.smooth(5);
+  this.pg.noSmooth();
 }
 
 TBox.prototype = Object.create(TLayer.prototype);
@@ -90,11 +90,14 @@ TBox.prototype.drawLayer = function (pg, key, args) {
   this.lastT = t;
   let tPhase = t - this.tBase;
 
-  pg.fill(255);
+  pg.clear();
+  let idx = 0;
+  pg.noStroke();
+  pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
   pg.translate(pg.width/2, pg.height/2);
   pg.textSize(128);
   pg.textAlign(p.CENTER, p.CENTER);
-  pg.text("text", 0, 0);
+  pg.text("weekend", 0, 0);
 }
 
 TBox.prototype.constructor = TBox;
@@ -110,8 +113,37 @@ TLedAnimation.prototype = Object.create(TLayer.prototype);
 
 TLedAnimation.prototype.drawLayer = function (pg, i, args) {
   let p = this.p;
+  let t = args.t * 0.2;
   pg.clear();
-  pg.image(this.layer, 0, 0, 400, 400);
+  pg.noStroke();
+  let n = 32;
+  let w = this.pg.width / n;
+  let h = this.pg.height;
+  let tPhase = t % 1;
+  pg.textureMode(p.NORMAL);
+  for(let i = 0; i < n; i++) {
+    let ti = p.constrain(p.map(tPhase, i / n, (i+1) / n, 0, 1), 0, 1);
+    let x = w * i;
+    if(t % 2 < 1) {
+      x = p.lerp(this.pg.width, x, ti);
+    }
+    else {
+      x = p.lerp(x, -w, ti);
+    }
+    let y = 0;
+    let tx0 = i / n;
+    let tx1 = (i + 1) / n;
+    let ty0 = 0;
+    let ty1 = 1;
+    pg.beginShape(p.QUADS);
+    pg.texture(this.layer);
+    pg.vertex(x, y, tx0, ty0);
+    pg.vertex(x + w, y, tx1, ty0);
+    pg.vertex(x + w, y + h, tx1, ty1);
+    pg.vertex(x, y + h, tx0, ty1);
+    pg.endShape();
+  }
+  // pg.image(this.layer, 0, 0, 400, 400);
 }
 
 TLedAnimation.prototype.constructor = TLedAnimation;
@@ -148,7 +180,9 @@ S034Tex.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
 
-  pg.background(0);
+  // pg.background(0);
+  let idx = 2;
+  pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
   this.tAnimation.drawTo(pg);
 }
 
