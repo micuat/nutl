@@ -1,5 +1,5 @@
-var colorScheme = new ColorScheme("61e294-7bcdba-9799ca-bd93d8-b47aea");
-// var colorScheme = new ColorScheme("dfbbb1-f56476-e43f6f-373f51-008dd5");
+// var colorScheme = new ColorScheme("61e294-7bcdba-9799ca-bd93d8-b47aea");
+var colorScheme = new ColorScheme("dfbbb1-f56476-e43f6f-373f51-008dd5");
 
 function TLayer (p, w, h) {
   this.p = p;
@@ -91,13 +91,13 @@ TBox.prototype.drawLayer = function (pg, key, args) {
   let tPhase = t - this.tBase;
 
   pg.clear();
-  let idx = 0;
+  let idx = 1;
   pg.noStroke();
   pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
   pg.translate(pg.width/2, pg.height/2);
-  pg.textSize(128);
+  pg.textSize(256);
   pg.textAlign(p.CENTER, p.CENTER);
-  pg.text("weekend", 0, 0);
+  pg.text("enter\ntext", 0, -50);
 }
 
 TBox.prototype.constructor = TBox;
@@ -107,36 +107,82 @@ TBox.prototype.constructor = TBox;
 function TLedAnimation (p, w, h, args) {
   TLayer.call(this, p, w, h);
   this.layer = args.layer;
+  this.layerMod = p.createGraphics(w, h, p.P3D);
+  this.mode_dir = "up";
+  this.lastT = -100;
 }
 
 TLedAnimation.prototype = Object.create(TLayer.prototype);
 
+TLedAnimation.prototype.update = function (args) {
+  let t = args.t * 0.5;        
+  if(Math.floor(t) - Math.floor(this.lastT) > 0) {
+    this.mode_dir = this.p.random(["left", "right", "up", "down"]);
+  }
+  this.lastT = t;
+  let mode_dir = this.mode_dir;
+  this.layerMod.beginDraw();
+  this.layerMod.clear();
+  if(mode_dir == "up" || mode_dir == "down") {
+    this.layerMod.translate(this.layerMod.width / 2, this.layerMod.height / 2);
+    this.layerMod.rotate(Math.PI / 2);
+    this.layerMod.translate(-this.layerMod.width / 2, -this.layerMod.height / 2);
+  }
+  this.layerMod.image(this.layer, 0, 0);
+  this.layerMod.endDraw();
+}
+
 TLedAnimation.prototype.drawLayer = function (pg, i, args) {
   let p = this.p;
-  let t = args.t * 0.2;
+  let t = args.t * 0.5;        
   pg.clear();
   pg.noStroke();
-  let n = 32;
-  let w = this.pg.width / n;
-  let h = this.pg.height;
+
+  let mode_dir = this.mode_dir;
+  if(t % 2 < 1) {
+    mode_inout = "in";
+  }
+  else if(t % 2 >= 1) {
+    mode_inout= "out";
+  }
+
+  pg.translate(pg.width/2, pg.height/2);
+  if(mode_dir == "up" || mode_dir == "down") {
+    pg.rotate(Math.PI / -2);
+  }
+  pg.translate(-pg.width/2, -pg.height/2);
+
+  if(mode_dir == "right" || mode_dir == "up") {
+    pg.translate(pg.width/2, pg.height/2);
+    pg.scale(-1, 1);
+    pg.translate(-pg.width/2, -pg.height/2);
+  }
+
+  let n = 16;
+  let w = pg.width / n;
+  let h = pg.height;
   let tPhase = t % 1;
   pg.textureMode(p.NORMAL);
   for(let i = 0; i < n; i++) {
     let ti = p.constrain(p.map(tPhase, i / n, (i+1) / n, 0, 1), 0, 1);
-    let x = w * i;
-    if(t % 2 < 1) {
-      x = p.lerp(this.pg.width, x, ti);
+    let x;
+    if (mode_inout == "in") {
+      x = p.lerp(1, i / n, ti) * this.pg.width;
     }
-    else {
-      x = p.lerp(x, -w, ti);
+    else if (mode_inout == "out") {
+      x = p.lerp(i / n, -1 / n, ti) * this.pg.width;
     }
     let y = 0;
     let tx0 = i / n;
     let tx1 = (i + 1) / n;
+    if(mode_dir == "right" || mode_dir == "up") {
+      tx0 = 1 - tx0;
+      tx1 = 1 - tx1;
+    }
     let ty0 = 0;
     let ty1 = 1;
     pg.beginShape(p.QUADS);
-    pg.texture(this.layer);
+    pg.texture(this.layerMod);
     pg.vertex(x, y, tx0, ty0);
     pg.vertex(x + w, y, tx1, ty0);
     pg.vertex(x + w, y + h, tx1, ty1);
@@ -181,7 +227,7 @@ S034Tex.prototype.drawLayer = function(pg, key, args) {
   let p = this.p;
 
   // pg.background(0);
-  let idx = 2;
+  let idx = 0;
   pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
   this.tAnimation.drawTo(pg);
 }
