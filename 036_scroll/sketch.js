@@ -123,6 +123,7 @@ TBox.prototype.constructor = TBox;
 function TLedAnimation (p, w, h, args) {
   TLayer.call(this, p, w, h);
   this.layer = args.layer;
+  this.splitN = args.n;
   this.layerMod = p.createGraphics(w, h, p.P3D);
   this.mode_dir = "up";
   this.lastT = -100;
@@ -175,7 +176,7 @@ TLedAnimation.prototype.drawLayer = function (pg, i, args) {
     pg.translate(-pg.width/2, -pg.height/2);
   }
 
-  let n = 32;
+  let n = this.splitN;
   let w = pg.width / n;
   let h = pg.height;
   let tPhase = t % 1;
@@ -213,11 +214,111 @@ TLedAnimation.prototype.drawLayer = function (pg, i, args) {
 
 TLedAnimation.prototype.constructor = TLedAnimation;
 
+function S181230 (p, w, h) {
+  SRendererShadow.call(this, p, w, h);
+  this.colorScheme = new ColorScheme("dfbbb1-f56476-e43f6f-373f51-008dd5");
+  this.uMetallic = 0.2;
+  this.uRoughness = 0.75;
+  this.uSpecular = 0.01;
+  this.uVignette = 1.0;
+  this.uExposure = 8.0;
+
+  this.shape = [];
+  for(let count = 0; count < 32; count++) {
+    let idx = Math.floor(p.random(0, 4));
+    let rx = p.random(Math.PI * 2);
+    let ry = p.random(Math.PI * 2);
+    let yStart = p.random(30, 100);
+    let yEnd = p.random(150, 300);
+
+    let n = 32;
+    for(let i = 0; i < 4; i++) {
+      let s = p.createShape();
+      s.beginShape(this.p.TRIANGLE_STRIP);
+      s.rotateX(rx);
+      s.rotateY(ry);
+      s.noStroke();
+      s.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+      for(let j = 0; j <= n; j++) {
+        for(let ii = 1; ii >= 0; ii--) {
+          let x0 = (ii-0.5) * 10;
+          let z0 = 20 * (Math.cos(j / n * Math.PI) - 1.0);
+          let y0 = p.map(j, 0, n, 0, p.map(i, 0, 4, yStart, yEnd));
+          s.normal(0, 0, 1);
+          s.vertex(x0, y0, z0, ii, j / n);
+        }
+      }
+      s.endShape(this.p.CLOSE);
+      this.shape.push(s);
+    }
+
+    for(let i = 0; i < 4; i++) {
+      let s = p.createShape();
+      s.beginShape(this.p.TRIANGLE_STRIP);
+      s.rotateX(rx);
+      s.rotateY(ry);
+      s.noStroke();
+      s.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+      for(let j = 0; j <= n; j++) {
+        for(let ii = 1; ii >= 0; ii--) {
+          let x0 = (ii-0.5) * 10;
+          let z0 = 20 * (Math.cos(j / n * Math.PI) - 1.0);
+          let y0 = p.map(j, 0, n, 0, p.map(i, 0, 4, yStart, yEnd));
+          s.normal(0, 0, -1);
+          s.vertex(x0, y0, z0-1, ii, j / n);
+        }
+      }
+      s.endShape(this.p.CLOSE);
+      this.shape.push(s);
+    }  }
+}
+
+S181230.prototype = Object.create(SRendererShadow.prototype, {
+  drawScene: {
+    value: function (pg, isShadow) {
+      let p = this.p;
+      pg.clear();
+      pg.pushMatrix();
+      pg.translate(0, 0, 0);
+
+      pg.pushMatrix();
+      for(let i in this.shape) {
+        let s = this.shape[i];
+        let idx = 0;
+        pg.fill(this.colorScheme.get(idx).r, this.colorScheme.get(idx).g, this.colorScheme.get(idx).b);
+        pg.shape(s, 0, 0);
+      }
+      pg.popMatrix();
+
+      pg.popMatrix();
+    }
+  },
+  draw: {
+    value: function (t) {
+      let p = this.p;
+      this.t = p.millis() * 0.001;
+      this.lightPos.set(300, 0, 300);
+      // this.lightPos = this.cameraPosition.copy();
+      this.lightDirection = this.lightPos.copy();//p.createVector(0, 1, 1);
+      // this.lightDirection.sub(this.cameraTarget);
+      // this.ShadowMap.beginDraw();
+      // this.ShadowMap.ortho(-1000, 1000, -1000, 1000, -10000, 10000); // Setup orthogonal view matrix for the directional light
+      // this.ShadowMap.endDraw();
+      Object.getPrototypeOf(S181230.prototype).draw.call(this);
+    }
+  }
+});
+
+S181230.prototype.constructor = S181230;
+
 ////////
 
-function S034Tex(p, w, h) {
+function S036Tex(p, w, h) {
   TLayer.call(this, p, w, h);
   this.pg.smooth(5);
+
+  this.s181230 = new S181230(p, w, h);
+  this.s181230.setup();
 
   this.tBox = new TBox(p, this.width, this.height, {
     x: p.random(this.width),
@@ -226,36 +327,48 @@ function S034Tex(p, w, h) {
     delay: 0.0,
   });
   this.tAnimation = new TLedAnimation(p, this.width, this.height, {
-    layer: this.tBox.pg
+    layer: this.tBox.pg,
+    n: 8
+  });
+  this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
+    layer: this.tAnimation.pg,
+    n: 32
   });
 
 }
 
-S034Tex.prototype = Object.create(TLayer.prototype);
+S036Tex.prototype = Object.create(TLayer.prototype);
 
-S034Tex.prototype.update = function(args) {
+S036Tex.prototype.update = function(args) {
   let t = args.t;
   let p = this.p;
   this.tBox.draw({t: t});
   this.tAnimation.draw({t: t});
+  this.tAnimation2.draw({t: t});
+
+  let angle = t * 0.2;
+  this.s181230.cameraPosition = p.createVector(300.0 * Math.cos(angle), -150.0, 300.0 * Math.sin(angle));
+  this.s181230.cameraTarget = p.createVector(0.0, 0.0, 0.0);
 }
 
 
-S034Tex.prototype.drawLayer = function(pg, key, args) {
+S036Tex.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
 
   // pg.background(0);
-  let idx = 3;
-  pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
-  this.tAnimation.drawTo(pg);
+  // let idx = 3;
+  // pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
+  this.s181230.draw(t);
+  pg.image(this.s181230.pg, 0, 0);
+  this.tAnimation2.drawTo(pg);
 }
 
-S034Tex.prototype.constructor = S034Tex;
+S036Tex.prototype.constructor = S036Tex;
 
 
 var s = function (p) {
-  let s034Tex = new S034Tex(p, 800, 800);
+  let s036Tex = new S036Tex(p, 800, 800);
 
   p.setup = function () {
     p.createCanvas(800, 800);
@@ -270,12 +383,12 @@ var s = function (p) {
     }
 
     p.background(0);
-    s034Tex.draw({t: t});
-    p.image(s034Tex.pg, 0, 0);
+    s036Tex.draw({t: t});
+    p.image(s036Tex.pg, 0, 0);
   }
 
   p.oscEvent = function(m) {
   }
 };
 
-var p034 = new p5(s);
+var p036 = new p5(s);
