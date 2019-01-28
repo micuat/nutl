@@ -91,9 +91,25 @@ TBox.prototype.drawLayer = function (pg, key, args) {
   let tPhase = t - this.tBase;
 
   pg.clear();
-  let idx = 1;
+  let idx;
   pg.noStroke();
+  pg.beginShape();
+  idx = 0;
   pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
+  pg.vertex(0, 0, 0);
+  idx = 2;
+  pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
+  pg.vertex(pg.width, 0, 0);
+  idx = 2;
+  pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
+  pg.vertex(pg.width, pg.height, 0);
+  idx = 1;
+  pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
+  pg.vertex(0, pg.height, 0);
+  pg.endShape();
+  // idx = 4;
+  // pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
+  pg.fill(255)
   pg.translate(pg.width/2, pg.height/2);
   pg.textSize(256);
   pg.textAlign(p.CENTER, p.CENTER);
@@ -110,12 +126,13 @@ function TLedAnimation (p, w, h, args) {
   this.layerMod = p.createGraphics(w, h, p.P3D);
   this.mode_dir = "up";
   this.lastT = -100;
+  this.timeScale = 0.1;
 }
 
 TLedAnimation.prototype = Object.create(TLayer.prototype);
 
 TLedAnimation.prototype.update = function (args) {
-  let t = args.t * 0.5;        
+  let t = args.t * this.timeScale;        
   if(Math.floor(t) - Math.floor(this.lastT) > 0) {
     this.mode_dir = this.p.random(["left", "right", "up", "down"]);
   }
@@ -134,7 +151,7 @@ TLedAnimation.prototype.update = function (args) {
 
 TLedAnimation.prototype.drawLayer = function (pg, i, args) {
   let p = this.p;
-  let t = args.t * 0.5;        
+  let t = args.t * this.timeScale;        
   pg.clear();
   pg.noStroke();
 
@@ -158,13 +175,15 @@ TLedAnimation.prototype.drawLayer = function (pg, i, args) {
     pg.translate(-pg.width/2, -pg.height/2);
   }
 
-  let n = 16;
+  let n = 32;
   let w = pg.width / n;
   let h = pg.height;
   let tPhase = t % 1;
   pg.textureMode(p.NORMAL);
   for(let i = 0; i < n; i++) {
-    let ti = p.constrain(p.map(tPhase, i / n, (i+1) / n, 0, 1), 0, 1);
+    let off = p.map(0.5-Math.abs(i/n-0.5), 0, 0.5, 0, 1);
+    off = Math.sqrt(off) * 0.4;
+    let ti = p.constrain(p.map(tPhase, i / n, (i+1) / n, 0+off, 1-off), 0, 1);
     let x;
     if (mode_inout == "in") {
       x = p.lerp(1, i / n, ti) * this.pg.width;
@@ -227,7 +246,7 @@ S034Tex.prototype.drawLayer = function(pg, key, args) {
   let p = this.p;
 
   // pg.background(0);
-  let idx = 0;
+  let idx = 3;
   pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
   this.tAnimation.drawTo(pg);
 }
