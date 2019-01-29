@@ -182,8 +182,8 @@ TLedAnimation.prototype.drawLayer = function (pg, i, args) {
   let tPhase = t % 1;
   pg.textureMode(p.NORMAL);
   for(let i = 0; i < n; i++) {
-    let off = p.map(0.5-Math.abs(i/n-0.5), 0, 0.5, 0, 1);
-    off = Math.sqrt(off) * 0.4;
+    let off = 0;//p.map(0.5-Math.abs(i/n-0.5), 0, 0.5, 0, 1);
+    // off = Math.sqrt(off) * 0.4;
     let ti = p.constrain(p.map(tPhase, i / n, (i+1) / n, 0+off, 1-off), 0, 1);
     let x;
     if (mode_inout == "in") {
@@ -201,6 +201,7 @@ TLedAnimation.prototype.drawLayer = function (pg, i, args) {
     }
     let ty0 = 0;
     let ty1 = 1;
+    let w = pg.width
     pg.beginShape(p.QUADS);
     pg.texture(this.layerMod);
     pg.vertex(x, y, tx0, ty0);
@@ -328,7 +329,7 @@ function S036Tex(p, w, h) {
   });
   this.tAnimation = new TLedAnimation(p, this.width, this.height, {
     layer: this.tBox.pg,
-    n: 8
+    n: 32
   });
   this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
     layer: this.tAnimation.pg,
@@ -344,11 +345,11 @@ S036Tex.prototype.update = function(args) {
   let p = this.p;
   this.tBox.draw({t: t});
   this.tAnimation.draw({t: t});
-  this.tAnimation2.draw({t: t});
+  // this.tAnimation2.draw({t: t});
 
-  let angle = t * 0.2;
-  this.s181230.cameraPosition = p.createVector(300.0 * Math.cos(angle), -150.0, 300.0 * Math.sin(angle));
-  this.s181230.cameraTarget = p.createVector(0.0, 0.0, 0.0);
+  // let angle = t * 0.2;
+  // this.s181230.cameraPosition = p.createVector(300.0 * Math.cos(angle), -150.0, 300.0 * Math.sin(angle));
+  // this.s181230.cameraTarget = p.createVector(0.0, 0.0, 0.0);
 }
 
 
@@ -357,11 +358,12 @@ S036Tex.prototype.drawLayer = function(pg, key, args) {
   let p = this.p;
 
   // pg.background(0);
-  // let idx = 3;
-  // pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
-  this.s181230.draw(t);
-  pg.image(this.s181230.pg, 0, 0);
-  this.tAnimation2.drawTo(pg);
+  let idx = 3;
+  pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
+  // this.s181230.draw(t);
+  // pg.image(this.s181230.pg, 0, 0);
+  this.tAnimation.drawTo(pg);
+  // this.tAnimation2.drawTo(pg);
 }
 
 S036Tex.prototype.constructor = S036Tex;
