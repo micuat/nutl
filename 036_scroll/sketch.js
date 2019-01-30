@@ -127,7 +127,7 @@ function TLedAnimation (p, w, h, args) {
   this.layerMod = p.createGraphics(w, h, p.P3D);
   this.mode_dir = "up";
   this.lastT = -100;
-  this.timeScale = 0.1;
+  this.timeScale = args.timeScale;
 }
 
 TLedAnimation.prototype = Object.create(TLayer.prototype);
@@ -177,24 +177,23 @@ TLedAnimation.prototype.drawLayer = function (pg, i, args) {
   }
 
   let n = this.splitN;
-  let w = pg.width / n;
   let h = pg.height;
   let tPhase = t % 1;
   pg.textureMode(p.NORMAL);
-  for(let i = 0; i < n; i++) {
-    let off = p.map(0.5-Math.abs(i/n-0.5), 0, 0.5, 0, 1);
-    off = Math.sqrt(off) * 0.4;
-    let ti = p.constrain(p.map(tPhase, i / n, (i+1) / n, 0+off, 1-off), 0, 1);
-    let x;
+  if(tPhase>-1) {
+    let w = 0;
+    let ti = tPhase;
     if (mode_inout == "in") {
-      x = p.lerp(1, i / n, ti) * this.pg.width;
+      w = p.lerp(1, 0, ti) * this.pg.width;
     }
     else if (mode_inout == "out") {
-      x = p.lerp(i / n, -1 / n, ti) * this.pg.width;
+      w = p.lerp(0, 1, ti) * this.pg.width;
     }
+    let x = 0;
     let y = 0;
-    let tx0 = i / n;
-    let tx1 = (i + 1) / n;
+    let W = pg.width;
+    let tx0 = 0;
+    let tx1 = w / W;
     if(mode_dir == "right" || mode_dir == "up") {
       tx0 = 1 - tx0;
       tx1 = 1 - tx1;
@@ -208,8 +207,45 @@ TLedAnimation.prototype.drawLayer = function (pg, i, args) {
     pg.vertex(x + w, y + h, tx1, ty1);
     pg.vertex(x, y + h, tx0, ty1);
     pg.endShape();
+
+    pg.beginShape(p.QUADS);
+    pg.texture(this.layerMod);
+    pg.vertex(w, y, tx1, ty0);
+    pg.vertex(W, y, tx1, ty0);
+    pg.vertex(W, y + h, tx1, ty1);
+    pg.vertex(w, y + h, tx1, ty1);
+    pg.endShape();
   }
-  // pg.image(this.layer, 0, 0, 400, 400);
+  else {
+    for(let i = 0; i < n; i++) {
+      let off = p.map(0.5-Math.abs(i/n-0.5), 0, 0.5, 0, 1);
+      off = Math.sqrt(off) * 0.4;
+      let ti = p.constrain(p.map(tPhase, i / n, (i+1) / n, 0+off, 1-off), 0, 1);
+      let x;
+      if (mode_inout == "in") {
+        x = p.lerp(1, i / n, ti) * this.pg.width;
+      }
+      else if (mode_inout == "out") {
+        x = p.lerp(i / n, -1 / n, ti) * this.pg.width;
+      }
+      let y = 0;
+      let tx0 = i / n;
+      let tx1 = (i + 1) / n;
+      if(mode_dir == "right" || mode_dir == "up") {
+        tx0 = 1 - tx0;
+        tx1 = 1 - tx1;
+      }
+      let ty0 = 0;
+      let ty1 = 1;
+      pg.beginShape(p.QUADS);
+      pg.texture(this.layerMod);
+      pg.vertex(x, y, tx0, ty0);
+      pg.vertex(x + w, y, tx1, ty0);
+      pg.vertex(x + w, y + h, tx1, ty1);
+      pg.vertex(x, y + h, tx0, ty1);
+      pg.endShape();
+    }
+  }
 }
 
 TLedAnimation.prototype.constructor = TLedAnimation;
@@ -328,10 +364,12 @@ function S036Tex(p, w, h) {
   });
   this.tAnimation = new TLedAnimation(p, this.width, this.height, {
     layer: this.tBox.pg,
+    timeScale: 0.5,
     n: 8
   });
   this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
     layer: this.tAnimation.pg,
+    timeScale: 0.5,
     n: 32
   });
 
