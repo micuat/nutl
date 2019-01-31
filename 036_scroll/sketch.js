@@ -126,6 +126,7 @@ function TLedAnimation (p, w, h, args) {
   this.splitN = args.n;
   this.layerMod = p.createGraphics(w, h, p.P3D);
   this.mode_dir = "up";
+  this.type = args.type;
   this.lastT = -100;
   this.timeScale = args.timeScale;
 }
@@ -180,7 +181,7 @@ TLedAnimation.prototype.drawLayer = function (pg, i, args) {
   let h = pg.height;
   let tPhase = t % 1;
   pg.textureMode(p.NORMAL);
-  if(tPhase>-1) {
+  if(this.type == "stretch") {
     let w = 0;
     let ti = tPhase;
     if (mode_inout == "in") {
@@ -216,7 +217,8 @@ TLedAnimation.prototype.drawLayer = function (pg, i, args) {
     pg.vertex(w, y + h, tx1, ty1);
     pg.endShape();
   }
-  else {
+  else if(this.type == "strip") {
+    let w = pg.width / n;
     for(let i = 0; i < n; i++) {
       let off = p.map(0.5-Math.abs(i/n-0.5), 0, 0.5, 0, 1);
       off = Math.sqrt(off) * 0.4;
@@ -364,11 +366,13 @@ function S036Tex(p, w, h) {
   });
   this.tAnimation = new TLedAnimation(p, this.width, this.height, {
     layer: this.tBox.pg,
+    type: "strip",
     timeScale: 0.5,
     n: 8
   });
   this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
     layer: this.tAnimation.pg,
+    type: "stretch",
     timeScale: 0.5,
     n: 32
   });
