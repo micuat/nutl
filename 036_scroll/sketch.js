@@ -373,7 +373,7 @@ function S036Tex(p, w, h) {
   this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
     layer: this.tAnimation.pg,
     type: "stretch",
-    timeScale: 0.5,
+    timeScale: 0.25,
     n: 32
   });
 
@@ -386,7 +386,7 @@ S036Tex.prototype.update = function(args) {
   let p = this.p;
   this.tBox.draw({t: t});
   this.tAnimation.draw({t: t});
-  // this.tAnimation2.draw({t: t});
+  this.tAnimation2.draw({t: t});
 
   // let angle = t * 0.2;
   // this.s181230.cameraPosition = p.createVector(300.0 * Math.cos(angle), -150.0, 300.0 * Math.sin(angle));
@@ -404,7 +404,7 @@ S036Tex.prototype.drawLayer = function(pg, key, args) {
   // this.s181230.draw(t);
   // pg.image(this.s181230.pg, 0, 0);
   this.tAnimation.drawTo(pg);
-  // this.tAnimation2.drawTo(pg);
+  this.tAnimation2.drawTo(pg);
 }
 
 S036Tex.prototype.constructor = S036Tex;
