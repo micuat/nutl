@@ -153,7 +153,7 @@ TLedAnimation.prototype.update = function (args) {
 
 TLedAnimation.prototype.drawLayer = function (pg, i, args) {
   let p = this.p;
-  let t = args.t * this.timeScale;        
+  let t = args.t * this.timeScale + args.scratch;    
   pg.clear();
   pg.noStroke();
 
@@ -370,13 +370,14 @@ function S036Tex(p, w, h) {
     timeScale: 0.5,
     n: 8
   });
+  this.postProcess0 = new PostProcess(p);
+  this.postProcess0.setup();
   this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
-    layer: this.tAnimation.pg,
+    layer: this.postProcess0.pg,
     type: "stretch",
     timeScale: 0.25,
     n: 32
   });
-
 }
 
 S036Tex.prototype = Object.create(TLayer.prototype);
@@ -385,8 +386,12 @@ S036Tex.prototype.update = function(args) {
   let t = args.t;
   let p = this.p;
   this.tBox.draw({t: t});
-  this.tAnimation.draw({t: t});
-  this.tAnimation2.draw({t: t});
+  this.tAnimation.draw({t: t, scratch: p.noise(t * 10) * 0.4});
+  this.postProcess0.draw("slide", this.tAnimation.pg, {
+    delta: p.constrain(Math.sin(t) * 0.2 - 0.1, 0, 1),
+    time: t
+  });
+  this.tAnimation2.draw({t: t, scratch: 0.0});
 
   // let angle = t * 0.2;
   // this.s181230.cameraPosition = p.createVector(300.0 * Math.cos(angle), -150.0, 300.0 * Math.sin(angle));
