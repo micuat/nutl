@@ -1,5 +1,5 @@
 // var colorScheme = new ColorScheme("61e294-7bcdba-9799ca-bd93d8-b47aea");
-var colorScheme = new ColorScheme("dfbbb1-f56476-e43f6f-373f51-008dd5");
+var colorScheme = new ColorScheme("c2f970-44344f-564d80-98a6d4-d3fcd5");
 
 function TLayer (p, w, h) {
   this.p = p;
@@ -82,7 +82,7 @@ TBox.prototype = Object.create(TLayer.prototype);
 
 TBox.prototype.drawLayer = function (pg, key, args) {
   let p = this.p;
-  let t = (args.t + this.delay);// * 0.5;
+  let t = (args.t);// * 0.5;
 
   if(Math.floor(t) - Math.floor(this.lastT) > 0) {
     this.tBase = t;
@@ -93,27 +93,26 @@ TBox.prototype.drawLayer = function (pg, key, args) {
   pg.clear();
   let idx;
   pg.noStroke();
+  pg.translate(pg.width/2, pg.height/2);
+  pg.rotate(t)
   pg.beginShape();
   idx = 0;
   pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
-  pg.vertex(0, 0, 0);
+  pg.vertex(-200, -200, 0);
   idx = 2;
   pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
-  pg.vertex(pg.width, 0, 0);
+  pg.vertex(200, -200, 0);
   idx = 2;
   pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
-  pg.vertex(pg.width, pg.height, 0);
-  idx = 1;
+  pg.vertex(200, 200, 0);
+  idx = 0;
   pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
-  pg.vertex(0, pg.height, 0);
+  pg.vertex(-200, 200, 0);
   pg.endShape();
-  // idx = 4;
-  // pg.fill(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
-  pg.fill(255)
-  pg.translate(pg.width/2, pg.height/2);
-  pg.textSize(256);
-  pg.textAlign(p.CENTER, p.CENTER);
-  pg.text("enter\ntext", 0, -50);
+  // pg.fill(255)
+  // pg.textSize(256);
+  // pg.textAlign(p.CENTER, p.CENTER);
+  // pg.text("PCD\nTOKYO", 0, -50);
 }
 
 TBox.prototype.constructor = TBox;
@@ -373,7 +372,7 @@ function S036Tex(p, w, h) {
   this.postProcess0 = new PostProcess(p);
   this.postProcess0.setup();
   this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
-    layer: this.postProcess0.pg,
+    layer: this.tAnimation.pg,
     type: "stretch",
     timeScale: 0.25,
     n: 32
@@ -387,10 +386,10 @@ S036Tex.prototype.update = function(args) {
   let p = this.p;
   this.tBox.draw({t: t});
   this.tAnimation.draw({t: t, scratch: p.noise(t * 10) * 0.4});
-  this.postProcess0.draw("slide", this.tAnimation.pg, {
-    delta: p.constrain(Math.sin(t) * 0.2 - 0.1, 0, 1),
-    time: t
-  });
+  // this.postProcess0.draw("slide", this.tAnimation.pg, {
+  //   delta: p.constrain(Math.sin(t) * 0.2 - 0.1, 0, 1),
+  //   time: t
+  // });
   this.tAnimation2.draw({t: t, scratch: 0.0});
 
   // let angle = t * 0.2;
@@ -408,8 +407,12 @@ S036Tex.prototype.drawLayer = function(pg, key, args) {
   pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
   // this.s181230.draw(t);
   // pg.image(this.s181230.pg, 0, 0);
-  this.tAnimation.drawTo(pg);
-  this.tAnimation2.drawTo(pg);
+  // this.tAnimation.drawTo(pg);
+  for(let i = 0; i < 16; i++) {
+    pg.translate(5, 10);
+    pg.scale(0.9, 0.9);
+    this.tAnimation2.drawTo(pg);
+  }
 }
 
 S036Tex.prototype.constructor = S036Tex;
