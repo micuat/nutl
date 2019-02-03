@@ -10,8 +10,6 @@ varying vec4 vertColor;
 varying vec4 vertTexCoord;
 
 uniform float time;
-uniform vec3 color0;
-uniform vec3 color1;
 
 //	Simplex 3D Noise
 //	by Ian McEwan, Ashima Arts
@@ -86,12 +84,11 @@ vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
     return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),
                         dot(p2,x2), dot(p3,x3) ) );
 }
-  
-        
+
 vec4 noise(vec2 st, float scale, float offset){
     return vec4(vec3(_noise(vec3(st*scale, offset*time))), 1.0);
 }
-        
+
 vec4 voronoi(vec2 st, float scale, float speed, float blending) {
     vec3 color = vec3(.0);
 
@@ -126,7 +123,7 @@ vec4 voronoi(vec2 st, float scale, float speed, float blending) {
     color *= 1.0 - blending*m_dist;
     return vec4(color, 1.0);
 }
-        
+
 vec4 osc(vec2 _st, float freq, float sync, float offset){
     vec2 st = _st;
     float r = sin((st.x-offset/freq+time*sync)*freq)*0.5  + 0.5;
@@ -134,7 +131,7 @@ vec4 osc(vec2 _st, float freq, float sync, float offset){
     float b = sin((st.x+offset/freq+time*sync)*freq)*0.5  + 0.5;
     return vec4(r, g, b, 1.0);
 }
-        
+
 vec4 shape(vec2 _st, float sides, float radius, float smoothing){
     vec2 st = _st * 2. - 1.;
     // Angle and radius from the current pixel
@@ -152,6 +149,18 @@ vec2 rotate(vec2 p0, float t0) {
     return p;
 }
 
+vec2 modulate(vec2 st, vec4 c1, float amount){
+    return st + c1.xy*amount;
+}
+
+vec4 add(vec4 a, vec4 b){
+    return a + b;
+}
+
+vec4 color(vec4 a, float r0, float g0, float b0, float r1, float g1, float b1){
+    return vec4(mix(vec3(r0, g0, b0), vec3(r1, g1, b1), a.r), 1.0);
+}
+
 // vec3 modulate(vec3 m0, vec3 m1, float amp) {
 //     return 
 // }
@@ -165,7 +174,4 @@ void main()
     float phase = 1;
     float theta = 0.3;
 #pragma insert fragColor
-    // gl_FragColor = vec4(mix(color0, color1, voronoi(rotate(fragCoord.st-vec2(0.5), theta).st+vec2(0.5), 10, 0.25, 0.01).s), 1.0);
-    // gl_FragColor = vec4(mix(color0, color1, noise(rotate(fragCoord.st, theta).st, freq, phase).s), 1.0);
-    // gl_FragColor = vec4(mix(color0, color1, sin(rotate(fragCoord.st, theta).t * freq + time * phase) * 0.5 + 0.5), 1.0);
 }

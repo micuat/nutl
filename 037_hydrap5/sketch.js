@@ -286,12 +286,16 @@ TLedAnimation.prototype.constructor = TLedAnimation;
 
 function Hydra() {
   this.queue = [];
+  this.layerQueue = [];
 }
 Hydra.prototype.parse = function(default_args, input_args) {
   let post = "";
   for(let i = 0; i < default_args.length; i++) {
     if(input_args[i] == undefined) {
       post = post + ", " + default_args[i];
+    }
+    else if (input_args[i] instanceof Hydra) {
+      post = post + ", " + input_args[i].generate();
     }
     else {
       post = post + ", " + input_args[i];
@@ -314,9 +318,19 @@ Hydra.prototype.rotate = function () {
   this.queue.push({pre: "rotate(", post: post + ")"});
   return this;
 }
+Hydra.prototype.modulate = function () {
+  let post = this.parse([null, 0.5], arguments);
+  this.queue.push({pre: "modulate(", post: post + ")"});
+  return this;
+}
 Hydra.prototype.add = function () {
-  let post = this.parse([0.3], arguments);
-  this.queue.push({pre: "rotate(", post: post + ")"});
+  let post = this.parse([null], arguments);
+  this.layerQueue.push({pre: "add(", post: post + ")"});
+  return this;
+}
+Hydra.prototype.color = function () {
+  let post = this.parse([0.5, 0.5, 0.5, 0.5, 0.5, 0.5], arguments);
+  this.layerQueue.push({pre: "color(", post: post + ")"});
   return this;
 }
 Hydra.prototype.generate = function () {
@@ -325,18 +339,29 @@ Hydra.prototype.generate = function () {
     let q = this.queue[i];
     str = q.pre + str + q.post;
   }
-  str = str + ";";
   this.queue = [];
+
+  for(let i = 0; i < this.layerQueue.length; i++) {
+    let q = this.layerQueue[i];
+    str = q.pre + str + q.post;
+  }
+  this.layerQueue = [];
   return str;
 }
-
-var hydra = new Hydra();
 
 function THydra (p, w, h, args) {
   TLayer.call(this, p, w, h);
 
   this.shaderHelper = new ShaderHelper(p);
-  let str = "gl_FragColor = vec4(mix(color0, color1, voronoi(rotate(fragCoord.st-vec2(0.5), theta).st+vec2(0.5), 10, 0.25, 0.01).s), 1.0);";
+  let str = "gl_FragColor = ";
+  let hydra0 = new Hydra();
+  let hydra1 = new Hydra();
+  let ci0 = colorScheme.get(0);
+  let ci3 = colorScheme.get(3);
+  hydra0.voronoi(20).rotate(0.1).modulate(hydra1.noise(3.0).rotate(-0.1))
+  .color(ci0.r/255, ci0.g/255, ci0.b/255, ci3.r/255, ci3.g/255, ci3.b/255);
+  str += hydra0.generate() + ";";
+  print(str)
   this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl", str);
 }
 
@@ -346,10 +371,6 @@ THydra.prototype.drawLayer = function (pg, key, args) {
   let p = this.p;
 
   if (p.frameCount % 60 == 0) {
-    let str = "gl_FragColor = ";
-    hydra.voronoi(20).rotate(0.1);
-    str += hydra.generate();
-    this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl", str);
   }
 
   p.background(0);
