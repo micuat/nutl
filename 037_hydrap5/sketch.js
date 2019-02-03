@@ -7,9 +7,10 @@ function ShaderHelper (p) {
   this.p = p;
 }
 
-ShaderHelper.prototype.load = function (path) {
+ShaderHelper.prototype.load = function (path, fragString) {
   let fragSourceRaw = this.p.loadStrings(path);
   let fragSource = [];
+
   for (let i in fragSourceRaw) {
     if (fragSourceRaw[i].match(/^#pragma include "(.*)"$/)) {
       let name = fragSourceRaw[i].replace(/^#pragma include "(.*)"$/, '$1');
@@ -17,6 +18,9 @@ ShaderHelper.prototype.load = function (path) {
       for (let j in includeSource) {
         fragSource.push(includeSource[j]);
       }
+    }
+    else if (fragSourceRaw[i].match(/^#pragma insert fragColor$/)) {
+      fragSource.push(fragString);
     }
     else {
       fragSource.push(fragSourceRaw[i]);
@@ -280,11 +284,60 @@ TLedAnimation.prototype.constructor = TLedAnimation;
 
 ////////
 
+function Hydra() {
+  this.queue = [];
+}
+Hydra.prototype.parse = function(default_args, input_args) {
+  let post = "";
+  for(let i = 0; i < default_args.length; i++) {
+    if(input_args[i] == undefined) {
+      post = post + ", " + default_args[i];
+    }
+    else {
+      post = post + ", " + input_args[i];
+    }
+  }
+  return post;
+}
+Hydra.prototype.noise = function () {
+  let post = this.parse([10.0, 0.1], arguments);
+  this.queue.push({pre: "noise(", post: post + ")"});
+  return this;
+}
+Hydra.prototype.voronoi = function () {
+  let post = this.parse([10.0, 0.25, 0.01], arguments);
+  this.queue.push({pre: "voronoi(", post: post + ")"});
+  return this;
+}
+Hydra.prototype.rotate = function () {
+  let post = this.parse([0.3], arguments);
+  this.queue.push({pre: "rotate(", post: post + ")"});
+  return this;
+}
+Hydra.prototype.add = function () {
+  let post = this.parse([0.3], arguments);
+  this.queue.push({pre: "rotate(", post: post + ")"});
+  return this;
+}
+Hydra.prototype.generate = function () {
+  let str = "fragCoord.st";
+  for(let i = this.queue.length - 1; i >= 0; i--) {
+    let q = this.queue[i];
+    str = q.pre + str + q.post;
+  }
+  str = str + ";";
+  this.queue = [];
+  return str;
+}
+
+var hydra = new Hydra();
+
 function THydra (p, w, h, args) {
   TLayer.call(this, p, w, h);
 
   this.shaderHelper = new ShaderHelper(p);
-  this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl");
+  let str = "gl_FragColor = vec4(mix(color0, color1, voronoi(rotate(fragCoord.st-vec2(0.5), theta).st+vec2(0.5), 10, 0.25, 0.01).s), 1.0);";
+  this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl", str);
 }
 
 THydra.prototype = Object.create(TLayer.prototype);
@@ -293,7 +346,10 @@ THydra.prototype.drawLayer = function (pg, key, args) {
   let p = this.p;
 
   if (p.frameCount % 60 == 0) {
-    this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl");
+    let str = "gl_FragColor = ";
+    hydra.voronoi(20).rotate(0.1);
+    str += hydra.generate();
+    this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl", str);
   }
 
   p.background(0);
@@ -320,20 +376,20 @@ function S037Tex(p, w, h) {
   //   size: this.width / 10,
   //   delay: 0.0,
   // });
-  // this.tAnimation = new TLedAnimation(p, this.width, this.height, {
-  //   layer: this.tBox.pg,
-  //   type: "strip",
-  //   timeScale: 0.5,
-  //   n: 8
-  // });
+  this.tAnimation = new TLedAnimation(p, this.width, this.height, {
+    layer: this.tBox.pg,
+    type: "strip",
+    timeScale: 0.5,
+    n: 8
+  });
   // this.postProcess0 = new PostProcess(p);
   // this.postProcess0.setup();
-  // this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
-  //   layer: this.tAnimation.pg,
-  //   type: "stretch",
-  //   timeScale: 0.25,
-  //   n: 32
-  // });
+  this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
+    layer: this.tAnimation.pg,
+    type: "stretch",
+    timeScale: 0.25,
+    n: 32
+  });
 }
 
 S037Tex.prototype = Object.create(TLayer.prototype);
@@ -354,6 +410,7 @@ S037Tex.prototype.drawLayer = function(pg, key, args) {
   let idx = 3;
   pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
   this.tBox.drawTo(pg);
+  // this.tAnimation2.drawTo(pg);
 }
 
 S037Tex.prototype.constructor = S037Tex;
