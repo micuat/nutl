@@ -1,5 +1,5 @@
 // var colorScheme = new ColorScheme("61e294-7bcdba-9799ca-bd93d8-b47aea");
-var colorScheme = new ColorScheme("c2f970-44344f-564d80-98a6d4-d3fcd5");
+var colorScheme = new ColorScheme("8fbfe0-7c77b9-1d8a99-0bc9cd-14fff7");
 
 ////////
 
@@ -358,7 +358,7 @@ function THydra (p, w, h, args) {
   let hydra1 = new Hydra();
   let ci0 = colorScheme.get(0);
   let ci3 = colorScheme.get(3);
-  hydra0.voronoi(20).rotate(0.1).modulate(hydra1.noise(3.0).rotate(-0.1))
+  hydra0.noise(2).rotate(0.1).modulate(hydra1.noise(3.0).rotate(-0.1))
   .color(ci0.r/255, ci0.g/255, ci0.b/255, ci3.r/255, ci3.g/255, ci3.b/255);
   str += hydra0.generate() + ";";
   print(str)
@@ -386,9 +386,57 @@ THydra.prototype.constructor = THydra;
 
 ////////
 
+function TRitoco01 (p, w, h, args) {
+  TLayer.call(this, p, w, h);
+
+  this.lastT = 0;
+  this.tBase = 0;
+  this.angle = 0;
+  this.pg.noSmooth();
+  this.idx0 = 0;
+  this.idx1 = 1;
+  this.ratio = 0.5;
+  this.angleDelta = 0.04;
+}
+
+TRitoco01.prototype = Object.create(TLayer.prototype);
+
+TRitoco01.prototype.drawLayer = function (pg, key, args) {
+  let p = this.p;
+  let t = args.t * 0.125;
+
+  if(Math.floor(t) - Math.floor(this.lastT) > 0) {
+    this.tBase = t;
+    pg.clear();
+    this.idx0 = Math.floor(p.random(5));
+    this.idx1 = Math.floor(p.random(5));
+    this.ratio = p.random(0.2, 2);
+    this.angleDelta = p.random(0.01, 0.1);
+  }
+  this.lastT = t;
+  let tPhase = t - this.tBase;
+
+  let y = Math.sin(t * 8 * Math.PI) * 200 + 200;
+  pg.noStroke();
+  pg.blendMode(p.ADD);
+  pg.translate(pg.width/2, pg.height/2);
+  pg.rotate(this.angle);
+  pg.fill(colorScheme.get(this.idx0).r/5, colorScheme.get(this.idx0).g/5, colorScheme.get(this.idx0).b/5, 255);
+  pg.ellipse(y, 0, 50, y*this.ratio);
+  pg.fill(colorScheme.get(this.idx1).r/5, colorScheme.get(this.idx1).g/5, colorScheme.get(this.idx1).b/5, 255);
+  pg.ellipse(y, 0, 20, y*this.ratio);
+  this.angle += this.angleDelta;
+}
+
+TRitoco01.prototype.constructor = TRitoco01;
+
+////////
+
 function S037Tex(p, w, h) {
   TLayer.call(this, p, w, h);
   this.pg.smooth(5);
+
+  this.tRito = new TRitoco01(p, this.width, this.height, {});
 
   this.tBox = new THydra(p, this.width, this.height, {});
   // this.tBox = new TBox(p, this.width, this.height, {
@@ -403,12 +451,12 @@ function S037Tex(p, w, h) {
     timeScale: 0.125,
     n: 8
   });
-  // this.postProcess0 = new PostProcess(p);
-  // this.postProcess0.setup();
+  this.postProcess0 = new PostProcess(p);
+  this.postProcess0.setup();
   this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
-    layer: this.tAnimation.pg,
+    layer: this.tRito.pg,
     type: "stretch",
-    timeScale: 0.25,
+    timeScale: 0.5,
     n: 32
   });
 }
@@ -419,22 +467,23 @@ S037Tex.prototype.update = function(args) {
   let t = args.t;
   let p = this.p;
   this.tBox.draw({t: t});
+  this.tRito.draw({t: t});
   this.tAnimation.draw({t: t, scratch: p.noise(t * 1) * 0.4});
   this.tAnimation2.draw({t: t, scratch: 0.0});
+  this.postProcess0.draw("kaleid", this.tRito.pg, {});
 }
-
 
 S037Tex.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
 
   let idx = 3;
+  pg.blendMode(p.BLEND);
   pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
   pg.background(255);
-  pg.blendMode(p.SUBTRACT);
+  pg.image(this.postProcess0.pg, 0, 0);
+  pg.blendMode(p.SCREEN);
   this.tBox.drawTo(pg);
-  pg.blendMode(p.BLEND);
-  this.tAnimation2.drawTo(pg);
 }
 
 S037Tex.prototype.constructor = S037Tex;
@@ -482,13 +531,14 @@ var s = function (p) {
 
     p.background(0);
     s037Tex.draw({t: t});
-    p.image(s037Tex.tBox.pg, 0, 0);
-    p.translate(p.width/2, p.height/2);
-    p.pushMatrix();
-    p.fill(255);
-    p.rotateY(t*0.1);
-    p.shape(shape);
-    p.popMatrix();
+    p.image(s037Tex.pg, 0, 0);
+    // p.image(s037Tex.tBox.pg, 0, 0);
+    // p.translate(p.width/2, p.height/2);
+    // p.pushMatrix();
+    // p.fill(255);
+    // p.rotateY(t*0.1);
+    // p.shape(shape);
+    // p.popMatrix();
   }
 
   p.oscEvent = function(m) {
