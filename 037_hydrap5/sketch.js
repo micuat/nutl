@@ -400,7 +400,7 @@ function S037Tex(p, w, h) {
   this.tAnimation = new TLedAnimation(p, this.width, this.height, {
     layer: this.tBox.pg,
     type: "strip",
-    timeScale: 0.5,
+    timeScale: 0.125,
     n: 8
   });
   // this.postProcess0 = new PostProcess(p);
@@ -419,8 +419,8 @@ S037Tex.prototype.update = function(args) {
   let t = args.t;
   let p = this.p;
   this.tBox.draw({t: t});
-  // this.tAnimation.draw({t: t, scratch: p.noise(t * 10) * 0.4});
-  // this.tAnimation2.draw({t: t, scratch: 0.0});
+  this.tAnimation.draw({t: t, scratch: p.noise(t * 1) * 0.4});
+  this.tAnimation2.draw({t: t, scratch: 0.0});
 }
 
 
@@ -430,8 +430,11 @@ S037Tex.prototype.drawLayer = function(pg, key, args) {
 
   let idx = 3;
   pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
+  pg.background(255);
+  pg.blendMode(p.SUBTRACT);
   this.tBox.drawTo(pg);
-  // this.tAnimation2.drawTo(pg);
+  pg.blendMode(p.BLEND);
+  this.tAnimation2.drawTo(pg);
 }
 
 S037Tex.prototype.constructor = S037Tex;
@@ -439,10 +442,35 @@ S037Tex.prototype.constructor = S037Tex;
 
 var s = function (p) {
   let s037Tex = new S037Tex(p, 800, 800);
+  let shape = p.createShape(p.GROUP);
 
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(30);
+
+    let n = 64;
+    let r = 250;
+    for(let i = -n; i < n; i++) {
+      let s = p.createShape();
+      s.beginShape(p.TRIANGLE_STRIP);
+      s.texture(s037Tex.pg);
+      s.textureMode(p.NORMAL);
+      s.noStroke();
+      s.fill(255);
+      for(let j = -n; j <= n; j++) {
+        for(let ii = 1; ii >= 0; ii--) {
+          let theta = p.map(i + ii, -n, n, -Math.PI, Math.PI);
+          let phi = p.map(j, -n, n, 0, Math.PI);
+          let x0 = r * Math.sin(phi) * Math.cos(theta);
+          let z0 = r * Math.sin(phi) * Math.sin(theta);
+          let y0 = r * Math.cos(phi);
+          s.normal(x0, y0, z0);
+          s.vertex(x0, y0, z0, (theta / Math.PI) * 0.5 + 0.5, phi / Math.PI);
+        }
+      }
+      s.endShape(p.CLOSE);
+      shape.addChild(s);
+    }
   }
 
   p.draw = function () {
@@ -454,7 +482,13 @@ var s = function (p) {
 
     p.background(0);
     s037Tex.draw({t: t});
-    p.image(s037Tex.pg, 0, 0);
+    p.image(s037Tex.tBox.pg, 0, 0);
+    p.translate(p.width/2, p.height/2);
+    p.pushMatrix();
+    p.fill(255);
+    p.rotateY(t*0.1);
+    p.shape(shape);
+    p.popMatrix();
   }
 
   p.oscEvent = function(m) {
