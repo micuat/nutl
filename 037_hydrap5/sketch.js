@@ -415,15 +415,18 @@ TRitoco01.prototype.drawLayer = function (pg, key, args) {
   }
   this.lastT = t;
   let tPhase = t - this.tBase;
+  pg.clear();
+  pg.background(0);
 
   let y = Math.sin(t * 8 * Math.PI) * 200 + 200;
   pg.noStroke();
-  pg.blendMode(p.ADD);
   pg.translate(pg.width/2, pg.height/2);
   pg.rotate(this.angle);
-  pg.fill(colorScheme.get(this.idx0).r/5, colorScheme.get(this.idx0).g/5, colorScheme.get(this.idx0).b/5, 255);
+  pg.fill(100);
+  // pg.fill(colorScheme.get(this.idx0).r, colorScheme.get(this.idx0).g, colorScheme.get(this.idx0).b, 255);
   pg.ellipse(y, 0, 50, y*this.ratio);
-  pg.fill(colorScheme.get(this.idx1).r/5, colorScheme.get(this.idx1).g/5, colorScheme.get(this.idx1).b/5, 255);
+  pg.fill(255);
+  // pg.fill(colorScheme.get(this.idx1).r, colorScheme.get(this.idx1).g, colorScheme.get(this.idx1).b, 255);
   pg.ellipse(y, 0, 20, y*this.ratio);
   this.angle += this.angleDelta;
 }
@@ -459,6 +462,8 @@ function S037Tex(p, w, h) {
     timeScale: 0.5,
     n: 32
   });
+  this.lastT = 0;
+  this.tBase = 0;
 }
 
 S037Tex.prototype = Object.create(TLayer.prototype);
@@ -474,15 +479,23 @@ S037Tex.prototype.update = function(args) {
 }
 
 S037Tex.prototype.drawLayer = function(pg, key, args) {
-  let t = args.t;
+  let t = args.t * 0.125;
   let p = this.p;
 
-  let idx = 3;
-  pg.blendMode(p.BLEND);
-  pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
-  pg.background(255);
+  // if(Math.floor(t) - Math.floor(this.lastT) > 0) {
+  //   this.tBase = t;
+  //   pg.clear();
+  //   let idx = 3;
+  //   pg.background(colorScheme.get(idx).r, colorScheme.get(idx).g, colorScheme.get(idx).b);
+  //   pg.background(0);
+  // }
+  this.lastT = t;
+  let tPhase = t - this.tBase;
+
+  pg.blendMode(p.ADD);
   pg.image(this.postProcess0.pg, 0, 0);
-  pg.blendMode(p.SCREEN);
+  // this.tRito.drawTo(pg);
+  pg.blendMode(p.MULTIPLY);
   this.tBox.drawTo(pg);
 }
 
