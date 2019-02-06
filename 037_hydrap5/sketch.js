@@ -415,18 +415,18 @@ TRitoco01.prototype.drawLayer = function (pg, key, args) {
   }
   this.lastT = t;
   let tPhase = t - this.tBase;
-  pg.clear();
-  pg.background(0);
+  // pg.clear();
+  // pg.background(0);
 
   let y = Math.sin(t * 8 * Math.PI) * 200 + 200;
   pg.noStroke();
   pg.translate(pg.width/2, pg.height/2);
   pg.rotate(this.angle);
-  pg.fill(100);
-  // pg.fill(colorScheme.get(this.idx0).r, colorScheme.get(this.idx0).g, colorScheme.get(this.idx0).b, 255);
+  // pg.fill(100);
+  pg.fill(colorScheme.get(this.idx0).r, colorScheme.get(this.idx0).g, colorScheme.get(this.idx0).b, 255);
   pg.ellipse(y, 0, 50, y*this.ratio);
-  pg.fill(255);
-  // pg.fill(colorScheme.get(this.idx1).r, colorScheme.get(this.idx1).g, colorScheme.get(this.idx1).b, 255);
+  // pg.fill(255);
+  pg.fill(colorScheme.get(this.idx1).r, colorScheme.get(this.idx1).g, colorScheme.get(this.idx1).b, 255);
   pg.ellipse(y, 0, 20, y*this.ratio);
   this.angle += this.angleDelta;
 }
@@ -435,11 +435,110 @@ TRitoco01.prototype.constructor = TRitoco01;
 
 ////////
 
+function TP5aholic2 (p, w, h, args) {
+  TLayer.call(this, p, w, h);
+
+  this.lastT = 0;
+  this.tBase = 0;
+  this.pg.noSmooth();
+
+  this.minSize = 5;
+  this.maxSize = w;
+  this.numPalette = 2;
+  this.palette = [];
+}
+
+TP5aholic2.prototype = Object.create(TLayer.prototype);
+
+TP5aholic2.prototype.drawLayer = function (pg, key, args) {
+  let p = this.p;
+    pg.colorMode(p.HSB, 360, 100, 100, 100);
+  pg.rectMode(p.CENTER);
+  this.changeColor();
+  pg.background(this.getRandomPalette(), 5, 95);
+  this.branch(pg.width / 2 - this.maxSize / 2, pg.height / 2, this.maxSize);
+  this.branch(pg.width / 2 + this.maxSize / 2, pg.height / 2, this.maxSize);
+}
+
+TP5aholic2.prototype.changeColor = function () {
+  for (let i = 0; i < this.numPalette; i++) {
+    this.palette[i] = Math.floor(this.p.random(360));
+  }
+}
+
+TP5aholic2.prototype.getRandomPalette = function () {
+  return this.p.random(this.palette);
+}
+
+TP5aholic2.prototype.branch = function (cx, cy, size) {
+  let p = this.p;
+  this.pg.strokeWeight(1);
+  this.pg.stroke(0, 0, 0, 5);
+  if (p.random(1) < 0.9) {
+    this.drawGradationRect(cx, cy, size);
+  }
+  else {
+    this.drawRect(cx, cy, size);
+  }
+
+  size *= 0.5;
+  if(size < this.minSize) {
+    return;
+  }
+
+  let P = p.map(size, this.minSize, this.maxSize, 0.4, 1);
+
+  if(p.random(1) < P) {
+    this.branch(cx - size / 2, cy - size / 2, size);
+  }
+  if(p.random(1) < P) {
+    this.branch(cx + size / 2, cy - size / 2, size);
+  }
+  if(p.random(1) < P) {
+    this.branch(cx + size / 2, cy + size / 2, size);
+  }
+  if(p.random(1) < P) {
+    this.branch(cx - size / 2, cy + size / 2, size);
+  }
+}
+
+TP5aholic2.prototype.drawRect = function (cx, cy, size) {
+  this.pg.fill(this.getRandomPalette(), 100, 100);
+  this.pg.rect(cx, cy, size, size);
+}
+
+TP5aholic2.prototype.drawGradationRect = function (cx, cy, size) {
+  let p = this.p;
+  let pg = this.pg;
+  pg.pushMatrix();
+  pg.translate(cx, cy);
+  let r = Math.floor(p.random(4));
+  pg.rotate(r * p.HALF_PI);
+
+  pg.beginShape();
+  pg.strokeWeight(1);
+  pg.stroke(0, 0, 0, 5);
+  pg.fill(this.palette[0], 100, 100, 10);
+  pg.vertex(-size/2, -size/2);
+  pg.vertex(+size/2, -size/2);
+  pg.fill(this.palette[1], 100, 100, 10);
+  pg.vertex(+size/2, +size/2);
+  pg.vertex(-size/2, +size/2);
+  pg.endShape(p.CLOSE);
+  pg.popMatrix();
+}
+
+TP5aholic2.prototype.constructor = TP5aholic2;
+
+////////
+
 function S037Tex(p, w, h) {
   TLayer.call(this, p, w, h);
   this.pg.smooth(5);
 
   this.tRito = new TRitoco01(p, this.width, this.height, {});
+  this.tP5a = new TP5aholic2(p, this.width, this.height, {});
+  this.tP5a.draw();
 
   this.tBox = new THydra(p, this.width, this.height, {});
   // this.tBox = new TBox(p, this.width, this.height, {
@@ -492,11 +591,12 @@ S037Tex.prototype.drawLayer = function(pg, key, args) {
   this.lastT = t;
   let tPhase = t - this.tBase;
 
-  pg.blendMode(p.ADD);
-  pg.image(this.postProcess0.pg, 0, 0);
+  // pg.blendMode(p.ADD);
+  // pg.image(this.postProcess0.pg, 0, 0);
+  // pg.blendMode(p.MULTIPLY);
+  // this.tBox.drawTo(pg);
+  this.tP5a.drawTo(pg);
   // this.tRito.drawTo(pg);
-  pg.blendMode(p.MULTIPLY);
-  this.tBox.drawTo(pg);
 }
 
 S037Tex.prototype.constructor = S037Tex;
