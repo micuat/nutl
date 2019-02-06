@@ -444,20 +444,32 @@ function TP5aholic2 (p, w, h, args) {
 
   this.minSize = 5;
   this.maxSize = w;
-  this.numPalette = 2;
+  this.numPalette = 3;
   this.palette = [];
+
+  this.shape = p.createShape(p.GROUP);
+
+  let pg = this.pg;
+  this.changeColor();
+  this.branch(pg.width / 2 - this.maxSize / 2, pg.height / 2, this.maxSize);
+  this.branch(pg.width / 2 + this.maxSize / 2, pg.height / 2, this.maxSize);
 }
 
 TP5aholic2.prototype = Object.create(TLayer.prototype);
 
 TP5aholic2.prototype.drawLayer = function (pg, key, args) {
   let p = this.p;
-    pg.colorMode(p.HSB, 360, 100, 100, 100);
-  pg.rectMode(p.CENTER);
-  this.changeColor();
-  pg.background(this.getRandomPalette(), 5, 95);
-  this.branch(pg.width / 2 - this.maxSize / 2, pg.height / 2, this.maxSize);
-  this.branch(pg.width / 2 + this.maxSize / 2, pg.height / 2, this.maxSize);
+  pg.background(255);
+  pg.ortho();
+  pg.translate(pg.width / 2, pg.height / 2);
+  let t = args.t * 0.25;
+  t = t - Math.floor(t);
+  pg.rotateY(EasingFunctions.easeInOutCubic(t) * Math.PI * 2)
+  pg.translate(-pg.width / 2, -pg.height / 2);
+  // pg.colorMode(p.HSB, 360, 100, 100, 100);
+  // pg.rectMode(p.CENTER);
+  // pg.background(this.getRandomPalette(), 5, 95);
+  pg.shape(this.shape);
 }
 
 TP5aholic2.prototype.changeColor = function () {
@@ -503,29 +515,54 @@ TP5aholic2.prototype.branch = function (cx, cy, size) {
 }
 
 TP5aholic2.prototype.drawRect = function (cx, cy, size) {
-  this.pg.fill(this.getRandomPalette(), 100, 100);
-  this.pg.rect(cx, cy, size, size);
+  let p = this.p;
+  let pg = this.pg;
+  let s = p.createShape();
+  //pg.pushMatrix();
+  s.beginShape();
+  s.colorMode(p.HSB, 360, 100, 100, 100);
+  s.fill(this.getRandomPalette(), 100, 100);
+  s.translate(cx, cy);
+  let r = Math.floor(p.random(4));
+  s.rotate(r * p.HALF_PI);
+
+  let alpha = 10;
+  s.strokeWeight(1);
+  s.stroke(0, 0, 0, 5);
+  let z = Math.abs(this.maxSize / size * 2);
+  s.vertex(-size/2, -size/2, z);
+  s.vertex(+size/2, -size/2, z);
+  s.vertex(+size/2, +size/2, z);
+  s.vertex(-size/2, +size/2, z);
+  s.endShape(p.CLOSE);
+  this.shape.addChild(s);
+  //pg.popMatrix();
 }
 
 TP5aholic2.prototype.drawGradationRect = function (cx, cy, size) {
   let p = this.p;
   let pg = this.pg;
-  pg.pushMatrix();
-  pg.translate(cx, cy);
+  let s = p.createShape();
+  //pg.pushMatrix();
+  s.beginShape();
+  s.colorMode(p.HSB, 360, 100, 100, 100);
+  s.translate(cx, cy);
   let r = Math.floor(p.random(4));
-  pg.rotate(r * p.HALF_PI);
+  s.rotate(r * p.HALF_PI);
 
-  pg.beginShape();
-  pg.strokeWeight(1);
-  pg.stroke(0, 0, 0, 5);
-  pg.fill(this.palette[0], 100, 100, 10);
-  pg.vertex(-size/2, -size/2);
-  pg.vertex(+size/2, -size/2);
-  pg.fill(this.palette[1], 100, 100, 10);
-  pg.vertex(+size/2, +size/2);
-  pg.vertex(-size/2, +size/2);
-  pg.endShape(p.CLOSE);
-  pg.popMatrix();
+  let alpha = 20;
+  s.strokeWeight(1);
+  s.stroke(0, 0, 0, 5);
+  let z = Math.abs(this.maxSize / size * 10);
+  s.fill(this.palette[0], 100, 100, alpha);
+  s.vertex(-size/2, -size/2, z);
+  s.vertex(+size/2, -size/2, z);
+  s.fill(this.palette[1], 100, 100, alpha);
+  s.vertex(+size/2, +size/2, z);
+  s.vertex(-size/2, +size/2, z);
+  s.endShape(p.CLOSE);
+  this.shape.addChild(s);
+  //pg.popMatrix();
 }
 
 TP5aholic2.prototype.constructor = TP5aholic2;
@@ -538,7 +575,6 @@ function S037Tex(p, w, h) {
 
   this.tRito = new TRitoco01(p, this.width, this.height, {});
   this.tP5a = new TP5aholic2(p, this.width, this.height, {});
-  this.tP5a.draw();
 
   this.tBox = new THydra(p, this.width, this.height, {});
   // this.tBox = new TBox(p, this.width, this.height, {
@@ -570,6 +606,7 @@ S037Tex.prototype = Object.create(TLayer.prototype);
 S037Tex.prototype.update = function(args) {
   let t = args.t;
   let p = this.p;
+  this.tP5a.draw({t: t});
   this.tBox.draw({t: t});
   this.tRito.draw({t: t});
   this.tAnimation.draw({t: t, scratch: p.noise(t * 1) * 0.4});
