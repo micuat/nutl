@@ -354,15 +354,19 @@ function THydra (p, w, h, args) {
 
   this.shaderHelper = new ShaderHelper(p);
   let str = "gl_FragColor = ";
-  let hydra0 = new Hydra();
-  let hydra1 = new Hydra();
+  this.hydra0 = new Hydra();
+  this.hydra1 = new Hydra();
   let ci0 = colorScheme.get(0);
   let ci3 = colorScheme.get(3);
-  hydra0.noise(2).rotate(0.1).modulate(hydra1.noise(3.0).rotate(-0.1))
+  this.hydra0.noise(20).rotate(0.1).modulate(this.hydra1.noise(3.0).rotate(-0.1))
   .color(ci0.r/255, ci0.g/255, ci0.b/255, ci3.r/255, ci3.g/255, ci3.b/255);
-  str += hydra0.generate() + ";";
+  str += this.hydra0.generate() + ";";
   print(str)
   this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl", str);
+
+  this.idx0 = 0;
+  this.idx1 = 1;
+  this.lastT = 0;
 }
 
 THydra.prototype = Object.create(TLayer.prototype);
@@ -370,14 +374,28 @@ THydra.prototype = Object.create(TLayer.prototype);
 THydra.prototype.drawLayer = function (pg, key, args) {
   let p = this.p;
 
+  let t = args.t / 4;
+  if(Math.floor(t) - Math.floor(this.lastT) > 0) {
+    let str = "gl_FragColor = ";
+    this.idx0 = Math.floor(p.random(5));
+    this.idx1 = Math.floor(p.random(5));
+    let ci0 = colorScheme.get(this.idx0);
+    let ci3 = colorScheme.get(this.idx1);
+    this.hydra0.voronoi(10).rotate(0.1).modulate(this.hydra1.noise(3.0).rotate(-0.1))
+    .color(ci0.r/255, ci0.g/255, ci0.b/255, ci3.r/255, ci3.g/255, ci3.b/255);
+    str += this.hydra0.generate() + ";";
+    print(str)
+    this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl", str);
+  }
+  this.lastT = t;
   if (p.frameCount % 60 == 0) {
   }
 
   p.background(0);
   this.shader.set("time", args.t);
-  let idx = 0;
+  let idx = this.idx0;
   this.shader.set("color0", colorScheme.get(idx).r/255, colorScheme.get(idx).g/255, colorScheme.get(idx).b/255);
-  idx = 3;
+  idx = this.idx1;
   this.shader.set("color1", colorScheme.get(idx).r/255, colorScheme.get(idx).g/255, colorScheme.get(idx).b/255);
   pg.filter(this.shader);
 }
@@ -448,7 +466,6 @@ function Particle(p, args) {
   this.update = function () {
     let n = p.noise(this.x * args.noiseScale, this.y * args.noiseScale);
 
-    // ノイズ値を変形させる
     n = Math.pow(n, 3);
 
     if (args.mode == 2) {
@@ -467,10 +484,10 @@ function Particle(p, args) {
     this.strokeColor = {h: this.hue, s: sat, b: 100, a: 8};
   }
 
-  // 頂点の追加
   this.addVertex = function () {
     // args.pg.stroke(this.strokeColor);
-    args.pg.stroke(this.strokeColor.h, this.strokeColor.s, this.strokeColor.b, this.strokeColor.a);
+    // args.pg.stroke(this.strokeColor.h, this.strokeColor.s, this.strokeColor.b, this.strokeColor.a);
+    args.pg.stroke(255, 255, 255);
     args.pg.vertex(this.x, this.y);
   }
 }
@@ -479,11 +496,12 @@ function TP5aholic1 (p, w, h, args) {
   TLayer.call(this, p, w, h);
 
   this.pg.smooth();
+  this.lastT = 0;
 
   this.shape = p.createShape(p.GROUP);
 
   this.numParticles = 10000;
-  this.mode = 2;
+  this.mode = 1;
   this.particles = [];
   this.updateCount = 0;
 
@@ -511,7 +529,7 @@ function TP5aholic1 (p, w, h, args) {
   this.initPoints();
 
   this.pg.beginDraw();
-  this.pg.colorMode(p.HSB, 360, 100, 100, 100);
+  // this.pg.colorMode(p.HSB, 360, 100, 100, 100);
   this.pg.background(0, 0, 5);
   this.pg.endDraw();
 
@@ -522,9 +540,22 @@ TP5aholic1.prototype = Object.create(TLayer.prototype);
 
 TP5aholic1.prototype.drawLayer = function (pg, key, args) {
   let p = this.p;
+
+  let t = args.t / 4;
+  if(Math.floor(t) - Math.floor(this.lastT) > 0) {
+    pg.clear();
+    pg.background(0);
+    let seed = Math.floor(p.random(10000));
+    p.noiseSeed(seed);
+    this.initPoints();
+    this.args.angleAmplitude = p.random(3, 12);
+    this.args.startAngle = p.random(p.TWO_PI);
+    this.args.mode = p.random([1, 2]);
+  }
+  this.lastT = t;
+
   // pg.background(255);
   pg.blendMode(p.BLEND);
-  let t = args.t / 8;
   t = t - Math.floor(t);
   // pg.shader(this.sh);
   // if(t > 0.5) t = 1.0 - t;
@@ -776,7 +807,7 @@ S037Tex.prototype.update = function(args) {
   this.tRito.draw({t: t});
   this.tAnimation.draw({t: t, scratch: p.noise(t * 1) * 0.4});
   this.tAnimation2.draw({t: t, scratch: 0.0});
-  this.postProcess0.draw("kaleid", this.tRito.pg, {});
+  this.postProcess0.draw("kaleid", this.tP5a.pg, {});
 }
 
 S037Tex.prototype.drawLayer = function(pg, key, args) {
@@ -794,11 +825,14 @@ S037Tex.prototype.drawLayer = function(pg, key, args) {
   let tPhase = t - this.tBase;
 
   // pg.blendMode(p.ADD);
-  // pg.image(this.postProcess0.pg, 0, 0);
+
+  pg.blendMode(p.BLEND);
+  this.tBox.drawTo(pg);
   // pg.blendMode(p.MULTIPLY);
-  // this.tBox.drawTo(pg);
-  this.tP5a.drawTo(pg);
   // this.tRito.drawTo(pg);
+  pg.blendMode(p.MULTIPLY);
+  this.tP5a.drawTo(pg);
+  // pg.image(this.postProcess0.pg, 0, 0);
 }
 
 S037Tex.prototype.constructor = S037Tex;
