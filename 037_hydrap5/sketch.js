@@ -329,7 +329,7 @@ Hydra.prototype.add = function () {
   return this;
 }
 Hydra.prototype.color = function () {
-  let post = this.parse([0.5, 0.5, 0.5, 0.5, 0.5, 0.5], arguments);
+  let post = this.parse([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5], arguments);
   this.layerQueue.push({pre: "color(", post: post + ")"});
   return this;
 }
@@ -359,7 +359,7 @@ function THydra (p, w, h, args) {
   let ci0 = colorScheme.get(0);
   let ci3 = colorScheme.get(3);
   this.hydra0.noise(20).rotate(0.1).modulate(this.hydra1.noise(3.0).rotate(-0.1))
-  .color(ci0.r/255, ci0.g/255, ci0.b/255, ci3.r/255, ci3.g/255, ci3.b/255);
+  .color(ci0.r/255, ci0.g/255, ci0.b/255, 1.0, ci3.r/255, ci3.g/255, ci3.b/255, 0.0);
   str += this.hydra0.generate() + ";";
   print(str)
   this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl", str);
@@ -382,7 +382,7 @@ THydra.prototype.drawLayer = function (pg, key, args) {
     let ci0 = colorScheme.get(this.idx0);
     let ci3 = colorScheme.get(this.idx1);
     this.hydra0.voronoi(10).rotate(0.1).modulate(this.hydra1.noise(3.0).rotate(-0.1))
-    .color(ci0.r/255, ci0.g/255, ci0.b/255, ci3.r/255, ci3.g/255, ci3.b/255);
+    .color(ci0.r/255, ci0.g/255, ci0.b/255, 1.0, ci3.r/255, ci3.g/255, ci3.b/255, 0.0);
     str += this.hydra0.generate() + ";";
     print(str)
     this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl", str);
@@ -391,7 +391,7 @@ THydra.prototype.drawLayer = function (pg, key, args) {
   if (p.frameCount % 60 == 0) {
   }
 
-  p.background(0);
+  // p.background(0);
   this.shader.set("time", args.t);
   let idx = this.idx0;
   this.shader.set("color0", colorScheme.get(idx).r/255, colorScheme.get(idx).g/255, colorScheme.get(idx).b/255);
@@ -788,7 +788,7 @@ function S037Tex(p, w, h) {
   this.postProcess0 = new PostProcess(p);
   this.postProcess0.setup();
   this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
-    layer: this.tRito.pg,
+    layer: this.tP5a.pg,
     type: "stretch",
     timeScale: 0.5,
     n: 32
@@ -807,7 +807,7 @@ S037Tex.prototype.update = function(args) {
   this.tRito.draw({t: t});
   this.tAnimation.draw({t: t, scratch: p.noise(t * 1) * 0.4});
   this.tAnimation2.draw({t: t, scratch: 0.0});
-  this.postProcess0.draw("kaleid", this.tP5a.pg, {});
+  this.postProcess0.draw("kaleid", this.tAnimation2.pg, {});
 }
 
 S037Tex.prototype.drawLayer = function(pg, key, args) {
@@ -827,12 +827,13 @@ S037Tex.prototype.drawLayer = function(pg, key, args) {
   // pg.blendMode(p.ADD);
 
   pg.blendMode(p.BLEND);
-  this.tBox.drawTo(pg);
-  // pg.blendMode(p.MULTIPLY);
+  pg.clear();
   // this.tRito.drawTo(pg);
+  // this.tP5a.drawTo(pg);
+  // this.tAnimation2.drawTo(pg);
+  pg.image(this.postProcess0.pg, 0, 0);
   pg.blendMode(p.MULTIPLY);
-  this.tP5a.drawTo(pg);
-  // pg.image(this.postProcess0.pg, 0, 0);
+  this.tBox.drawTo(pg);
 }
 
 S037Tex.prototype.constructor = S037Tex;

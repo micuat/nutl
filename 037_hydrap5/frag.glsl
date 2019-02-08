@@ -157,8 +157,8 @@ vec4 add(vec4 a, vec4 b){
     return a + b;
 }
 
-vec4 color(vec4 a, float r0, float g0, float b0, float r1, float g1, float b1){
-    return vec4(mix(vec3(r0, g0, b0), vec3(r1, g1, b1), a.r), 1.0);
+vec4 color(vec4 a, float r0, float g0, float b0, float a0, float r1, float g1, float b1, float a1){
+    return vec4(mix(vec4(r0, g0, b0, a0), vec4(r1, g1, b1, a1), a.r));
 }
 
 // vec3 modulate(vec3 m0, vec3 m1, float amp) {
