@@ -359,7 +359,7 @@ function THydra (p, w, h, args) {
   let ci0 = colorScheme.get(0);
   let ci3 = colorScheme.get(3);
   this.hydra0.noise(20).rotate(0.1).modulate(this.hydra1.noise(3.0).rotate(-0.1))
-  .color(ci0.r/255, ci0.g/255, ci0.b/255, 1.0, ci3.r/255, ci3.g/255, ci3.b/255, 0.0);
+  .color(ci0.r/255, ci0.g/255, ci0.b/255, 1.0, ci3.r/255, ci3.g/255, ci3.b/255, 1.0);
   str += this.hydra0.generate() + ";";
   print(str)
   this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl", str);
@@ -375,14 +375,14 @@ THydra.prototype.drawLayer = function (pg, key, args) {
   let p = this.p;
 
   let t = args.t / 4;
-  if(Math.floor(t) - Math.floor(this.lastT) > 0) {
+  if(false && Math.floor(t) - Math.floor(this.lastT) > 0) {
     let str = "gl_FragColor = ";
     this.idx0 = Math.floor(p.random(5));
     this.idx1 = Math.floor(p.random(5));
     let ci0 = colorScheme.get(this.idx0);
     let ci3 = colorScheme.get(this.idx1);
-    this.hydra0.voronoi(10).rotate(0.1).modulate(this.hydra1.noise(3.0).rotate(-0.1))
-    .color(ci0.r/255, ci0.g/255, ci0.b/255, 1.0, ci3.r/255, ci3.g/255, ci3.b/255, 0.0);
+    this.hydra0.noise(10).rotate(0.1).modulate(this.hydra1.noise(3.0).rotate(-0.1))
+    .color(ci0.r/255, ci0.g/255, ci0.b/255, 1.0, ci3.r/255, ci3.g/255, ci3.b/255, 1.0);
     str += this.hydra0.generate() + ";";
     print(str)
     this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl", str);
@@ -486,8 +486,8 @@ function Particle(p, args) {
 
   this.addVertex = function () {
     // args.pg.stroke(this.strokeColor);
-    // args.pg.stroke(this.strokeColor.h, this.strokeColor.s, this.strokeColor.b, this.strokeColor.a);
-    args.pg.stroke(255, 255, 255);
+    args.pg.stroke(this.strokeColor.h, this.strokeColor.s, this.strokeColor.b, this.strokeColor.a);
+    // args.pg.stroke(55, 100, 50);
     args.pg.vertex(this.x, this.y);
   }
 }
@@ -495,7 +495,7 @@ function Particle(p, args) {
 function TP5aholic1 (p, w, h, args) {
   TLayer.call(this, p, w, h);
 
-  this.pg.smooth();
+  this.pg.smooth(5);
   this.lastT = 0;
 
   this.shape = p.createShape(p.GROUP);
@@ -542,7 +542,7 @@ TP5aholic1.prototype.drawLayer = function (pg, key, args) {
   let p = this.p;
 
   let t = args.t / 4;
-  if(Math.floor(t) - Math.floor(this.lastT) > 0) {
+  if(false&&Math.floor(t) - Math.floor(this.lastT) > 0) {
     pg.clear();
     pg.background(0);
     let seed = Math.floor(p.random(10000));
@@ -766,33 +766,33 @@ TP5aholic2.prototype.constructor = TP5aholic2;
 ////////
 
 function S037Tex(p, w, h) {
-  TLayer.call(this, p, w, h);
+  TLayer.call(this, p, w, h*2);
   this.pg.smooth(5);
 
-  this.tRito = new TRitoco01(p, this.width, this.height, {});
-  this.tP5a = new TP5aholic1(p, this.width, this.height, {});
+  // this.tRito = new TRitoco01(p, this.width, this.height, {});
+  this.tP5a = new TP5aholic1(p, this.width, this.height/2, {});
 
-  this.tBox = new THydra(p, this.width, this.height, {});
+  this.tBox = new THydra(p, this.width, this.height/2, {});
   // this.tBox = new TBox(p, this.width, this.height, {
   //   x: p.random(this.width),
   //   y: p.random(this.height),
   //   size: this.width / 10,
   //   delay: 0.0,
   // });
-  this.tAnimation = new TLedAnimation(p, this.width, this.height, {
-    layer: this.tBox.pg,
-    type: "strip",
-    timeScale: 0.125,
-    n: 8
-  });
+  // this.tAnimation = new TLedAnimation(p, this.width, this.height, {
+  //   layer: this.tBox.pg,
+  //   type: "strip",
+  //   timeScale: 0.125,
+  //   n: 8
+  // });
   this.postProcess0 = new PostProcess(p);
   this.postProcess0.setup();
-  this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
-    layer: this.tP5a.pg,
-    type: "stretch",
-    timeScale: 0.5,
-    n: 32
-  });
+  // this.tAnimation2 = new TLedAnimation(p, this.width, this.height, {
+  //   layer: this.tP5a.pg,
+  //   type: "stretch",
+  //   timeScale: 0.5,
+  //   n: 32
+  // });
   this.lastT = 0;
   this.tBase = 0;
 }
@@ -804,10 +804,10 @@ S037Tex.prototype.update = function(args) {
   let p = this.p;
   this.tP5a.draw({t: t});
   this.tBox.draw({t: t});
-  this.tRito.draw({t: t});
-  this.tAnimation.draw({t: t, scratch: p.noise(t * 1) * 0.4});
-  this.tAnimation2.draw({t: t, scratch: 0.0});
-  this.postProcess0.draw("kaleid", this.tAnimation2.pg, {});
+  // this.tRito.draw({t: t});
+  // this.tAnimation.draw({t: t, scratch: p.noise(t * 1) * 0.4});
+  // this.tAnimation2.draw({t: t, scratch: 0.0});
+  // this.postProcess0.draw("kaleid", this.tP5a.pg, {});
 }
 
 S037Tex.prototype.drawLayer = function(pg, key, args) {
@@ -829,47 +829,102 @@ S037Tex.prototype.drawLayer = function(pg, key, args) {
   pg.blendMode(p.BLEND);
   pg.clear();
   // this.tRito.drawTo(pg);
-  // this.tP5a.drawTo(pg);
-  // this.tAnimation2.drawTo(pg);
-  pg.image(this.postProcess0.pg, 0, 0);
-  pg.blendMode(p.MULTIPLY);
   this.tBox.drawTo(pg);
+  pg.translate(0, this.height/2);
+  pg.fill(255, 0, 0);
+  pg.rect(0, 0, this.width, this.height/2);
+  pg.tint(100)
+  this.tP5a.drawTo(pg);
+  pg.tint(255)
+  // this.tAnimation2.drawTo(pg);
+  // pg.image(this.postProcess0.pg, 0, 0);
 }
 
 S037Tex.prototype.constructor = S037Tex;
 
+////////
+
+function S037(p, w, h) {
+  SRendererShadow.call(this, p, w, h);
+  this.uMetallic = 0.8;
+  this.uRoughness = 0.1;
+  this.uSpecular = 0.9;
+  this.uExposure = 2.0;
+  this.uVignette = 0.0;
+  this.uUseTexture = 1;
+  this.tex = new S037Tex(p, w, h);
+  this.texture = this.tex.pg;
+
+  this.shape = p.createShape();
+  this.shape.beginShape(p.QUADS);
+  let d = 100;
+  this.shape.noStroke();
+  this.shape.texture(this.texture);
+  this.shape.textureMode(p.NORMAL)
+  Polygons.Cube(this.shape, -d, -d, -d, d, d, d, 0, 0, 1, 1);
+  this.shape.endShape(p.CLOSE);
+  // this.shape = p.createShape(p.GROUP);
+  // let n = 64;
+  // let r = 150;
+  // for(let i = -n; i < n; i++) {
+  //   let s = p.createShape();
+  //   s.beginShape(this.p.TRIANGLE_STRIP);
+  //   s.texture(this.texture);
+  //   s.textureMode(p.NORMAL);
+  //   s.noStroke();
+  //   s.fill(255);
+  //   for(let j = -n; j <= n; j++) {
+  //     for(let ii = 1; ii >= 0; ii--) {
+  //       let theta = p.map(i + ii, -n, n, -Math.PI, Math.PI);
+  //       let phi = p.map(j, -n, n, 0, Math.PI);
+  //       let x0 = r * Math.sin(phi) * Math.cos(theta);
+  //       let z0 = r * Math.sin(phi) * Math.sin(theta);
+  //       let y0 = r * Math.cos(phi);
+  //       s.normal(x0, y0, z0);
+  //       s.vertex(x0, y0, z0, (theta / Math.PI) * 0.5 + 0.5, phi / Math.PI);
+  //     }
+  //   }
+  //   s.endShape(this.p.CLOSE);
+  //   this.shape.addChild(s);
+  // }
+}
+
+S037.prototype = Object.create(SRendererShadow.prototype);
+
+S037.prototype.drawScene = function (pg, isShadow) {
+  let p = this.p;
+  pg.clear();
+  pg.pushMatrix();
+
+  pg.pushMatrix();
+  pg.fill(255);
+  pg.shape(this.shape);
+  pg.popMatrix();
+
+  pg.popMatrix();
+}
+S037.prototype.draw = function(t) {
+  let p = this.p;
+  this.tex.draw({t: t});
+  angle = t * 0.1;
+  this.cameraPosition = p.createVector(300.0 * Math.cos(angle), -50.0, 300.0 * Math.sin(angle));
+  this.lightPos = p.createVector(300.0 * Math.cos(angle), -50.0, 300.0 * Math.sin(angle));
+  this.cameraTarget = p.createVector(50.0*p.noise(angle*2.0), 50.0*p.noise(angle*1.7), 0.0);
+
+  // this.lightPos.set(-400, -200, 400);
+  this.lightDirection = this.lightPos;
+  Object.getPrototypeOf(S037.prototype).draw.call(this);
+}
+
+S037.prototype.constructor = S037;
 
 var s = function (p) {
-  let s037Tex = new S037Tex(p, 800, 800);
-  let shape = p.createShape(p.GROUP);
+  let s037 = new S037(p, 800, 800);
 
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(30);
-
-    let n = 64;
-    let r = 250;
-    for(let i = -n; i < n; i++) {
-      let s = p.createShape();
-      s.beginShape(p.TRIANGLE_STRIP);
-      s.texture(s037Tex.pg);
-      s.textureMode(p.NORMAL);
-      s.noStroke();
-      s.fill(255);
-      for(let j = -n; j <= n; j++) {
-        for(let ii = 1; ii >= 0; ii--) {
-          let theta = p.map(i + ii, -n, n, -Math.PI, Math.PI);
-          let phi = p.map(j, -n, n, 0, Math.PI);
-          let x0 = r * Math.sin(phi) * Math.cos(theta);
-          let z0 = r * Math.sin(phi) * Math.sin(theta);
-          let y0 = r * Math.cos(phi);
-          s.normal(x0, y0, z0);
-          s.vertex(x0, y0, z0, (theta / Math.PI) * 0.5 + 0.5, phi / Math.PI);
-        }
-      }
-      s.endShape(p.CLOSE);
-      shape.addChild(s);
-    }
+    s037.setup();
   }
 
   p.draw = function () {
@@ -880,15 +935,8 @@ var s = function (p) {
     }
 
     p.background(0);
-    s037Tex.draw({t: t});
-    p.image(s037Tex.pg, 0, 0);
-    // p.image(s037Tex.tBox.pg, 0, 0);
-    // p.translate(p.width/2, p.height/2);
-    // p.pushMatrix();
-    // p.fill(255);
-    // p.rotateY(t*0.1);
-    // p.shape(shape);
-    // p.popMatrix();
+    s037.draw(t);
+    p.image(s037.pg, 100, 0);
   }
 
   p.oscEvent = function(m) {
