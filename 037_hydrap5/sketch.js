@@ -357,7 +357,7 @@ function THydra (p, w, h, args) {
   this.hydra0 = new Hydra();
   this.hydra1 = new Hydra();
   let ci0 = colorScheme.get(0);
-  let ci3 = colorScheme.get(3);
+  let ci3 = colorScheme.get(4);
   this.hydra0.noise(20).rotate(0.1).modulate(this.hydra1.noise(3.0).rotate(-0.1))
   .color(ci0.r/255, ci0.g/255, ci0.b/255, 1.0, ci3.r/255, ci3.g/255, ci3.b/255, 1.0);
   str += this.hydra0.generate() + ";";
@@ -460,7 +460,7 @@ function Particle(p, args) {
 
   this.x = p.random(-200, p.width + 200);
   this.y = p.random(-200, p.height + 200);
-  this.speed = 1.0;
+  this.speed = 0.5;
   this.hue = args.palette[Math.floor(p.random(args.palette.length))];
 
   this.update = function () {
@@ -481,7 +481,7 @@ function Particle(p, args) {
 
     let sat = 100 - args.updateCount * 0.4; // 彩度を徐々に100から0に
     // this.strokeColor = p.color(this.hue, sat, 100, 80);
-    this.strokeColor = {h: this.hue, s: sat, b: 100, a: 8};
+    this.strokeColor = {h: this.hue, s: sat, b: 100, a: 3};
   }
 
   this.addVertex = function () {
@@ -500,7 +500,7 @@ function TP5aholic1 (p, w, h, args) {
 
   this.shape = p.createShape(p.GROUP);
 
-  this.numParticles = 10000;
+  this.numParticles = 5000;
   this.mode = 1;
   this.particles = [];
   this.updateCount = 0;
@@ -857,7 +857,7 @@ function S037(p, w, h) {
 
   this.shape = p.createShape();
   this.shape.beginShape(p.QUADS);
-  let d = 100;
+  let d = 120;
   this.shape.noStroke();
   this.shape.texture(this.texture);
   this.shape.textureMode(p.NORMAL)
@@ -906,10 +906,11 @@ S037.prototype.drawScene = function (pg, isShadow) {
 S037.prototype.draw = function(t) {
   let p = this.p;
   this.tex.draw({t: t});
+  angle = Math.PI/2;
+  this.cameraPosition = p.createVector(300.0 * Math.cos(angle), -0.0, 300.0 * Math.sin(angle));
   angle = t * 0.1;
-  this.cameraPosition = p.createVector(300.0 * Math.cos(angle), -50.0, 300.0 * Math.sin(angle));
-  this.lightPos = p.createVector(300.0 * Math.cos(angle), -50.0, 300.0 * Math.sin(angle));
-  this.cameraTarget = p.createVector(50.0*p.noise(angle*2.0), 50.0*p.noise(angle*1.7), 0.0);
+  this.lightPos = p.createVector(300.0 * Math.cos(angle), -100.0, 300.0 * Math.sin(angle));
+  this.cameraTarget = p.createVector(50.0*(p.noise(angle*2.0)-0.5), 50.0*(p.noise(angle*1.7)-0.5), 0.0);
 
   // this.lightPos.set(-400, -200, 400);
   this.lightDirection = this.lightPos;
@@ -936,7 +937,7 @@ var s = function (p) {
 
     p.background(0);
     s037.draw(t);
-    p.image(s037.pg, 100, 0);
+    p.image(s037.pg, 0, 0);
   }
 
   p.oscEvent = function(m) {
