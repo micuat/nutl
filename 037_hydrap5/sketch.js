@@ -1,5 +1,5 @@
-// var colorScheme = new ColorScheme("61e294-7bcdba-9799ca-bd93d8-b47aea");
-var colorScheme = new ColorScheme("8fbfe0-7c77b9-1d8a99-0bc9cd-14fff7");
+var colorScheme = new ColorScheme("61e294-7bcdba-9799ca-bd93d8-b47aea");
+// var colorScheme = new ColorScheme("8fbfe0-7c77b9-1d8a99-0bc9cd-14fff7");
 
 ////////
 
@@ -303,6 +303,11 @@ Hydra.prototype.parse = function(default_args, input_args) {
   }
   return post;
 }
+Hydra.prototype.osc = function () {
+  let post = this.parse([10.0, 0.1, 0.1], arguments);
+  this.queue.push({pre: "osc(", post: post + ")"});
+  return this;
+}
 Hydra.prototype.noise = function () {
   let post = this.parse([10.0, 0.1], arguments);
   this.queue.push({pre: "noise(", post: post + ")"});
@@ -356,9 +361,11 @@ function THydra (p, w, h, args) {
   let str = "gl_FragColor = ";
   this.hydra0 = new Hydra();
   this.hydra1 = new Hydra();
-  let ci0 = colorScheme.get(0);
-  let ci3 = colorScheme.get(4);
-  this.hydra0.noise(20).rotate(0.1).modulate(this.hydra1.noise(3.0).rotate(-0.1))
+  let ci0 = colorScheme.get(1);
+  let ci3 = colorScheme.get(2);
+  // this.hydra0.noise(20).rotate(0.1).modulate(this.hydra1.noise(3.0).rotate(-0.1))
+  // .color(ci0.r/255, ci0.g/255, ci0.b/255, 1.0, ci3.r/255, ci3.g/255, ci3.b/255, 1.0);
+  this.hydra0.osc(20).modulate(this.hydra1.noise(3.0).rotate(-0.1), 0.1)
   .color(ci0.r/255, ci0.g/255, ci0.b/255, 1.0, ci3.r/255, ci3.g/255, ci3.b/255, 1.0);
   str += this.hydra0.generate() + ";";
   print(str)
@@ -501,7 +508,7 @@ function TP5aholic1 (p, w, h, args) {
   this.shape = p.createShape(p.GROUP);
 
   this.numParticles = 5000;
-  this.mode = 1;
+  this.mode = 2;
   this.particles = [];
   this.updateCount = 0;
 
@@ -846,11 +853,11 @@ S037Tex.prototype.constructor = S037Tex;
 
 function S037(p, w, h) {
   SRendererShadow.call(this, p, w, h);
-  this.uMetallic = 0.8;
+  this.uMetallic = 0.4;
   this.uRoughness = 0.1;
-  this.uSpecular = 0.9;
+  this.uSpecular = 0.5;
   this.uExposure = 2.0;
-  this.uVignette = 0.0;
+  this.uVignette = 0.9;
   this.uUseTexture = 1;
   this.tex = new S037Tex(p, w, h);
   this.texture = this.tex.pg;
