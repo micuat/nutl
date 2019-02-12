@@ -106,7 +106,7 @@ function THydra (p, w, h, hydra) {
   let str = "gl_FragColor = ";
   str += hydra.generate() + ";";
   // print(str)
-  this.shader = this.shaderHelper.load(p.folderName + "/frag.glsl", str);
+  this.shader = this.shaderHelper.load("shaders/hydra/frag.glsl", str);
 
 }
 
