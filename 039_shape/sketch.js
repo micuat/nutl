@@ -1,5 +1,5 @@
 // var colorScheme = new ColorScheme("61e294-7bcdba-9799ca-bd93d8-b47aea");
-var colorScheme = new ColorScheme("8fbfe0-7c77b9-1d8a99-0bc9cd-14fff7");
+var colorScheme = new ColorScheme("e0acd5-3993dd-f4ebe8-29e7cd-6a3e37");
 
 function Particle(p, args) {
   this.x, this.y;
@@ -100,7 +100,7 @@ TP5aNoise.prototype.drawLayer = function (pg, key, args) {
 
   pg.blendMode(p.BLEND);
 
-  pg.fill(0, 0, 5, 5);
+  pg.fill(0, 0, 5, 2);
   pg.rect(0, 0, this.width, this.height);
 
 
@@ -136,9 +136,9 @@ function S039Tex(p, w, h) {
 
   this.hydra0 = new Hydra();
   this.hydra1 = new Hydra();
-  let ci0 = colorScheme.get(1);
-  let ci3 = colorScheme.get(2);
-  this.hydra0.noise(20).modulate(this.hydra1.noise(3.0).rotate(-0.1), 0.1)
+  let ci0 = colorScheme.get(0);
+  let ci3 = colorScheme.get(1);
+  this.hydra0.voronoi(3).modulate(this.hydra1.noise(3.0).rotate(-0.1), 0.1)
   .color(ci0.r/255, ci0.g/255, ci0.b/255, 1.0, ci3.r/255, ci3.g/255, ci3.b/255, 1.0);
   this.tHydra = new THydra(p, this.width, this.height/2, this.hydra0);
   this.lastT = 0;
@@ -194,14 +194,14 @@ function S039(p, w, h) {
   this.texture = this.tex.pg;
 
   this.shape = p.createShape();
-  this.shape.beginShape();
+  this.shape.beginShape(p.TRIANGLES);
   // this.shape.beginShape(p.QUADS);
   let d = 50;
   this.shape.noStroke();
   this.shape.texture(this.texture);
   this.shape.textureMode(p.NORMAL)
   // Polygons.Cube(this.shape, -d, -d, -d, d, d, d, 0, 0, 1, 1);
-  Polygons.Hexagon(this.shape, 0, 0, 0, d * 0.5, d);
+  Polygons.Hexagon(this.shape, d, 0, 0, d * 0.5, d*2);
   this.shape.endShape(p.CLOSE);
   // this.shape = p.createShape(p.GROUP);
   // let n = 64;
@@ -239,7 +239,14 @@ S039.prototype.drawScene = function (pg, isShadow) {
   pg.pushMatrix();
   pg.fill(255);
   pg.rotateY(this.t * 0.25);
-  pg.shape(this.shape);
+  pg.rotateX(0.2);
+  for(let i = -2; i <= 2; i++) {
+    pg.pushMatrix();
+    pg.translate(i * 50, 0.0);
+    pg.rotateX(EasingFunctions.easeInOutQuint((this.t * 0.125 + i * 0.25 * Math.PI) % 1) * Math.PI * 2);
+    pg.shape(this.shape);
+    pg.popMatrix();
+  }
   pg.popMatrix();
 
   pg.popMatrix();
@@ -268,6 +275,14 @@ var s = function (p) {
     p.createCanvas(800, 800);
     p.frameRate(30);
     s039.setup();
+
+    this.hydra0 = new Hydra();
+    this.hydra1 = new Hydra();
+    let ci0 = colorScheme.get(3);
+    let ci3 = colorScheme.get(1);
+    this.hydra0.osc(20).rotate(0.25*3.1415, 0).modulate(this.hydra1.noise(3.0).rotate(-0.1), 0.1)
+    .color(ci0.r/255, ci0.g/255, ci0.b/255, 1.0, ci3.r/255, ci3.g/255, ci3.b/255, 1.0);
+    this.tHydra = new THydra(p, this.width, this.height, this.hydra0);  
   }
 
   p.draw = function () {
@@ -277,8 +292,11 @@ var s = function (p) {
       print(p.frameRate())
     }
 
-    p.background(0);
+    this.tHydra.draw({t: t});
     s039.draw(t);
+
+    p.background(0);
+    this.tHydra.drawTo(p.g);
     p.image(s039.pg, 0, 0);
   }
 
