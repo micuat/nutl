@@ -149,6 +149,11 @@ vec2 rotate(vec2 p0, float t0) {
     return p;
 }
 
+vec2 pixelate(vec2 st, float pixelX, float pixelY){
+    vec2 xy = vec2(pixelX, pixelY);
+    return (floor(st * xy) + 0.5)/xy;
+}
+
 vec2 modulate(vec2 st, vec4 c1, float amount){
     return st + c1.xy*amount;
 }

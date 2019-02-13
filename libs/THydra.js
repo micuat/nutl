@@ -66,6 +66,11 @@ Hydra.prototype.rotate = function () {
   this.queue.push({pre: "rotate(", post: post + ")"});
   return this;
 }
+Hydra.prototype.pixelate = function () {
+  let post = this.parse([10, 10], arguments);
+  this.queue.push({pre: "pixelate(", post: post + ")"});
+  return this;
+}
 Hydra.prototype.modulate = function () {
   let post = this.parse([null, 0.5], arguments);
   this.queue.push({pre: "modulate(", post: post + ")"});
