@@ -69,9 +69,9 @@ function S040(p, w, h, refPg) {
   this.tex.refPg = refPg;
 
   {
-    let w = 50.0;
-    let x0 = -w*2.0, y0 = -w, z0 = -w;
-    let x1 = w*2.0, y1 = w, z1 = w;
+    let w = 20.0;
+    let x0 = -w*15.0, y0 = -w, z0 = -w;
+    let x1 = w*15.0, y1 = w, z1 = w;
   
     let vertices = [];
     let normals = [];
@@ -134,31 +134,40 @@ S040.prototype.drawScene = function (pg, isShadow) {
   pg.pushMatrix();
   pg.fill(255);
   // pg.rotateX(0.3);
+  pg.rotateX(EasingFunctions.easeInOutQuad((this.t * 0.125)%1.0) * Math.PI * 2);
   pg.rotateZ(EasingFunctions.easeInOutQuint((this.t * 0.125)%1.0) * Math.PI * 2);
-  pg.rotateX(EasingFunctions.easeInOutQuint((this.t * 0.25)%1.0) * Math.PI * 2);
   // let shape = p.createShape();
-  pg.beginShape(p.QUADS);
-  pg.texture(this.texture);
-  pg.textureMode(p.NORMAL);
 
-  for(let i = 0; i < this.vertices.length; i++) {
-    let n = this.normals[Math.floor(i/4)];
-    let v = this.vertices[i];
-    pg.normal(n.x, n.y, n.z);
-    let tx = pg.screenX(v.x, v.y, v.z) / this.width;
-    let ty = pg.screenY(v.x, v.y, v.z) / this.height;
-    if(true||p.frameCount % 30 == 0) {
-      this.tx[i] = tx;
-      this.ty[i] = ty;
+  for(let j = -2; j <= 2; j++) {
+    for(let k = -2; k <= 2; k++) {
+      pg.pushMatrix();
+      pg.translate(0, k*50, j * 50);
+      pg.scale(EasingFunctions.easeInOutQuint(Math.sin(this.t * 0.5 + (k+j*0.125)*0.125)*0.5+0.5), 1.0, 1.0);
+      pg.rotateX(EasingFunctions.easeInOutQuint((this.t * 0.25 + j*0.25)%1.0) * Math.PI * 2);
+      pg.beginShape(p.QUADS);
+      pg.texture(this.texture);
+      pg.textureMode(p.NORMAL);
+      for(let i = 0; i < this.vertices.length; i++) {
+        let n = this.normals[Math.floor(i/4)];
+        let v = this.vertices[i];
+        pg.normal(n.x, n.y, n.z);
+        let tx = pg.screenX(v.x, v.y, v.z) / this.width;
+        let ty = pg.screenY(v.x, v.y, v.z) / this.height;
+        if(true||p.frameCount % 30 == 0) {
+          this.tx[i] = tx;
+          this.ty[i] = ty;
+        }
+        else {
+          tx = this.tx[i];
+          ty = this.ty[i];
+        }
+        pg.vertex(v.x, v.y, v.z, tx, ty);
+      }
+      pg.endShape(p.CLOSE);
+      pg.popMatrix();
     }
-    else {
-      tx = this.tx[i];
-      ty = this.ty[i];
-    }
-    pg.vertex(v.x, v.y, v.z, tx, ty);
   }
 
-  pg.endShape(p.CLOSE);
   // pg.shape(shape);
   pg.popMatrix();
 
@@ -179,7 +188,8 @@ S040.prototype.draw = function(t) {
 S040.prototype.constructor = S040;
 
 var s = function (p) {
-  let s040 = new S040(p, 800, 800, p.g);
+  let hiddenPg = p.createGraphics(800, 800, p.P3D);
+  let s040 = new S040(p, 800, 800, hiddenPg);
 
   p.setup = function () {
     p.createCanvas(800, 800);
@@ -205,9 +215,14 @@ var s = function (p) {
     this.tHydra.draw({t: t});
     s040.draw(t);
 
+    hiddenPg.beginDraw();
+    this.tHydra.drawTo(hiddenPg);
+    hiddenPg.image(s040.pg, 0, 0);
+    hiddenPg.endDraw();
+
     p.background(0);
-    this.tHydra.drawTo(p.g);
     p.image(s040.pg, 0, 0);
+
   }
 
   p.oscEvent = function(m) {
