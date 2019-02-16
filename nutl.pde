@@ -63,6 +63,8 @@ public PApplet that = this;
 
 public String folderName = "";
 
+public OpenSimplexNoise osnoise = new OpenSimplexNoise();
+
 boolean libInited = false;
 
 float frameRate() {

@@ -55,7 +55,7 @@ S042.prototype.draw = function(t) {
   r = 150.0;
   this.lightPos = p.createVector(r * Math.cos(angle), -300.0, r * Math.sin(angle));
   // this.lightPos = p.createVector(50.0, -100.0, -100.0);
-  this.cameraTarget = p.createVector(0.0, 50.0*p.noise(t * 0.5), 0.0);
+  this.cameraTarget = p.createVector(0.0, 50.0*p.osnoise.eval(t * 0.5, 0.1), 0.0);
 
   // this.lightPos.set(-400, -200, 400);
   this.lightDirection = this.lightPos;
