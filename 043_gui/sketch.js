@@ -1,4 +1,5 @@
-var colorScheme = new ColorScheme("4d9de0-e15554-e1bc29-3bb273-7768ae");
+var colorScheme = new ColorScheme("db2763-b0db43-12eaea-bce7fd-c492b1");
+// var colorScheme = new ColorScheme("4d9de0-e15554-e1bc29-3bb273-7768ae");
 
 function S043(p, w, h) {
   TLayer.call(this, p, w, h);
@@ -32,13 +33,17 @@ S043.prototype.drawLayer = function(pg, key, args) {
     return tt;
   }
 
-  function drawBar(i, offset) {
+  function drawBar(i, offset, broken) {
     pg.noStroke();
     pg.fill(70);
     let L = 90;
     pg.rect(-L/2, -L/2, L, L);
-    let l = L * EasingFunctions.easeInOutQuint(tReturn(1, offset));
-    let c0 = (i + 5) % 5;
+    let rate = EasingFunctions.easeInOutQuint(tReturn(0.5, offset));
+    if(broken) {
+      rate += -Math.sin(t * 40.0) * 0.1;
+    }
+    let l = L * rate;
+    let c0 = i;
     pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 150);
     pg.rect(-l/2, -l/2, l, l);
   }
@@ -68,15 +73,18 @@ S043.prototype.drawLayer = function(pg, key, args) {
     }
     pg.endShape();
   }
-  function drawCircle(i, offset) {
+  function drawCircle(i, offset, broken) {
     let r0 = 45;
     let r1 = 35;
     pg.noStroke();
     pg.fill(100);
     drawRing(r0, r1, 1);
-    let c0 = (i + 5) % 5;
+    let c0 = i;
     pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-    let rate = EasingFunctions.easeInOutQuint(tReturn(1, offset));
+    let rate = EasingFunctions.easeInOutQuint(tReturn(0.5, offset));
+    if(broken) {
+      rate += -Math.sin(t * 40.0) * 0.1;
+    }
     drawRing(r0, r1, rate);
   }
 
@@ -89,8 +97,16 @@ S043.prototype.drawLayer = function(pg, key, args) {
     for(let j = -4; j <= 4; j++) {
       pg.pushMatrix();
       pg.translate(j * 100, i * 100);
-      drawBar(i, -p.osnoise.eval(j*0.1, i*0.1));
-      drawCircle(i, p.osnoise.eval(j*0.1, i*0.1));
+      let noise = p.osnoise.eval(j*0.1, i*0.1);
+      let noise2 = p.osnoise.eval(j*0.88, i*0.88);
+      if(noise2 > 0.45) {
+        drawBar(0, -noise, true);
+        drawCircle(0, noise, true);
+        }
+      else {
+        drawBar((i + 5) % 4 + 1, -noise, false);
+        drawCircle((i + 5) % 4 + 1, noise, false);
+      }
       pg.popMatrix();
     }
   }
