@@ -19,6 +19,8 @@ function S046(p, w, h) {
     p.createVector( 0,  1)
   ]
   this.moveCount = 0;
+  this.scale = 1;
+  this.scaleDest = 1;
 }
 
 S046.prototype = Object.create(TLayer.prototype);
@@ -48,6 +50,10 @@ S046.prototype.update = function(args) {
       this.direction = this.availableDirections[3];
     }
     // this.direction = p.random(this.availableDirections);
+
+    this.scale = this.scaleDest;
+    if(p.random(1) > 0.6)
+      this.scaleDest = p.random([1, 0.5]);
   }
   this.lastT = t;
   // let tPhase = t - this.tBase;
@@ -80,7 +86,7 @@ S046.prototype.drawLayer = function(pg, key, args) {
   }
 
   function drawRing(r0, r1, rate) {
-    let n = 100;
+    let n = 20;
     pg.beginShape(p.QUADS);
     for(let i = 0; i < n; i++) {
       let theta0, theta1, x, y;
@@ -130,17 +136,25 @@ S046.prototype.drawLayer = function(pg, key, args) {
   pg.translate(this.width / 2, this.height / 2);
 
   pg.pushMatrix();
-  let x = (this.pos.x + EasingFunctions.easeInOutCubic(t%1) * this.moveStep * this.direction.x) * this.gridTick;
-  let y = (this.pos.y + EasingFunctions.easeInOutCubic(t%1) * this.moveStep * this.direction.y) * this.gridTick;
 
-  pg.translate(x, y);
+  let scale = p.map(EasingFunctions.easeInOutCubic(t % 1), 0, 1, this.scale, this.scaleDest);
+
+  let absx = this.pos.x * this.gridTick;
+  let absy = this.pos.y * this.gridTick;
+
+  let dx = (EasingFunctions.easeInOutCubic(t%1) * this.moveStep * this.direction.x) * this.gridTick;
+  let dy = (EasingFunctions.easeInOutCubic(t%1) * this.moveStep * this.direction.y) * this.gridTick;
 
   // legal position that is closest to the center
-  let cx = Math.floor(x / this.gridTick) * this.gridTick;
-  let cy = Math.floor(y / this.gridTick) * this.gridTick;
+  let cx = Math.floor((absx + dx) / this.gridTick) * this.gridTick;
+  let cy = Math.floor((absy + dy) / this.gridTick) * this.gridTick;
 
-  for(let i = -5; i <= 5; i++) {
-    for(let j = -5; j <= 5; j++) {
+  pg.scale(scale, scale);
+  pg.translate(absx + dx - cx, absy + dy - cy);
+
+
+  for(let i = -10; i <= 10; i++) {
+    for(let j = -10; j <= 10; j++) {
       // real position
       let rx = cx - j * this.gridTick;
       let ry = cy - i * this.gridTick;
@@ -150,11 +164,16 @@ S046.prototype.drawLayer = function(pg, key, args) {
       let iy = Math.floor(ry / this.gridTick);
 
       pg.pushMatrix();
-      pg.translate(j * this.gridTick - cx, i * this.gridTick - cy);
+      pg.translate(j * this.gridTick, i * this.gridTick);
+      let sx = pg.screenX(0, 0);
+      let sy = pg.screenY(0, 0);
 
-      let noise = p.osnoise.eval(ix* 0.2, iy * 0.2);
-      drawBar((1) % 4 + 1, noise + 1, false);
-      drawCircle((3) % 4 + 1, noise, false);
+      if(Math.abs(sx - this.width / 2) < (this.width + this.gridTick) / 2
+      && Math.abs(sy - this.height / 2) < (this.height + this.gridTick) / 2) {
+        let noise = p.osnoise.eval(ix* 0.2, iy * 0.2);
+        drawBar((1) % 4 + 1, noise + 1, false);
+        drawCircle((3) % 4 + 1, noise, false);
+      }
 
       pg.popMatrix();
     }
@@ -172,7 +191,7 @@ var s = function (p) {
 
   p.setup = function () {
     p.createCanvas(800, 800);
-    p.frameRate(30);
+    p.frameRate(60);
   }
 
   p.draw = function () {
