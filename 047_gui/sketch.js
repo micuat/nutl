@@ -8,7 +8,7 @@ function S047(p, w, h) {
   this.lastT = 0;
   this.tBase = 0;
   this.moveStep = 10;
-  this.timeStep = 2.5;
+  this.timeStep = 0.5;
   this.gridTick = 100;
   this.init();
 }
@@ -26,8 +26,8 @@ S047.prototype.init = function() {
     p.createVector( 0,  1)
   ]
   this.moveCount = 0;
-  this.scale = 1;
-  this.scaleDest = 1;
+  this.scale = 2;
+  this.scaleDest = 2;
 
   // this.matrix = new Array(100, new Array(100));
   this.matrix = [];
@@ -67,7 +67,7 @@ S047.prototype.update = function(args) {
 
     this.scale = this.scaleDest;
     if(p.random(1) > 0.6) {
-      this.scaleDest = p.random([1, 0.5]);
+      this.scaleDest = p.random([2, 0.5]);
     }
     
     
@@ -78,7 +78,6 @@ S047.prototype.update = function(args) {
 
   }
   this.lastT = t;
-  // let tPhase = t - this.tBase;
 }
 
 S047.prototype.drawLayer = function(pg, key, args) {
@@ -92,15 +91,15 @@ S047.prototype.drawLayer = function(pg, key, args) {
     return tt;
   }
 
-  function drawBar(i, offset, alpha) {
+  function drawBar(c0, offset, alpha) {
     pg.noStroke();
     pg.fill(70, 255);
     let L = 90;
     pg.rect(-L/2, -L/2, L, L);
-    let rate = EasingFunctions.easeInOutQuint(alpha);
-    // let rate = EasingFunctions.easeInOutQuint(tReturn(0.5, offset));
+    let a = p.map(EasingFunctions.easeInOutQuint(alpha), 0, 1, 0, 1 - offset);
+    if(a > 1) a = 2 - a;
+    let rate = a;
     let l = L * rate;
-    let c0 = i % 2 + 2;
     pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
     pg.rect(-l/2, -L/2, l, L);
   }
@@ -130,22 +129,57 @@ S047.prototype.drawLayer = function(pg, key, args) {
     }
     pg.endShape();
   }
-  function drawCircle(i, offset, alpha) {
+  function drawCircle(c0, offset, alpha) {
     let r0 = 45;
     let r1 = 0;
     pg.noStroke();
-    pg.fill(100);
-    // pg.ellipse(0, 0, r0, r0);
-    //drawRing(r0, r1, 1);
-    let c0 = i % 2;
     let a = p.map(EasingFunctions.easeInOutQuint(alpha), 0, 1, 0, 1 - offset);
     if(a > 1) a = 2 - a;
     let rate = a;
-    // let rate = EasingFunctions.easeInOutQuint(tReturn(0.5, offset));
     pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
     pg.rotate(rate * Math.PI);
     drawRing(r0, r1, rate);
-    // pg.ellipse(0, 0, r0, r0);
+  }
+  function drawIchimatsu(c0, offset, tween, type) {
+    pg.noStroke();
+    pg.fill(70, 255);
+    let L = 90;
+    pg.rect(-L/2, -L/2, L, L);
+
+    let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2,0,1)) * L;
+
+    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+    pg.rect(-l/2, -L/2, l, L);
+
+    l = EasingFunctions.easeInOutCubic(p.constrain(tween*2-1,0,1)) * L;
+
+    c0+=1;
+    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+    if(offset > 0) pg.rotate(Math.PI/2);
+    pg.triangle(-L/2, -L/2, 0, 0, -L/2, -L/2+l);
+    if(type == 0)
+      pg.scale(-1,1);
+    else
+      pg.rotate(Math.PI);
+    pg.triangle(-L/2, -L/2, 0, 0, -L/2, -L/2+l);
+  }
+
+  function drawPatternA(ix, iy, tween) {
+    let phase = (ix * 0.5 + iy * 0.5) % 1;
+    drawBar(1, 0, tween);
+    drawCircle(0, phase, tween);
+  }
+  function drawPatternB(ix, iy, tween) {
+    let phase = 0;//(ix * 0.5 + iy * 0.5) % 1;
+    drawIchimatsu(0, phase, tween, (ix * 0.5 + iy * 0.5) % 1);
+  }
+  function drawPattern(ix, iy, tween) {
+    if((ix%10<5 && iy%10<5) || (ix%10>=5 && iy%10>=5)) {
+      drawPatternA(ix, iy, tween);
+    }
+    else {
+      drawPatternB(ix, iy, tween);
+    }
   }
 
   pg.clear();
@@ -197,13 +231,10 @@ S047.prototype.drawLayer = function(pg, key, args) {
 
       if(Math.abs(sx - this.width / 2) < (this.width + this.gridTick) / 2
       && Math.abs(sy - this.height / 2) < (this.height + this.gridTick) / 2) {
-        // let noise = p.osnoise.eval(ix* 0.2, iy * 0.2);
-        let noise = (ix * 0.5 + iy * 0.5) % 1;
         if(this.matrix[iy] != undefined && this.matrix[iy][ix] != undefined) {
           let tween = Math.min(1, 1 * (t - this.matrix[iy][ix]));
           if(this.matrix[iy][ix] < 0) tween = 0;
-          drawBar((1) % 4 + 1, 0.5-noise, tween);
-          drawCircle((3) % 4 + 1, noise, tween);
+          drawPattern(ix, iy, tween);
         }
         // pg.text(ix + " " + iy, 0, 0);
       }
