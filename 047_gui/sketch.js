@@ -7,10 +7,17 @@ function S047(p, w, h) {
 
   this.lastT = 0;
   this.tBase = 0;
-  this.pos = p.createVector(0, 5);
   this.moveStep = 10;
-  this.timeStep = 0.5;
+  this.timeStep = 2.5;
   this.gridTick = 100;
+  this.init();
+}
+
+S047.prototype = Object.create(TLayer.prototype);
+
+S047.prototype.init = function() {
+  let p = this.p;
+  this.pos = p.createVector(0, 5);
   this.direction = p.createVector(0, 1);
   this.availableDirections = [
     p.createVector(-1,  0),
@@ -26,13 +33,11 @@ function S047(p, w, h) {
   this.matrix = [];
   for(let i = 0; i < 50; i++) {
     this.matrix[i] = [];
-    for(let j = 0; j < 100; j++) {
+    for(let j = 0; j < 50; j++) {
       this.matrix[i][j] = -1;
     }
   }
 }
-
-S047.prototype = Object.create(TLayer.prototype);
 
 S047.prototype.update = function(args) {
   let t = args.t * this.timeStep;
@@ -61,8 +66,16 @@ S047.prototype.update = function(args) {
     // this.direction = p.random(this.availableDirections);
 
     this.scale = this.scaleDest;
-    if(p.random(1) > 0.6)
+    if(p.random(1) > 0.6) {
       this.scaleDest = p.random([1, 0.5]);
+    }
+    
+    
+    if(this.pos.x > this.matrix[0].length) {
+      // ended
+      this.init();
+    }
+
   }
   this.lastT = t;
   // let tPhase = t - this.tBase;
@@ -158,7 +171,6 @@ S047.prototype.drawLayer = function(pg, key, args) {
 
   pg.scale(scale, scale);
   pg.translate(absx + dx - cx, absy + dy - cy);
-
 
   for(let i = -10; i <= 10; i++) {
     for(let j = -10; j <= 10; j++) {
