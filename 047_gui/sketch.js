@@ -80,105 +80,110 @@ S047.prototype.update = function(args) {
   this.lastT = t;
 }
 
+S047.prototype.drawBar = function (pg, c0, offset, alpha) {
+  let p = this.p;
+  pg.fill(70, 255);
+  let L = 90;
+  pg.rect(-L/2, -L/2, L, L);
+  let a = p.map(EasingFunctions.easeInOutQuint(alpha), 0, 1, 0, 1 - offset);
+  if(a > 1) a = 2 - a;
+  let rate = a;
+  let l = L * rate;
+  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+  pg.rect(-l/2, -L/2, l, L);
+}
+
+S047.prototype.drawRing = function (pg, r0, r1, rate) {
+  let p = this.p;
+  let n = 20;
+  pg.beginShape(p.QUADS);
+  for(let i = 0; i < n; i++) {
+    let theta0, theta1, x, y;
+    theta0 = i / n * Math.PI * 2.0 * rate;
+    theta1 = (i+1) / n * Math.PI * 2.0 * rate;
+    x = r0 * Math.sin(theta0);
+    y = r0 * -Math.cos(theta0);
+    pg.vertex(x, y);
+
+    x = r0 * Math.sin(theta1);
+    y = r0 * -Math.cos(theta1);
+    pg.vertex(x, y);
+
+    x = r1 * Math.sin(theta1);
+    y = r1 * -Math.cos(theta1);
+    pg.vertex(x, y);
+
+    x = r1 * Math.sin(theta0);
+    y = r1 * -Math.cos(theta0);
+    pg.vertex(x, y);
+  }
+  pg.endShape();
+}
+
+S047.prototype.drawCircle = function (pg, c0, offset, alpha) {
+  let p = this.p;
+  let r0 = 45;
+  let r1 = 0;
+  let a = p.map(EasingFunctions.easeInOutQuint(alpha), 0, 1, 0, 1 - offset);
+  if(a > 1) a = 2 - a;
+  let rate = a;
+  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+  pg.rotate(rate * Math.PI);
+  this.drawRing(pg, r0, r1, rate);
+}
+
+S047.prototype.drawBase = function (pg, c0, offset, tween, type) {
+  let p = this.p;
+  pg.fill(70, 255);
+  let L = 90;
+  pg.rect(-L/2, -L/2, L, L);
+
+  let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2,0,1)) * L;
+
+  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+  pg.rect(-l/2, -L/2, l, L);
+}
+
+S047.prototype.drawIchimatsu = function (pg, c0, offset, tween, type) {
+  let p = this.p;
+  let L = 90;
+  let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2-1,0,1)) * L;
+
+  c0+=1;
+  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+  if(offset > 0) pg.rotate(Math.PI/2);
+  pg.triangle(-L/2, -L/2, 0, 0, -L/2, -L/2+l);
+  if(type == 0)
+    pg.scale(-1,1);
+  else
+    pg.rotate(Math.PI);
+  pg.triangle(-L/2, -L/2, 0, 0, -L/2, -L/2+l);
+}
+
+S047.prototype.drawPatternA = function (pg, ix, iy, tween) {
+  let phase = (ix * 0.5 + iy * 0.5) % 1;
+  this.drawBar(pg, 1, 0, tween);
+  this.drawCircle(pg, 0, phase, tween);
+}
+
+S047.prototype.drawPatternB = function (pg, ix, iy, tween) {
+  let phase = 0;
+  this.drawBase(pg, 0, phase, tween, (ix * 0.5 + iy * 0.5) % 1);
+  this.drawIchimatsu(pg, 0, phase, tween, (ix * 0.5 + iy * 0.5) % 1);
+}
+
+S047.prototype.drawPattern = function (pg, ix, iy, tween) {
+  if((ix%10<5 && iy%10<5) || (ix%10>=5 && iy%10>=5)) {
+    this.drawPatternA(pg, ix, iy, tween);
+  }
+  else {
+    this.drawPatternB(pg, ix, iy, tween);
+  }
+}
+
 S047.prototype.drawLayer = function(pg, key, args) {
   let t = args.t * this.timeStep;
   let p = this.p;
-
-  function drawBar(c0, offset, alpha) {
-    pg.fill(70, 255);
-    let L = 90;
-    pg.rect(-L/2, -L/2, L, L);
-    let a = p.map(EasingFunctions.easeInOutQuint(alpha), 0, 1, 0, 1 - offset);
-    if(a > 1) a = 2 - a;
-    let rate = a;
-    let l = L * rate;
-    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-    pg.rect(-l/2, -L/2, l, L);
-  }
-
-  function drawRing(r0, r1, rate) {
-    let n = 20;
-    pg.beginShape(p.QUADS);
-    for(let i = 0; i < n; i++) {
-      let theta0, theta1, x, y;
-      theta0 = i / n * Math.PI * 2.0 * rate;
-      theta1 = (i+1) / n * Math.PI * 2.0 * rate;
-      x = r0 * Math.sin(theta0);
-      y = r0 * -Math.cos(theta0);
-      pg.vertex(x, y);
-
-      x = r0 * Math.sin(theta1);
-      y = r0 * -Math.cos(theta1);
-      pg.vertex(x, y);
-
-      x = r1 * Math.sin(theta1);
-      y = r1 * -Math.cos(theta1);
-      pg.vertex(x, y);
-
-      x = r1 * Math.sin(theta0);
-      y = r1 * -Math.cos(theta0);
-      pg.vertex(x, y);
-    }
-    pg.endShape();
-  }
-
-  function drawCircle(c0, offset, alpha) {
-    let r0 = 45;
-    let r1 = 0;
-    let a = p.map(EasingFunctions.easeInOutQuint(alpha), 0, 1, 0, 1 - offset);
-    if(a > 1) a = 2 - a;
-    let rate = a;
-    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-    pg.rotate(rate * Math.PI);
-    drawRing(r0, r1, rate);
-  }
-
-  function drawBase(c0, offset, tween, type) {
-    pg.fill(70, 255);
-    let L = 90;
-    pg.rect(-L/2, -L/2, L, L);
-
-    let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2,0,1)) * L;
-
-    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-    pg.rect(-l/2, -L/2, l, L);
-  }
-
-  function drawIchimatsu(c0, offset, tween, type) {
-    let L = 90;
-    let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2-1,0,1)) * L;
-
-    c0+=1;
-    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-    if(offset > 0) pg.rotate(Math.PI/2);
-    pg.triangle(-L/2, -L/2, 0, 0, -L/2, -L/2+l);
-    if(type == 0)
-      pg.scale(-1,1);
-    else
-      pg.rotate(Math.PI);
-    pg.triangle(-L/2, -L/2, 0, 0, -L/2, -L/2+l);
-  }
-
-  function drawPatternA(ix, iy, tween) {
-    let phase = (ix * 0.5 + iy * 0.5) % 1;
-    drawBar(1, 0, tween);
-    drawCircle(0, phase, tween);
-  }
-
-  function drawPatternB(ix, iy, tween) {
-    let phase = 0;
-    drawBase(0, phase, tween, (ix * 0.5 + iy * 0.5) % 1);
-    drawIchimatsu(0, phase, tween, (ix * 0.5 + iy * 0.5) % 1);
-  }
-
-  function drawPattern(ix, iy, tween) {
-    if((ix%10<5 && iy%10<5) || (ix%10>=5 && iy%10>=5)) {
-      drawPatternA(ix, iy, tween);
-    }
-    else {
-      drawPatternB(ix, iy, tween);
-    }
-  }
 
   pg.clear();
 
@@ -236,7 +241,8 @@ S047.prototype.drawLayer = function(pg, key, args) {
 
           if(this.matrix[iy][ix].state == "wait") tween = 0;
           else if(this.matrix[iy][ix].state == "tweening") {
-            tween = 1 * (t - this.matrix[iy][ix].time);
+            tween = p.map(t - this.matrix[iy][ix].time, 0, 0.5, 0, 1);
+            // if(tween < 0) tween = 0;
             if(tween >= 1) {
               tween = 1;
               this.matrix[iy][ix].state == "done";
@@ -245,7 +251,7 @@ S047.prototype.drawLayer = function(pg, key, args) {
           else {
             tween = 1;
           }
-          drawPattern(ix, iy, tween);
+          this.drawPattern(pg, ix, iy, tween);
         }
         // pg.text(ix + " " + iy, 0, 0);
       }
