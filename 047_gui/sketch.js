@@ -84,15 +84,7 @@ S047.prototype.drawLayer = function(pg, key, args) {
   let t = args.t * this.timeStep;
   let p = this.p;
 
-  function tReturn(tMult, tOffset) {
-    if(tOffset == undefined) tOffset = 0;
-    let tt = (t * tMult - tOffset) % 2;
-    if(tt > 1) tt = 2 - tt;
-    return tt;
-  }
-
   function drawBar(c0, offset, alpha) {
-    pg.noStroke();
     pg.fill(70, 255);
     let L = 90;
     pg.rect(-L/2, -L/2, L, L);
@@ -129,10 +121,10 @@ S047.prototype.drawLayer = function(pg, key, args) {
     }
     pg.endShape();
   }
+
   function drawCircle(c0, offset, alpha) {
     let r0 = 45;
     let r1 = 0;
-    pg.noStroke();
     let a = p.map(EasingFunctions.easeInOutQuint(alpha), 0, 1, 0, 1 - offset);
     if(a > 1) a = 2 - a;
     let rate = a;
@@ -140,8 +132,8 @@ S047.prototype.drawLayer = function(pg, key, args) {
     pg.rotate(rate * Math.PI);
     drawRing(r0, r1, rate);
   }
-  function drawIchimatsu(c0, offset, tween, type) {
-    pg.noStroke();
+
+  function drawBase(c0, offset, tween, type) {
     pg.fill(70, 255);
     let L = 90;
     pg.rect(-L/2, -L/2, L, L);
@@ -150,8 +142,11 @@ S047.prototype.drawLayer = function(pg, key, args) {
 
     pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
     pg.rect(-l/2, -L/2, l, L);
+  }
 
-    l = EasingFunctions.easeInOutCubic(p.constrain(tween*2-1,0,1)) * L;
+  function drawIchimatsu(c0, offset, tween, type) {
+    let L = 90;
+    let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2-1,0,1)) * L;
 
     c0+=1;
     pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
@@ -169,10 +164,13 @@ S047.prototype.drawLayer = function(pg, key, args) {
     drawBar(1, 0, tween);
     drawCircle(0, phase, tween);
   }
+
   function drawPatternB(ix, iy, tween) {
-    let phase = 0;//(ix * 0.5 + iy * 0.5) % 1;
+    let phase = 0;
+    drawBase(0, phase, tween, (ix * 0.5 + iy * 0.5) % 1);
     drawIchimatsu(0, phase, tween, (ix * 0.5 + iy * 0.5) % 1);
   }
+
   function drawPattern(ix, iy, tween) {
     if((ix%10<5 && iy%10<5) || (ix%10>=5 && iy%10>=5)) {
       drawPatternA(ix, iy, tween);
@@ -205,6 +203,7 @@ S047.prototype.drawLayer = function(pg, key, args) {
 
   pg.scale(scale, scale);
   pg.translate(absx + dx - cx, absy + dy - cy);
+  pg.noStroke();
 
   for(let i = -10; i <= 10; i++) {
     for(let j = -10; j <= 10; j++) {
