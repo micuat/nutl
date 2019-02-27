@@ -34,7 +34,7 @@ S047.prototype.init = function() {
   for(let i = 0; i < 50; i++) {
     this.matrix[i] = [];
     for(let j = 0; j < 50; j++) {
-      this.matrix[i][j] = -1;
+      this.matrix[i][j] = {state: "wait", time: 0};
     }
   }
 }
@@ -222,8 +222,9 @@ S047.prototype.drawLayer = function(pg, key, args) {
 
       if(this.matrix[iy] != undefined && this.matrix[iy][ix] != undefined) {
         if(Math.abs(i) <= 5 && Math.abs(j) <= 5) {
-          if(this.matrix[iy][ix] < 0) {
-            this.matrix[iy][ix] = t; // init
+          if(this.matrix[iy][ix].state == "wait") {
+            this.matrix[iy][ix].time = t;
+            this.matrix[iy][ix].state = "tweening";
           }
         }
       }
@@ -231,8 +232,19 @@ S047.prototype.drawLayer = function(pg, key, args) {
       if(Math.abs(sx - this.width / 2) < (this.width + this.gridTick) / 2
       && Math.abs(sy - this.height / 2) < (this.height + this.gridTick) / 2) {
         if(this.matrix[iy] != undefined && this.matrix[iy][ix] != undefined) {
-          let tween = Math.min(1, 1 * (t - this.matrix[iy][ix]));
-          if(this.matrix[iy][ix] < 0) tween = 0;
+          let tween = 0;
+
+          if(this.matrix[iy][ix].state == "wait") tween = 0;
+          else if(this.matrix[iy][ix].state == "tweening") {
+            tween = 1 * (t - this.matrix[iy][ix].time);
+            if(tween >= 1) {
+              tween = 1;
+              this.matrix[iy][ix].state == "done";
+            }
+          }
+          else {
+            tween = 1;
+          }
           drawPattern(ix, iy, tween);
         }
         // pg.text(ix + " " + iy, 0, 0);
