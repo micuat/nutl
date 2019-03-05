@@ -12,27 +12,70 @@ function S047(p, w, h) {
   this.gridTick = 100;
   this.init();
 
-  this.shape = p.createShape();
-  this.shape.beginShape(p.TRIANGLES);
-  let c0=0;
-  this.shape.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-  this.shape.noStroke();
-  let L = 90;
-  this.shape.vertex(-L/2, -L/2);
-  this.shape.vertex(L/2, -L/2);
-  this.shape.vertex(L/2, L/2);
-  this.shape.vertex(-L/2, -L/2);
-  this.shape.vertex(L/2, L/2);
-  this.shape.vertex(-L/2, L/2);
-  c0=1;
-  this.shape.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-  this.shape.vertex(-L/2, -L/2);
-  this.shape.vertex(0, 0);
-  this.shape.vertex(-L/2, L/2);
-  this.shape.vertex(L/2, -L/2);
-  this.shape.vertex(0, 0);
-  this.shape.vertex(L/2, L/2);
-  this.shape.endShape();
+  this.shapes = {};
+
+  {
+    s = p.createShape();
+    s.beginShape(p.TRIANGLES);
+    let c0 = 0;
+    s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+    s.noStroke();
+    let L = 90;
+    s.vertex(-L/2, -L/2);
+    s.vertex(L/2, -L/2);
+    s.vertex(L/2, L/2);
+    s.vertex(-L/2, -L/2);
+    s.vertex(L/2, L/2);
+    s.vertex(-L/2, L/2);
+    c0 = 1;
+    s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+    s.vertex(-L/2, -L/2);
+    s.vertex(0, 0);
+    s.vertex(-L/2, L/2);
+    s.vertex(L/2, -L/2);
+    s.vertex(0, 0);
+    s.vertex(L/2, L/2);
+    s.endShape();
+
+    this.shapes.ichimatsu = s;
+  }
+  {
+    s = p.createShape();
+    s.beginShape(p.TRIANGLES);
+    let c0 = 1;
+    s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+    s.noStroke();
+    let L = 90;
+    s.vertex(-L/2, -L/2);
+    s.vertex(L/2, -L/2);
+    s.vertex(L/2, L/2);
+    s.vertex(-L/2, -L/2);
+    s.vertex(L/2, L/2);
+    s.vertex(-L/2, L/2);
+    c0 = 0;
+    s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+    let n = 20;
+    let r0 = 45;
+    for(let i = 0; i < n; i++) {
+      let theta0, theta1, x, y;
+      theta0 = i / n * Math.PI * 2.0// * 0.5 - Math.PI/2;
+      theta1 = (i+1) / n * Math.PI * 2.0// * 0.5 - Math.PI/2;
+      x = r0 * Math.sin(theta0);
+      y = r0 * -Math.cos(theta0);
+      s.vertex(x, y);
+  
+      x = r0 * Math.sin(theta1);
+      y = r0 * -Math.cos(theta1);
+      s.vertex(x, y);
+  
+      x = y = 0;
+      s.vertex(x, y);
+    }
+    
+    s.endShape();
+  
+    this.shapes.circle = s;
+  }
 }
 
 S047.prototype = Object.create(TLayer.prototype);
@@ -48,10 +91,10 @@ S047.prototype.init = function() {
     p.createVector( 0,  1)
   ]
   this.moveCount = 0;
-  this.scale = 0.25;
-  this.scaleDest = 0.25;
-  // this.scale = 2;
-  // this.scaleDest = 2;
+  // this.scale = 0.25;
+  // this.scaleDest = 0.25;
+  this.scale = 2;
+  this.scaleDest = 2;
 
   // this.matrix = new Array(100, new Array(100));
   this.matrix = [];
@@ -90,9 +133,10 @@ S047.prototype.update = function(args) {
     // this.direction = p.random(this.availableDirections);
 
     this.scale = this.scaleDest;
-    if(p.random(1) > 0.6) {
-      this.scaleDest = p.random([2, 0.2]);
-    }
+    // if(p.random(1) > 0.6) {
+    //   this.scaleDest = p.random([2, 0.2]);
+    // }
+    this.scaleDest = 1 / (this.pos.x / 10);
     
     
     if(this.pos.x > this.matrix[0].length) {
@@ -185,7 +229,7 @@ S047.prototype.drawIchimatsu = function (pg, c0, offset, tween, type) {
 }
 
 S047.prototype.drawPatternA = function (pg, ix, iy, tween) {
-  let phase = (ix * 0.5 + iy * 0.5) % 1;
+  let phase = 0;//(ix * 0.5 + iy * 0.5) % 1;
   this.drawBar(pg, 1, 0, tween);
   this.drawCircle(pg, 0, phase, tween);
 }
@@ -198,8 +242,7 @@ S047.prototype.drawPatternB = function (pg, ix, iy, tween) {
 
 S047.prototype.drawPattern = function (pg, ix, iy, tween) {
   if((ix%10<5 && iy%10<5) || (ix%10>=5 && iy%10>=5)) {
-    // this.drawPatternA(pg, ix, iy, tween);
-    this.drawPatternB(pg, ix, iy, tween);
+    this.drawPatternA(pg, ix, iy, tween);
   }
   else {
     this.drawPatternB(pg, ix, iy, tween);
@@ -239,8 +282,15 @@ S047.prototype.drawLayer = function(pg, key, args) {
   // pg.image(this.backPg, 0, 0)
   for(let i = 0; i < this.matrix.length; i++) {
     for(let j = 0; j < this.matrix[0].length; j++) {
-      if(this.matrix[i][j].state == "done")
-        pg.shape(this.shape, j * this.gridTick, i * this.gridTick);
+      if(this.matrix[i][j].state == "done") {
+        if((j%10<5 && i%10<5) || (j%10>=5 && i%10>=5)) {
+          pg.shape(this.shapes.circle, j * this.gridTick, i * this.gridTick);
+        }
+        else {
+          pg.shape(this.shapes.ichimatsu, j * this.gridTick, i * this.gridTick);
+        }
+      
+      }
     }
   }
   pg.pop();
