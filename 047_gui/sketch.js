@@ -230,12 +230,18 @@ S047.prototype.drawIchimatsu = function (pg, c0, offset, tween, type) {
 }
 
 S047.prototype.drawPatternA = function (pg, ix, iy, tween) {
+  if(pg == null) {
+    return this.shapes.circle;
+  }
   let phase = 0;//(ix * 0.5 + iy * 0.5) % 1;
   this.drawBar(pg, 1, 0, tween);
   this.drawCircle(pg, 0, phase, tween);
 }
 
 S047.prototype.drawPatternB = function (pg, ix, iy, tween) {
+  if(pg == null) {
+    return this.shapes.ichimatsu;
+  }
   let phase = 0;
   this.drawBase(pg, 0, phase, tween, (ix * 0.5 + iy * 0.5) % 1);
   this.drawIchimatsu(pg, 0, phase, tween, (ix * 0.5 + iy * 0.5) % 1);
@@ -243,10 +249,10 @@ S047.prototype.drawPatternB = function (pg, ix, iy, tween) {
 
 S047.prototype.drawPattern = function (pg, ix, iy, tween) {
   if((ix%4<2 && iy%4<2) || (ix%4>=2 && iy%4>=2)) {
-    this.drawPatternA(pg, ix, iy, tween);
+    return this.drawPatternA(pg, ix, iy, tween);
   }
   else {
-    this.drawPatternB(pg, ix, iy, tween);
+    return this.drawPatternB(pg, ix, iy, tween);
   }
 }
 
@@ -303,13 +309,7 @@ S047.prototype.drawLayer = function(pg, key, args) {
       }
 
       if(this.matrix[i][j].state == "done") {
-        if((j%4<2 && i%4<2) || (j%4>=2 && i%4>=2)) {
-          pg.shape(this.shapes.circle, j * this.gridTick, i * this.gridTick);
-        }
-        else {
-          pg.shape(this.shapes.ichimatsu, j * this.gridTick, i * this.gridTick);
-        }
-      
+        pg.shape(this.drawPattern(null, j, i), j * this.gridTick, i * this.gridTick);
       }
     }
   }
