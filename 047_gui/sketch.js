@@ -7,7 +7,7 @@ function S047(p, w, h) {
 
   this.lastT = 0;
   this.tBase = 0;
-  this.moveStep = 10;
+  this.moveStep = 4;
   this.timeStep = 0.5;
   this.gridTick = 100;
   this.init();
@@ -82,7 +82,7 @@ S047.prototype = Object.create(TLayer.prototype);
 
 S047.prototype.init = function() {
   let p = this.p;
-  this.pos = p.createVector(this.moveStep/2, this.moveStep/2);
+  this.pos = p.createVector(this.moveStep/2-1, this.moveStep/2);
   this.direction = p.createVector(0, 1);
   this.availableDirections = [
     p.createVector(-1,  0),
@@ -98,9 +98,9 @@ S047.prototype.init = function() {
 
   // this.matrix = new Array(100, new Array(100));
   this.matrix = [];
-  for(let i = 0; i < 50; i++) {
+  for(let i = 0; i < 40; i++) {
     this.matrix[i] = [];
-    for(let j = 0; j < 50; j++) {
+    for(let j = 0; j < 20; j++) {
       this.matrix[i][j] = {state: "wait", time: 0};
     }
   }
@@ -136,7 +136,8 @@ S047.prototype.update = function(args) {
     // if(p.random(1) > 0.6) {
     //   this.scaleDest = p.random([2, 0.2]);
     // }
-    this.scaleDest = 1 / (this.pos.x / 10);
+    this.scaleDest = 1 / (Math.max(this.pos.x, 5) / 20);
+    // this.scaleDest = 1 / (Math.max(this.pos.x - 20, 5) / 10);
     
     
     if(this.pos.x > this.matrix[0].length) {
@@ -241,7 +242,7 @@ S047.prototype.drawPatternB = function (pg, ix, iy, tween) {
 }
 
 S047.prototype.drawPattern = function (pg, ix, iy, tween) {
-  if((ix%10<5 && iy%10<5) || (ix%10>=5 && iy%10>=5)) {
+  if((ix%4<2 && iy%4<2) || (ix%4>=2 && iy%4>=2)) {
     this.drawPatternA(pg, ix, iy, tween);
   }
   else {
@@ -280,10 +281,29 @@ S047.prototype.drawLayer = function(pg, key, args) {
   pg.scale(-1,-1)
   // pg.scale(4,4)
   // pg.image(this.backPg, 0, 0)
+
+  let fakedx = (p.map(t%1, 0.1, 0.9, 0, 1) * this.moveStep * this.direction.x) * this.gridTick;
+  let fakedy = (p.map(t%1, 0.1, 0.9, 0, 1) * this.moveStep * this.direction.y) * this.gridTick;
+  let fakecx = Math.floor((absx + fakedx) / this.gridTick);
+  let fakecy = Math.floor((absy + fakedy) / this.gridTick);
   for(let i = 0; i < this.matrix.length; i++) {
     for(let j = 0; j < this.matrix[0].length; j++) {
+      if(Math.abs(i-fakecy) <= this.moveStep/2 && Math.abs(j-fakecx) <= this.moveStep/2) {
+        if(this.matrix[i][j].state == "wait") {
+          this.matrix[i][j].time = t;
+          this.matrix[i][j].state = "tweening";
+        }
+      }
+
+      if(this.matrix[i][j].state == "tweening") {
+        let tween = p.map(t - this.matrix[i][j].time, 0, 0.5, 0, 1);
+        if(tween >= 1) {
+          this.matrix[i][j].state = "done";
+        }
+      }
+
       if(this.matrix[i][j].state == "done") {
-        if((j%10<5 && i%10<5) || (j%10>=5 && i%10>=5)) {
+        if((j%4<2 && i%4<2) || (j%4>=2 && i%4>=2)) {
           pg.shape(this.shapes.circle, j * this.gridTick, i * this.gridTick);
         }
         else {
@@ -297,8 +317,8 @@ S047.prototype.drawLayer = function(pg, key, args) {
   pg.translate(- cx, - cy);
   pg.noStroke();
 
-  for(let i = -this.moveStep/2; i <= this.moveStep/2; i++) {
-    for(let j = -this.moveStep/2; j <= this.moveStep/2; j++) {
+  for(let i = -this.moveStep; i <= this.moveStep; i++) {
+    for(let j = -this.moveStep; j <= this.moveStep; j++) {
       // real position
       let rx = cx - j * this.gridTick;
       let ry = cy - i * this.gridTick;
@@ -312,15 +332,6 @@ S047.prototype.drawLayer = function(pg, key, args) {
       let sx = pg.screenX(0, 0);
       let sy = pg.screenY(0, 0);
 
-      if(this.matrix[iy] != undefined && this.matrix[iy][ix] != undefined) {
-        if(Math.abs(i) <= 5 && Math.abs(j) <= 5) {
-          if(this.matrix[iy][ix].state == "wait") {
-            this.matrix[iy][ix].time = t;
-            this.matrix[iy][ix].state = "tweening";
-          }
-        }
-      }
-
       // if(Math.abs(sx - this.width / 2) < (this.width + this.gridTick) / 2
       // && Math.abs(sy - this.height / 2) < (this.height + this.gridTick) / 2) {
       if(true) {
@@ -330,15 +341,10 @@ S047.prototype.drawLayer = function(pg, key, args) {
           if(this.matrix[iy][ix].state == "wait") tween = 0;
           else if(this.matrix[iy][ix].state == "tweening") {
             tween = p.map(t - this.matrix[iy][ix].time, 0, 0.5, 0, 1);
-            // if(tween < 0) tween = 0;
-            if(tween >= 1) {
-              tween = 1;
-              this.matrix[iy][ix].state = "done";
-            }
             this.drawPattern(pg, ix, iy, tween);
           }
           else {
-            tween = 1;
+            // already drawn
           }
         }
         // pg.text(ix + " " + iy, 0, 0);
@@ -356,11 +362,11 @@ S047.prototype.constructor = S047;
 ////////
 
 var s = function (p) {
-  let s047 = new S047(p, 800, 800);
+  let s047 = new S047(p, 1920, 1080);
 
   p.setup = function () {
-    p.createCanvas(800, 800);
-    p.frameRate(30);
+    p.createCanvas(1920, 1080);
+    p.frameRate(60);
   }
 
   p.draw = function () {
