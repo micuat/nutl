@@ -11,13 +11,35 @@ function S047(p, w, h) {
   this.timeStep = 0.5;
   this.gridTick = 100;
   this.init();
+
+  this.shape = p.createShape();
+  this.shape.beginShape(p.TRIANGLES);
+  let c0=0;
+  this.shape.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+  this.shape.noStroke();
+  let L = 90;
+  this.shape.vertex(-L/2, -L/2);
+  this.shape.vertex(L/2, -L/2);
+  this.shape.vertex(L/2, L/2);
+  this.shape.vertex(-L/2, -L/2);
+  this.shape.vertex(L/2, L/2);
+  this.shape.vertex(-L/2, L/2);
+  c0=1;
+  this.shape.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+  this.shape.vertex(-L/2, -L/2);
+  this.shape.vertex(0, 0);
+  this.shape.vertex(-L/2, L/2);
+  this.shape.vertex(L/2, -L/2);
+  this.shape.vertex(0, 0);
+  this.shape.vertex(L/2, L/2);
+  this.shape.endShape();
 }
 
 S047.prototype = Object.create(TLayer.prototype);
 
 S047.prototype.init = function() {
   let p = this.p;
-  this.pos = p.createVector(0, 5);
+  this.pos = p.createVector(this.moveStep/2, this.moveStep/2);
   this.direction = p.createVector(0, 1);
   this.availableDirections = [
     p.createVector(-1,  0),
@@ -26,8 +48,10 @@ S047.prototype.init = function() {
     p.createVector( 0,  1)
   ]
   this.moveCount = 0;
-  this.scale = 2;
-  this.scaleDest = 2;
+  this.scale = 0.25;
+  this.scaleDest = 0.25;
+  // this.scale = 2;
+  // this.scaleDest = 2;
 
   // this.matrix = new Array(100, new Array(100));
   this.matrix = [];
@@ -67,7 +91,7 @@ S047.prototype.update = function(args) {
 
     this.scale = this.scaleDest;
     if(p.random(1) > 0.6) {
-      this.scaleDest = p.random([2, 0.5]);
+      this.scaleDest = p.random([2, 0.2]);
     }
     
     
@@ -174,7 +198,8 @@ S047.prototype.drawPatternB = function (pg, ix, iy, tween) {
 
 S047.prototype.drawPattern = function (pg, ix, iy, tween) {
   if((ix%10<5 && iy%10<5) || (ix%10>=5 && iy%10>=5)) {
-    this.drawPatternA(pg, ix, iy, tween);
+    // this.drawPatternA(pg, ix, iy, tween);
+    this.drawPatternB(pg, ix, iy, tween);
   }
   else {
     this.drawPatternB(pg, ix, iy, tween);
@@ -207,11 +232,23 @@ S047.prototype.drawLayer = function(pg, key, args) {
   let cy = Math.floor((absy + dy) / this.gridTick) * this.gridTick;
 
   pg.scale(scale, scale);
-  pg.translate(absx + dx - cx, absy + dy - cy);
+  pg.translate(absx + dx, absy + dy);
+  pg.push();
+  pg.scale(-1,-1)
+  // pg.scale(4,4)
+  // pg.image(this.backPg, 0, 0)
+  for(let i = 0; i < this.matrix.length; i++) {
+    for(let j = 0; j < this.matrix[0].length; j++) {
+      if(this.matrix[i][j].state == "done")
+        pg.shape(this.shape, j * this.gridTick, i * this.gridTick);
+    }
+  }
+  pg.pop();
+  pg.translate(- cx, - cy);
   pg.noStroke();
 
-  for(let i = -10; i <= 10; i++) {
-    for(let j = -10; j <= 10; j++) {
+  for(let i = -this.moveStep/2; i <= this.moveStep/2; i++) {
+    for(let j = -this.moveStep/2; j <= this.moveStep/2; j++) {
       // real position
       let rx = cx - j * this.gridTick;
       let ry = cy - i * this.gridTick;
@@ -234,8 +271,9 @@ S047.prototype.drawLayer = function(pg, key, args) {
         }
       }
 
-      if(Math.abs(sx - this.width / 2) < (this.width + this.gridTick) / 2
-      && Math.abs(sy - this.height / 2) < (this.height + this.gridTick) / 2) {
+      // if(Math.abs(sx - this.width / 2) < (this.width + this.gridTick) / 2
+      // && Math.abs(sy - this.height / 2) < (this.height + this.gridTick) / 2) {
+      if(true) {
         if(this.matrix[iy] != undefined && this.matrix[iy][ix] != undefined) {
           let tween = 0;
 
@@ -245,13 +283,13 @@ S047.prototype.drawLayer = function(pg, key, args) {
             // if(tween < 0) tween = 0;
             if(tween >= 1) {
               tween = 1;
-              this.matrix[iy][ix].state == "done";
+              this.matrix[iy][ix].state = "done";
             }
+            this.drawPattern(pg, ix, iy, tween);
           }
           else {
             tween = 1;
           }
-          this.drawPattern(pg, ix, iy, tween);
         }
         // pg.text(ix + " " + iy, 0, 0);
       }
@@ -272,7 +310,7 @@ var s = function (p) {
 
   p.setup = function () {
     p.createCanvas(800, 800);
-    p.frameRate(60);
+    p.frameRate(30);
   }
 
   p.draw = function () {
