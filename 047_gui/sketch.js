@@ -82,6 +82,7 @@ S047.prototype = Object.create(TLayer.prototype);
 
 S047.prototype.init = function() {
   let p = this.p;
+  this.finishing = false;
   this.pos = p.createVector(this.moveStep/2-1, this.moveStep/2);
   this.direction = p.createVector(0, 1);
   this.availableDirections = [
@@ -118,13 +119,14 @@ S047.prototype.update = function(args) {
     print(this.pos)
 
     this.moveCount++;
-    if(this.moveCount % 10 <= 3) {
+    let cycle = 4;
+    if(this.moveCount % cycle <= cycle / 2 - 1 - 1) {
       this.direction = this.availableDirections[3];
     }
-    else if(this.moveCount % 10 == 4) {
+    else if(this.moveCount % cycle == cycle / 2 - 1) {
       this.direction = this.availableDirections[1];
     }
-    else if(this.moveCount % 10 <= 8) {
+    else if(this.moveCount % cycle <= cycle - 1 - 1) {
       this.direction = this.availableDirections[2];
     }
     else {
@@ -139,8 +141,11 @@ S047.prototype.update = function(args) {
     this.scaleDest = 1 / (Math.max(this.pos.x, 5) / 20);
     // this.scaleDest = 1 / (Math.max(this.pos.x - 20, 5) / 10);
     
-    
-    if(this.pos.x > this.matrix[0].length) {
+    if(this.pos.x + this.direction.x * this.moveStep > this.matrix[0].length) {
+      this.finishing = true;
+      this.direction.set(-this.matrix[0].length / 2 / this.moveStep, -cycle / 2 / this.moveStep);
+    }
+    else if(this.finishing) {
       // ended
       this.init();
     }
@@ -248,7 +253,8 @@ S047.prototype.drawPatternB = function (pg, ix, iy, tween) {
 }
 
 S047.prototype.drawPattern = function (pg, ix, iy, tween) {
-  if((ix%4<2 && iy%4<2) || (ix%4>=2 && iy%4>=2)) {
+  let n = 1;
+  if((ix%(n*2)<n && iy%(n*2)<n) || (ix%(n*2)>=n && iy%(n*2)>=n)) {
     return this.drawPatternA(pg, ix, iy, tween);
   }
   else {
