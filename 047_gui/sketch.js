@@ -82,7 +82,7 @@ S047.prototype = Object.create(TLayer.prototype);
 
 S047.prototype.init = function() {
   let p = this.p;
-  this.finishing = false;
+  this.finishing = 0;
   this.pos = p.createVector(this.moveStep/2-1, this.moveStep/2);
   this.direction = p.createVector(0, 1);
   this.availableDirections = [
@@ -141,15 +141,21 @@ S047.prototype.update = function(args) {
     this.scaleDest = 1 / (Math.max(this.pos.x, 5) / 20);
     // this.scaleDest = 1 / (Math.max(this.pos.x - 20, 5) / 10);
     
-    if(this.pos.x + this.direction.x * this.moveStep > this.matrix[0].length) {
-      this.finishing = true;
-      this.direction.set(-this.matrix[0].length / 2 / this.moveStep, -cycle / 2 / this.moveStep);
+    if(this.finishing > 0) {
+      this.scaleDest = this.scale;
+      this.direction.set(0, 0);
+      this.finishing++;
+      if(this.finishing >= 4) {
+        // ended
+        this.init();
+      }
     }
-    else if(this.finishing) {
-      // ended
-      this.init();
+    else {
+      if(this.pos.x + this.direction.x * this.moveStep > this.matrix[0].length) {
+        this.finishing = 1;
+        this.direction.set(-this.matrix[0].length / 2 / this.moveStep, -cycle / 2 / this.moveStep);
+      }
     }
-
   }
   this.lastT = t;
 }
