@@ -76,13 +76,13 @@ function S047(p, w, h) {
       theta1 = (i+1) / n * Math.PI * 2.0// * 0.5 - Math.PI/2;
       x = r0 * Math.sin(theta0);
       y = r0 * -Math.cos(theta0);
-      s.vertex(x, y, 0.5, 0.5);
-      // s.vertex(x, y, 1, 1);
+      // s.vertex(x, y, 0.5, 0.5);
+      s.vertex(x, y, 1, 0.5);
   
       x = r0 * Math.sin(theta1);
       y = r0 * -Math.cos(theta1);
-      s.vertex(x, y, 0.5, 0.5);
-      // s.vertex(x, y, 1, 1);
+      // s.vertex(x, y, 0.5, 0.5);
+      s.vertex(x, y, 1, 0.5);
   
       x = y = 0;
       s.vertex(x, y, 0.5, 0.5);
@@ -218,13 +218,13 @@ S047.prototype.drawRing = function (pg, r0, r1, rate) {
     theta1 = (i+1) / n * Math.PI * 2.0 * rate;
     x = r0 * Math.sin(theta0);
     y = r0 * -Math.cos(theta0);
-    pg.vertex(x, y, 0.5, 0.5);
-    // pg.vertex(x, y, 1, 1);
+    // pg.vertex(x, y, 0.5, 0.5);
+    pg.vertex(x, y, 1, 0.5);
 
     x = r0 * Math.sin(theta1);
     y = r0 * -Math.cos(theta1);
-    pg.vertex(x, y, 0.5, 0.5);
-    // pg.vertex(x, y, 1, 1);
+    // pg.vertex(x, y, 0.5, 0.5);
+    pg.vertex(x, y, 1, 0.5);
 
     x = r1 * Math.sin(theta1);
     y = r1 * -Math.cos(theta1);
