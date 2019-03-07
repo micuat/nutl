@@ -12,6 +12,8 @@ function S047(p, w, h) {
   this.gridTick = 100;
   this.init();
 
+  this.shaderVignette = p.loadShader(p.folderName + "/shaders/vignette.frag", p.folderName + "/shaders/vignette.vert");
+
   this.shapes = {};
 
   {
@@ -21,20 +23,26 @@ function S047(p, w, h) {
     s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
     s.noStroke();
     let L = 90;
-    s.vertex(-L/2, -L/2);
-    s.vertex(L/2, -L/2);
-    s.vertex(L/2, L/2);
-    s.vertex(-L/2, -L/2);
-    s.vertex(L/2, L/2);
-    s.vertex(-L/2, L/2);
+    s.vertex(-L/2, -L/2, 0, 0);
+    s.vertex(L/2, -L/2, 1, 0);
+    s.vertex(L/2, L/2, 1, 1);
+    s.vertex(-L/2, -L/2, 0, 0);
+    s.vertex(L/2, L/2, 1, 1);
+    s.vertex(-L/2, L/2, 0, 1);
     c0 = 1;
     s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-    s.vertex(-L/2, -L/2);
-    s.vertex(0, 0);
-    s.vertex(-L/2, L/2);
-    s.vertex(L/2, -L/2);
-    s.vertex(0, 0);
-    s.vertex(L/2, L/2);
+    s.vertex(-L/2, -L/2, 0.5, 0.5);
+    s.vertex(0, 0, 0.5, 0.5);
+    s.vertex(-L/2, L/2, 0.5, 0.5);
+    s.vertex(L/2, -L/2, 0.5, 0.5);
+    s.vertex(0, 0, 0.5, 0.5);
+    s.vertex(L/2, L/2, 0.5, 0.5);
+    // s.vertex(-L/2, -L/2, 0, 0);
+    // s.vertex(0, 0, 0.5, 0.5);
+    // s.vertex(-L/2, L/2, 0, 1);
+    // s.vertex(L/2, -L/2, 1, 0);
+    // s.vertex(0, 0, 0.5, 0.5);
+    // s.vertex(L/2, L/2, 1, 1);
     s.endShape();
 
     this.shapes.ichimatsu = s;
@@ -46,12 +54,18 @@ function S047(p, w, h) {
     s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
     s.noStroke();
     let L = 90;
-    s.vertex(-L/2, -L/2);
-    s.vertex(L/2, -L/2);
-    s.vertex(L/2, L/2);
-    s.vertex(-L/2, -L/2);
-    s.vertex(L/2, L/2);
-    s.vertex(-L/2, L/2);
+    s.vertex(-L/2, -L/2, 0.5, 0.5);
+    s.vertex(L/2, -L/2, 0.5, 0.5);
+    s.vertex(L/2, L/2, 0.5, 0.5);
+    s.vertex(-L/2, -L/2, 0.5, 0.5);
+    s.vertex(L/2, L/2, 0.5, 0.5);
+    s.vertex(-L/2, L/2, 0.5, 0.5);
+    // s.vertex(-L/2, -L/2, 0, 0);
+    // s.vertex(L/2, -L/2, 1, 0);
+    // s.vertex(L/2, L/2, 1, 1);
+    // s.vertex(-L/2, -L/2, 0, 0);
+    // s.vertex(L/2, L/2, 1, 1);
+    // s.vertex(-L/2, L/2, 0, 1);
     c0 = 0;
     s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
     let n = 20;
@@ -62,14 +76,16 @@ function S047(p, w, h) {
       theta1 = (i+1) / n * Math.PI * 2.0// * 0.5 - Math.PI/2;
       x = r0 * Math.sin(theta0);
       y = r0 * -Math.cos(theta0);
-      s.vertex(x, y);
+      s.vertex(x, y, 0.5, 0.5);
+      // s.vertex(x, y, 1, 1);
   
       x = r0 * Math.sin(theta1);
       y = r0 * -Math.cos(theta1);
-      s.vertex(x, y);
+      s.vertex(x, y, 0.5, 0.5);
+      // s.vertex(x, y, 1, 1);
   
       x = y = 0;
-      s.vertex(x, y);
+      s.vertex(x, y, 0.5, 0.5);
     }
     
     s.endShape();
@@ -167,13 +183,29 @@ S047.prototype.drawBar = function (pg, c0, offset, alpha) {
   let p = this.p;
   pg.fill(70, 255);
   let L = 90;
-  pg.rect(-L/2, -L/2, L, L);
+  // pg.rect(-L/2, -L/2, L, L);
+  pg.beginShape(p.TRIANGLES);
+  pg.vertex(-L/2, -L/2, 0.5, 0.5);
+  pg.vertex(L/2, -L/2, 0.5, 0.5);
+  pg.vertex(L/2, L/2, 0.5, 0.5);
+  pg.vertex(-L/2, -L/2, 0.5, 0.5);
+  pg.vertex(L/2, L/2, 0.5, 0.5);
+  pg.vertex(-L/2, L/2, 0.5, 0.5);
+  pg.endShape();
   let a = p.map(EasingFunctions.easeInOutQuint(alpha), 0, 1, 0, 1 - offset);
   if(a > 1) a = 2 - a;
   let rate = a;
   let l = L * rate;
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-  pg.rect(-l/2, -L/2, l, L);
+  // pg.rect(-l/2, -L/2, l, L);
+  pg.beginShape(p.TRIANGLES);
+  pg.vertex(-l/2, -L/2, 0.5, 0.5);
+  pg.vertex(l/2, -L/2, 0.5, 0.5);
+  pg.vertex(l/2, L/2, 0.5, 0.5);
+  pg.vertex(-l/2, -L/2, 0.5, 0.5);
+  pg.vertex(l/2, L/2, 0.5, 0.5);
+  pg.vertex(-l/2, L/2, 0.5, 0.5);
+  pg.endShape();
 }
 
 S047.prototype.drawRing = function (pg, r0, r1, rate) {
@@ -186,19 +218,21 @@ S047.prototype.drawRing = function (pg, r0, r1, rate) {
     theta1 = (i+1) / n * Math.PI * 2.0 * rate;
     x = r0 * Math.sin(theta0);
     y = r0 * -Math.cos(theta0);
-    pg.vertex(x, y);
+    pg.vertex(x, y, 0.5, 0.5);
+    // pg.vertex(x, y, 1, 1);
 
     x = r0 * Math.sin(theta1);
     y = r0 * -Math.cos(theta1);
-    pg.vertex(x, y);
+    pg.vertex(x, y, 0.5, 0.5);
+    // pg.vertex(x, y, 1, 1);
 
     x = r1 * Math.sin(theta1);
     y = r1 * -Math.cos(theta1);
-    pg.vertex(x, y);
+    pg.vertex(x, y, 0.5, 0.5);
 
     x = r1 * Math.sin(theta0);
     y = r1 * -Math.cos(theta0);
-    pg.vertex(x, y);
+    pg.vertex(x, y, 0.5, 0.5);
   }
   pg.endShape();
 }
@@ -235,12 +269,26 @@ S047.prototype.drawIchimatsu = function (pg, c0, offset, tween, type) {
   c0+=1;
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
   if(offset > 0) pg.rotate(Math.PI/2);
-  pg.triangle(-L/2, -L/2, 0, 0, -L/2, -L/2+l);
+  pg.beginShape(p.TRIANGLES);
+  pg.vertex(-L/2, -L/2, 0.5, 0.5);
+  pg.vertex(0, 0, 0.5, 0.5);
+  pg.vertex(-L/2, -L/2+l, 0.5, 0.5);
+  // pg.vertex(-L/2, -L/2, 0, 0);
+  // pg.vertex(0, 0, 0.5, 0.5);
+  // pg.vertex(-L/2, -L/2+l, 0, 1);
+  pg.endShape();
   if(type == 0)
     pg.scale(-1,1);
   else
     pg.rotate(Math.PI);
-  pg.triangle(-L/2, -L/2, 0, 0, -L/2, -L/2+l);
+  pg.beginShape(p.TRIANGLES);
+  pg.vertex(-L/2, -L/2, 0.5, 0.5);
+  pg.vertex(0, 0, 0.5, 0.5);
+  pg.vertex(-L/2, -L/2+l, 0.5, 0.5);
+  // pg.vertex(-L/2, -L/2, 0, 0);
+  // pg.vertex(0, 0, 0.5, 0.5);
+  // pg.vertex(-L/2, -L/2+l, 0, 1);
+  pg.endShape();
 }
 
 S047.prototype.drawPatternA = function (pg, ix, iy, tween) {
@@ -275,6 +323,7 @@ S047.prototype.drawLayer = function(pg, key, args) {
   let t = args.t * this.timeStep;
   let p = this.p;
 
+  pg.shader(this.shaderVignette);
   pg.clear();
 
   let c0 = 4;
