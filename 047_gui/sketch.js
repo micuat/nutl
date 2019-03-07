@@ -145,21 +145,28 @@ S047.prototype.drawRing = function (pg, r0, r1, rate) {
     y = r0 * -Math.cos(theta1);
     pg.vertex(x, y, 1, 0.5);
 
-    // x = r1 * Math.sin(theta1);
-    // y = r1 * -Math.cos(theta1);
-    // pg.vertex(x, y, 0.5, 0.5);
+    x = r1 * Math.sin(theta1);
+    y = r1 * -Math.cos(theta1);
+    pg.vertex(x, y, 0.5, 0.5);
 
-    // x = r1 * Math.sin(theta0);
-    // y = r1 * -Math.cos(theta0);
-    // pg.vertex(x, y, 0.5, 0.5);
-    pg.vertex(0, 0, 0.5, 0.5); //TODO
+    x = r0 * Math.sin(theta0);
+    y = r0 * -Math.cos(theta0);
+    pg.vertex(x, y, 1, 0.5);
+
+    x = r1 * Math.sin(theta1);
+    y = r1 * -Math.cos(theta1);
+    pg.vertex(x, y, 0.5, 0.5);
+
+    x = r1 * Math.sin(theta0);
+    y = r1 * -Math.cos(theta0);
+    pg.vertex(x, y, 0.5, 0.5);
   }
 }
 
 S047.prototype.drawCircle = function (pg, c0, alpha) {
   let p = this.p;
   let r0 = 45;
-  let r1 = 0;
+  let r1 = 35;
   let a = EasingFunctions.easeInOutQuint(alpha);
   if(a > 1) a = 2 - a;
   let rate = a;
