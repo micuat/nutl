@@ -1,5 +1,3 @@
-var colorScheme = new ColorScheme("db2763-b0db43-12eaea-bce7fd-c492b1");
-// var colorScheme = new ColorScheme("ff6b35-f7c59f-efefd0-004e89-1a659e");
 
 function S047(p, w, h) {
   TLayer.call(this, p, w, h);
@@ -13,25 +11,17 @@ function S047(p, w, h) {
   this.init();
 
   this.shaderVignette = p.loadShader(p.folderName + "/shaders/vignette.frag", p.folderName + "/shaders/vignette.vert");
-
-  this.shapes = {};
-
-  {
-    s = p.createShape();
-    this.drawPatternB(s, 1);
-    this.shapes.ichimatsu = s;
-  }
-  {
-    s = p.createShape();
-    this.drawPatternA(s, 1);
-    this.shapes.circle = s;
-  }
 }
 
 S047.prototype = Object.create(TLayer.prototype);
 
 S047.prototype.init = function() {
   let p = this.p;
+  this.colorScheme = p.random([
+    new ColorScheme("db2763-b0db43-12eaea-bce7fd-c492b1"),
+    new ColorScheme("ff6b35-f7c59f-efefd0-004e89-1a659e")
+  ]);
+
   this.finishing = 0;
   this.patternParams = {
     nAlternate: Math.floor(p.random(0, 4) + 1)
@@ -56,6 +46,19 @@ S047.prototype.init = function() {
     for(let j = 0; j < 20; j++) {
       this.matrix[i][j] = {state: "wait", time: 0};
     }
+  }
+
+  this.shapes = {};
+
+  {
+    s = p.createShape();
+    this.drawPatternB(s, 1);
+    this.shapes.ichimatsu = s;
+  }
+  {
+    s = p.createShape();
+    this.drawPatternA(s, 1);
+    this.shapes.circle = s;
   }
 }
 
@@ -107,7 +110,7 @@ S047.prototype.update = function(args) {
   this.lastT = t;
 }
 
-S047.prototype.drawBar = function (pg, c0, alpha) {
+S047.prototype.drawBar = function (pg, col, alpha) {
   let p = this.p;
   pg.fill(70, 255);
   let L = 90;
@@ -121,7 +124,7 @@ S047.prototype.drawBar = function (pg, c0, alpha) {
   if(a > 1) a = 2 - a;
   let rate = a;
   let l = L * rate;
-  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+  pg.fill(col.r, col.g, col.b, 255);
   pg.vertex(-l/2, -L/2, 0.5, 0.5);
   pg.vertex(l/2, -L/2, 0.5, 0.5);
   pg.vertex(l/2, L/2, 0.5, 0.5);
@@ -163,18 +166,18 @@ S047.prototype.drawRing = function (pg, r0, r1, rate) {
   }
 }
 
-S047.prototype.drawCircle = function (pg, c0, alpha) {
+S047.prototype.drawCircle = function (pg, col, alpha) {
   let p = this.p;
   let r0 = 45;
   let r1 = 35;
   let a = EasingFunctions.easeInOutQuint(alpha);
   if(a > 1) a = 2 - a;
   let rate = a;
-  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+  pg.fill(col.r, col.g, col.b, 255);
   this.drawRing(pg, r0, r1, rate);
 }
 
-S047.prototype.drawBase = function (pg, c0, tween) {
+S047.prototype.drawBase = function (pg, col, tween) {
   let p = this.p;
   pg.fill(70, 255);
   let L = 90;
@@ -187,7 +190,7 @@ S047.prototype.drawBase = function (pg, c0, tween) {
 
   let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2,0,1)) * L;
 
-  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+  pg.fill(col.r, col.g, col.b, 255);
   pg.vertex(-l/2, -L/2, 0, 0);
   pg.vertex(l/2, -L/2, 1, 0);
   pg.vertex(l/2, L/2, 1, 1);
@@ -196,13 +199,12 @@ S047.prototype.drawBase = function (pg, c0, tween) {
   pg.vertex(-l/2, L/2, 0, 1);
 }
 
-S047.prototype.drawIchimatsu = function (pg, c0, tween) {
+S047.prototype.drawIchimatsu = function (pg, col, tween) {
   let p = this.p;
   let L = 90;
   let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2-1,0,1)) * L;
 
-  c0+=1;
-  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+  pg.fill(col.r, col.g, col.b, 255);
   pg.vertex(-L/2, -L/2, 0.5, 0.5);
   pg.vertex(0, 0, 0.5, 0.5);
   pg.vertex(-L/2, -L/2+l, 0.5, 0.5);
@@ -218,8 +220,8 @@ S047.prototype.drawPatternA = function (pg, tween) {
   }
   pg.beginShape(p.TRIANGLES);
   pg.noStroke();
-  this.drawBar(pg, 1, tween);
-  this.drawCircle(pg, 0, tween);
+  this.drawBar(pg, this.colorScheme.get(1), tween);
+  this.drawCircle(pg, this.colorScheme.get(0), tween);
   pg.endShape();
 }
 
@@ -230,8 +232,8 @@ S047.prototype.drawPatternB = function (pg, tween) {
   }
   pg.beginShape(p.TRIANGLES);
   pg.noStroke();
-  this.drawBase(pg, 0, tween);
-  this.drawIchimatsu(pg, 0, tween);
+  this.drawBase(pg, this.colorScheme.get(0), tween);
+  this.drawIchimatsu(pg, this.colorScheme.get(1), tween);
   pg.endShape();
 }
 
@@ -253,7 +255,7 @@ S047.prototype.drawLayer = function(pg, key, args) {
   pg.clear();
 
   let c0 = 4;
-  pg.background(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 150);
+  pg.background(this.colorScheme.get(c0).r, this.colorScheme.get(c0).g, this.colorScheme.get(c0).b, 150);
 
   pg.translate(this.width / 2, this.height / 2);
 
