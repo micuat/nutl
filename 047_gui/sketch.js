@@ -83,6 +83,9 @@ S047.prototype = Object.create(TLayer.prototype);
 S047.prototype.init = function() {
   let p = this.p;
   this.finishing = 0;
+  this.patternParams = {
+    nAlternate: Math.floor(p.random(0, 4) + 1)
+  };
   this.pos = p.createVector(this.moveStep/2-1, this.moveStep/2);
   this.direction = p.createVector(0, 1);
   this.availableDirections = [
@@ -259,7 +262,7 @@ S047.prototype.drawPatternB = function (pg, ix, iy, tween) {
 }
 
 S047.prototype.drawPattern = function (pg, ix, iy, tween) {
-  let n = 1;
+  let n = this.patternParams.nAlternate;
   if((ix%(n*2)<n && iy%(n*2)<n) || (ix%(n*2)>=n && iy%(n*2)>=n)) {
     return this.drawPatternA(pg, ix, iy, tween);
   }
