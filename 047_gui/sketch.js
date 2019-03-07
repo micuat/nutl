@@ -18,78 +18,12 @@ function S047(p, w, h) {
 
   {
     s = p.createShape();
-    s.beginShape(p.TRIANGLES);
-    let c0 = 0;
-    s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-    s.noStroke();
-    let L = 90;
-    s.vertex(-L/2, -L/2, 0, 0);
-    s.vertex(L/2, -L/2, 1, 0);
-    s.vertex(L/2, L/2, 1, 1);
-    s.vertex(-L/2, -L/2, 0, 0);
-    s.vertex(L/2, L/2, 1, 1);
-    s.vertex(-L/2, L/2, 0, 1);
-    c0 = 1;
-    s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-    s.vertex(-L/2, -L/2, 0.5, 0.5);
-    s.vertex(0, 0, 0.5, 0.5);
-    s.vertex(-L/2, L/2, 0.5, 0.5);
-    s.vertex(L/2, -L/2, 0.5, 0.5);
-    s.vertex(0, 0, 0.5, 0.5);
-    s.vertex(L/2, L/2, 0.5, 0.5);
-    // s.vertex(-L/2, -L/2, 0, 0);
-    // s.vertex(0, 0, 0.5, 0.5);
-    // s.vertex(-L/2, L/2, 0, 1);
-    // s.vertex(L/2, -L/2, 1, 0);
-    // s.vertex(0, 0, 0.5, 0.5);
-    // s.vertex(L/2, L/2, 1, 1);
-    s.endShape();
-
+    this.drawPatternB(s, 1);
     this.shapes.ichimatsu = s;
   }
   {
     s = p.createShape();
-    s.beginShape(p.TRIANGLES);
-    let c0 = 1;
-    s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-    s.noStroke();
-    let L = 90;
-    s.vertex(-L/2, -L/2, 0.5, 0.5);
-    s.vertex(L/2, -L/2, 0.5, 0.5);
-    s.vertex(L/2, L/2, 0.5, 0.5);
-    s.vertex(-L/2, -L/2, 0.5, 0.5);
-    s.vertex(L/2, L/2, 0.5, 0.5);
-    s.vertex(-L/2, L/2, 0.5, 0.5);
-    // s.vertex(-L/2, -L/2, 0, 0);
-    // s.vertex(L/2, -L/2, 1, 0);
-    // s.vertex(L/2, L/2, 1, 1);
-    // s.vertex(-L/2, -L/2, 0, 0);
-    // s.vertex(L/2, L/2, 1, 1);
-    // s.vertex(-L/2, L/2, 0, 1);
-    c0 = 0;
-    s.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-    let n = 20;
-    let r0 = 45;
-    for(let i = 0; i < n; i++) {
-      let theta0, theta1, x, y;
-      theta0 = i / n * Math.PI * 2.0// * 0.5 - Math.PI/2;
-      theta1 = (i+1) / n * Math.PI * 2.0// * 0.5 - Math.PI/2;
-      x = r0 * Math.sin(theta0);
-      y = r0 * -Math.cos(theta0);
-      // s.vertex(x, y, 0.5, 0.5);
-      s.vertex(x, y, 1, 0.5);
-  
-      x = r0 * Math.sin(theta1);
-      y = r0 * -Math.cos(theta1);
-      // s.vertex(x, y, 0.5, 0.5);
-      s.vertex(x, y, 1, 0.5);
-  
-      x = y = 0;
-      s.vertex(x, y, 0.5, 0.5);
-    }
-    
-    s.endShape();
-  
+    this.drawPatternA(s, 1);
     this.shapes.circle = s;
   }
 }
@@ -116,7 +50,6 @@ S047.prototype.init = function() {
   this.scale = 2;
   this.scaleDest = 2;
 
-  // this.matrix = new Array(100, new Array(100));
   this.matrix = [];
   for(let i = 0; i < 40; i++) {
     this.matrix[i] = [];
@@ -151,14 +84,9 @@ S047.prototype.update = function(args) {
     else {
       this.direction = this.availableDirections[1];
     }
-    // this.direction = p.random(this.availableDirections);
 
     this.scale = this.scaleDest;
-    // if(p.random(1) > 0.6) {
-    //   this.scaleDest = p.random([2, 0.2]);
-    // }
     this.scaleDest = 1 / (Math.max(this.pos.x, 5) / 20);
-    // this.scaleDest = 1 / (Math.max(this.pos.x - 20, 5) / 10);
     
     if(this.finishing > 0) {
       this.scaleDest = this.scale;
@@ -179,143 +107,134 @@ S047.prototype.update = function(args) {
   this.lastT = t;
 }
 
-S047.prototype.drawBar = function (pg, c0, offset, alpha) {
+S047.prototype.drawBar = function (pg, c0, alpha) {
   let p = this.p;
   pg.fill(70, 255);
   let L = 90;
-  // pg.rect(-L/2, -L/2, L, L);
-  pg.beginShape(p.TRIANGLES);
   pg.vertex(-L/2, -L/2, 0.5, 0.5);
   pg.vertex(L/2, -L/2, 0.5, 0.5);
   pg.vertex(L/2, L/2, 0.5, 0.5);
   pg.vertex(-L/2, -L/2, 0.5, 0.5);
   pg.vertex(L/2, L/2, 0.5, 0.5);
   pg.vertex(-L/2, L/2, 0.5, 0.5);
-  pg.endShape();
-  let a = p.map(EasingFunctions.easeInOutQuint(alpha), 0, 1, 0, 1 - offset);
+  let a = EasingFunctions.easeInOutQuint(alpha);
   if(a > 1) a = 2 - a;
   let rate = a;
   let l = L * rate;
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-  // pg.rect(-l/2, -L/2, l, L);
-  pg.beginShape(p.TRIANGLES);
   pg.vertex(-l/2, -L/2, 0.5, 0.5);
   pg.vertex(l/2, -L/2, 0.5, 0.5);
   pg.vertex(l/2, L/2, 0.5, 0.5);
   pg.vertex(-l/2, -L/2, 0.5, 0.5);
   pg.vertex(l/2, L/2, 0.5, 0.5);
   pg.vertex(-l/2, L/2, 0.5, 0.5);
-  pg.endShape();
 }
 
 S047.prototype.drawRing = function (pg, r0, r1, rate) {
   let p = this.p;
   let n = 20;
-  pg.beginShape(p.QUADS);
   for(let i = 0; i < n; i++) {
     let theta0, theta1, x, y;
-    theta0 = i / n * Math.PI * 2.0 * rate;
-    theta1 = (i+1) / n * Math.PI * 2.0 * rate;
+    theta0 = i / n * Math.PI * 2.0 * rate + rate * Math.PI;
+    theta1 = (i+1) / n * Math.PI * 2.0 * rate + rate * Math.PI;
     x = r0 * Math.sin(theta0);
     y = r0 * -Math.cos(theta0);
-    // pg.vertex(x, y, 0.5, 0.5);
     pg.vertex(x, y, 1, 0.5);
 
     x = r0 * Math.sin(theta1);
     y = r0 * -Math.cos(theta1);
-    // pg.vertex(x, y, 0.5, 0.5);
     pg.vertex(x, y, 1, 0.5);
 
-    x = r1 * Math.sin(theta1);
-    y = r1 * -Math.cos(theta1);
-    pg.vertex(x, y, 0.5, 0.5);
+    // x = r1 * Math.sin(theta1);
+    // y = r1 * -Math.cos(theta1);
+    // pg.vertex(x, y, 0.5, 0.5);
 
-    x = r1 * Math.sin(theta0);
-    y = r1 * -Math.cos(theta0);
-    pg.vertex(x, y, 0.5, 0.5);
+    // x = r1 * Math.sin(theta0);
+    // y = r1 * -Math.cos(theta0);
+    // pg.vertex(x, y, 0.5, 0.5);
+    pg.vertex(0, 0, 0.5, 0.5); //TODO
   }
-  pg.endShape();
 }
 
-S047.prototype.drawCircle = function (pg, c0, offset, alpha) {
+S047.prototype.drawCircle = function (pg, c0, alpha) {
   let p = this.p;
   let r0 = 45;
   let r1 = 0;
-  let a = p.map(EasingFunctions.easeInOutQuint(alpha), 0, 1, 0, 1 - offset);
+  let a = EasingFunctions.easeInOutQuint(alpha);
   if(a > 1) a = 2 - a;
   let rate = a;
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-  pg.rotate(rate * Math.PI);
   this.drawRing(pg, r0, r1, rate);
 }
 
-S047.prototype.drawBase = function (pg, c0, offset, tween, type) {
+S047.prototype.drawBase = function (pg, c0, tween) {
   let p = this.p;
   pg.fill(70, 255);
   let L = 90;
-  pg.rect(-L/2, -L/2, L, L);
+  pg.vertex(-L/2, -L/2, 0.5, 0.5);
+  pg.vertex(L/2, -L/2, 0.5, 0.5);
+  pg.vertex(L/2, L/2, 0.5, 0.5);
+  pg.vertex(-L/2, -L/2, 0.5, 0.5);
+  pg.vertex(L/2, L/2, 0.5, 0.5);
+  pg.vertex(-L/2, L/2, 0.5, 0.5);
 
   let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2,0,1)) * L;
 
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-  pg.rect(-l/2, -L/2, l, L);
+  pg.vertex(-l/2, -L/2, 0, 0);
+  pg.vertex(l/2, -L/2, 1, 0);
+  pg.vertex(l/2, L/2, 1, 1);
+  pg.vertex(-l/2, -L/2, 0, 0);
+  pg.vertex(l/2, L/2, 1, 1);
+  pg.vertex(-l/2, L/2, 0, 1);
 }
 
-S047.prototype.drawIchimatsu = function (pg, c0, offset, tween, type) {
+S047.prototype.drawIchimatsu = function (pg, c0, tween) {
   let p = this.p;
   let L = 90;
   let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2-1,0,1)) * L;
 
   c0+=1;
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
-  if(offset > 0) pg.rotate(Math.PI/2);
-  pg.beginShape(p.TRIANGLES);
   pg.vertex(-L/2, -L/2, 0.5, 0.5);
   pg.vertex(0, 0, 0.5, 0.5);
   pg.vertex(-L/2, -L/2+l, 0.5, 0.5);
-  // pg.vertex(-L/2, -L/2, 0, 0);
-  // pg.vertex(0, 0, 0.5, 0.5);
-  // pg.vertex(-L/2, -L/2+l, 0, 1);
-  pg.endShape();
-  if(type == 0)
-    pg.scale(-1,1);
-  else
-    pg.rotate(Math.PI);
-  pg.beginShape(p.TRIANGLES);
-  pg.vertex(-L/2, -L/2, 0.5, 0.5);
+  pg.vertex(L/2, -L/2, 0.5, 0.5);
   pg.vertex(0, 0, 0.5, 0.5);
-  pg.vertex(-L/2, -L/2+l, 0.5, 0.5);
-  // pg.vertex(-L/2, -L/2, 0, 0);
-  // pg.vertex(0, 0, 0.5, 0.5);
-  // pg.vertex(-L/2, -L/2+l, 0, 1);
-  pg.endShape();
+  pg.vertex(L/2, -L/2+l, 0.5, 0.5);
 }
 
-S047.prototype.drawPatternA = function (pg, ix, iy, tween) {
+S047.prototype.drawPatternA = function (pg, tween) {
+  let p = this.p;
   if(pg == null) {
     return this.shapes.circle;
   }
-  let phase = 0;//(ix * 0.5 + iy * 0.5) % 1;
-  this.drawBar(pg, 1, 0, tween);
-  this.drawCircle(pg, 0, phase, tween);
+  pg.beginShape(p.TRIANGLES);
+  pg.noStroke();
+  this.drawBar(pg, 1, tween);
+  this.drawCircle(pg, 0, tween);
+  pg.endShape();
 }
 
-S047.prototype.drawPatternB = function (pg, ix, iy, tween) {
+S047.prototype.drawPatternB = function (pg, tween) {
+  let p = this.p;
   if(pg == null) {
     return this.shapes.ichimatsu;
   }
-  let phase = 0;
-  this.drawBase(pg, 0, phase, tween, (ix * 0.5 + iy * 0.5) % 1);
-  this.drawIchimatsu(pg, 0, phase, tween, (ix * 0.5 + iy * 0.5) % 1);
+  pg.beginShape(p.TRIANGLES);
+  pg.noStroke();
+  this.drawBase(pg, 0, tween);
+  this.drawIchimatsu(pg, 0, tween);
+  pg.endShape();
 }
 
 S047.prototype.drawPattern = function (pg, ix, iy, tween) {
   let n = this.patternParams.nAlternate;
   if((ix%(n*2)<n && iy%(n*2)<n) || (ix%(n*2)>=n && iy%(n*2)>=n)) {
-    return this.drawPatternA(pg, ix, iy, tween);
+    return this.drawPatternA(pg, tween);
   }
   else {
-    return this.drawPatternB(pg, ix, iy, tween);
+    return this.drawPatternB(pg, tween);
   }
 }
 
@@ -349,8 +268,6 @@ S047.prototype.drawLayer = function(pg, key, args) {
   pg.translate(absx + dx, absy + dy);
   pg.push();
   pg.scale(-1,-1)
-  // pg.scale(4,4)
-  // pg.image(this.backPg, 0, 0)
 
   let fakedx = (p.map(t%1, 0.1, 0.9, 0, 1) * this.moveStep * this.direction.x) * this.gridTick;
   let fakedy = (p.map(t%1, 0.1, 0.9, 0, 1) * this.moveStep * this.direction.y) * this.gridTick;
@@ -379,7 +296,6 @@ S047.prototype.drawLayer = function(pg, key, args) {
   }
   pg.pop();
   pg.translate(- cx, - cy);
-  pg.noStroke();
 
   for(let i = -this.moveStep; i <= this.moveStep; i++) {
     for(let j = -this.moveStep; j <= this.moveStep; j++) {
