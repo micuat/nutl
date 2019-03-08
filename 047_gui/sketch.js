@@ -77,7 +77,7 @@ S047.prototype.update = function(args) {
     print(this.pos)
 
     this.moveCount++;
-    let cycle = 4;
+    let cycle = (Math.floor(this.matrix[0].length / this.moveStep) + 1) * 2;
     if(this.moveCount % cycle <= cycle / 2 - 1 - 1) {
       this.direction = this.availableDirections[3];
     }
@@ -91,8 +91,9 @@ S047.prototype.update = function(args) {
       this.direction = this.availableDirections[1];
     }
 
+    let destX = this.pos.x + this.direction.x * this.moveStep;
     this.scale = this.scaleDest;
-    this.scaleDest = 1 / (Math.max(this.pos.x, 5) / 20);
+    this.scaleDest = 1 / (Math.max(destX, 5) / 20);
     
     if(this.finishing > 0) {
       this.scaleDest = this.scale;
@@ -104,7 +105,7 @@ S047.prototype.update = function(args) {
       }
     }
     else {
-      if(this.pos.x + this.direction.x * this.moveStep > this.matrix[0].length) {
+      if(destX > this.matrix[0].length) {
         this.finishing = 1;
         this.direction.set(-this.matrix[0].length / 2 / this.moveStep, -cycle / 2 / this.moveStep);
       }
