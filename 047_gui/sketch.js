@@ -8,19 +8,22 @@ function S047(p, w, h) {
   this.moveStep = 4;
   this.timeStep = 0.5;
   this.gridTick = 100;
-  this.init();
+  this.colorSchemes = [
+    new ColorScheme("db2763-b0db43-12eaea-bce7fd-c492b1"),
+    new ColorScheme("ff6b35-f7c59f-efefd0-004e89-1a659e")
+  ];
 
   this.shaderVignette = p.loadShader(p.folderName + "/shaders/vignette.frag", p.folderName + "/shaders/vignette.vert");
+
+  this.init();
 }
 
 S047.prototype = Object.create(TLayer.prototype);
 
 S047.prototype.init = function() {
   let p = this.p;
-  this.colorScheme = p.random([
-    new ColorScheme("db2763-b0db43-12eaea-bce7fd-c492b1"),
-    new ColorScheme("ff6b35-f7c59f-efefd0-004e89-1a659e")
-  ]);
+  this.colorScheme = p.random(this.colorSchemes);
+  this.colorScheme.shuffle();
 
   this.finishing = 0;
   this.patternParams = {
