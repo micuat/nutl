@@ -6,7 +6,7 @@ function S047(p, w, h) {
   this.lastT = 0;
   this.tBase = 0;
   this.moveStep = 4;
-  this.timeStep = 0.5;
+  this.timeStep = 1;
   this.gridTick = 100;
   this.colorSchemes = [
     new ColorScheme("db2763-b0db43-12eaea-bce7fd-c492b1"),
@@ -53,15 +53,16 @@ S047.prototype.init = function() {
 
   this.shapes = {};
 
-  {
+  let patterns = [
+    "drawPatternIchimatsu",
+    "drawPatternCircle"
+  ];
+
+  for(let i in patterns) {
+    let key = patterns[i];
     s = p.createShape();
-    this.drawPatternB(s, 1);
-    this.shapes.ichimatsu = s;
-  }
-  {
-    s = p.createShape();
-    this.drawPatternA(s, 1);
-    this.shapes.circle = s;
+    this[key](s, 1);
+    this.shapes[key] = s;
   }
 }
 
@@ -217,10 +218,10 @@ S047.prototype.drawIchimatsu = function (pg, col, tween) {
   pg.vertex(L/2, -L/2+l, 0.5, 0.5);
 }
 
-S047.prototype.drawPatternA = function (pg, tween) {
+S047.prototype.drawPatternCircle = function (pg, tween) {
   let p = this.p;
   if(pg == null) {
-    return this.shapes.circle;
+    return this.shapes.drawPatternCircle;
   }
   pg.beginShape(p.TRIANGLES);
   pg.noStroke();
@@ -229,10 +230,10 @@ S047.prototype.drawPatternA = function (pg, tween) {
   pg.endShape();
 }
 
-S047.prototype.drawPatternB = function (pg, tween) {
+S047.prototype.drawPatternIchimatsu = function (pg, tween) {
   let p = this.p;
   if(pg == null) {
-    return this.shapes.ichimatsu;
+    return this.shapes.drawPatternIchimatsu;
   }
   pg.beginShape(p.TRIANGLES);
   pg.noStroke();
@@ -244,10 +245,10 @@ S047.prototype.drawPatternB = function (pg, tween) {
 S047.prototype.drawPattern = function (pg, ix, iy, tween) {
   let n = this.patternParams.nAlternate;
   if((ix%(n*2)<n && iy%(n*2)<n) || (ix%(n*2)>=n && iy%(n*2)>=n)) {
-    return this.drawPatternA(pg, tween);
+    return this.drawPatternCircle(pg, tween);
   }
   else {
-    return this.drawPatternB(pg, tween);
+    return this.drawPatternIchimatsu(pg, tween);
   }
 }
 
