@@ -1,3 +1,139 @@
+function Atom(args) {
+  this.p = args.p;
+  this.size = args.size;
+  this.shape = this.p.createShape();
+  this.drawShape({pg: this.shape, tween: 1});
+}
+
+Atom.prototype.draw = function () {
+
+}
+
+var drawDoorway = function (args) {
+  let p = args.p;
+  let pg = args.pg;
+  let col = args.col;
+  let tween = args.tween;
+  pg.fill(70, 255);
+  let L = 90;
+  pg.vertex(-L/2, -L/2, 0.5, 0.5);
+  pg.vertex(L/2, -L/2, 0.5, 0.5);
+  pg.vertex(L/2, L/2, 0.5, 0.5);
+  pg.vertex(-L/2, -L/2, 0.5, 0.5);
+  pg.vertex(L/2, L/2, 0.5, 0.5);
+  pg.vertex(-L/2, L/2, 0.5, 0.5);
+
+  let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2,0,1)) * L;
+
+  pg.fill(col.r, col.g, col.b, 255);
+  pg.vertex(-l/2, -L/2, 0, 0);
+  pg.vertex(l/2, -L/2, 1, 0);
+  pg.vertex(l/2, L/2, 1, 1);
+  pg.vertex(-l/2, -L/2, 0, 0);
+  pg.vertex(l/2, L/2, 1, 1);
+  pg.vertex(-l/2, L/2, 0, 1);
+}
+
+var drawRing = function (args) {
+  let p = args.p;
+  let pg = args.pg;
+  let col = args.col;
+  let tween = args.tween;
+  let r0 = 45;
+  let r1 = 35;
+  let a = EasingFunctions.easeInOutQuint(tween);
+  if(a > 1) a = 2 - a;
+  let rate = a;
+  pg.fill(col.r, col.g, col.b, 255);
+
+  let n = 20;
+  for(let i = 0; i < n; i++) {
+    let theta0, theta1, x, y;
+    theta0 = i / n * Math.PI * 2.0 * rate + rate * Math.PI;
+    theta1 = (i+1) / n * Math.PI * 2.0 * rate + rate * Math.PI;
+    x = r0 * Math.sin(theta0);
+    y = r0 * -Math.cos(theta0);
+    pg.vertex(x, y, 1, 0.5);
+
+    x = r0 * Math.sin(theta1);
+    y = r0 * -Math.cos(theta1);
+    pg.vertex(x, y, 1, 0.5);
+
+    x = r1 * Math.sin(theta1);
+    y = r1 * -Math.cos(theta1);
+    pg.vertex(x, y, 0.5, 0.5);
+
+    x = r0 * Math.sin(theta0);
+    y = r0 * -Math.cos(theta0);
+    pg.vertex(x, y, 1, 0.5);
+
+    x = r1 * Math.sin(theta1);
+    y = r1 * -Math.cos(theta1);
+    pg.vertex(x, y, 0.5, 0.5);
+
+    x = r1 * Math.sin(theta0);
+    y = r1 * -Math.cos(theta0);
+    pg.vertex(x, y, 0.5, 0.5);
+  }
+}
+
+var drawBowtie = function (args) {
+  let p = args.p;
+  let col = args.col;
+  let tween = args.tween;
+  let L = 90;
+  let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2-1,0,1)) * L;
+
+  pg.fill(col.r, col.g, col.b, 255);
+  pg.vertex(-L/2, -L/2, 0.5, 0.5);
+  pg.vertex(0, 0, 0.5, 0.5);
+  pg.vertex(-L/2, -L/2+l, 0.5, 0.5);
+  pg.vertex(L/2, -L/2, 0.5, 0.5);
+  pg.vertex(0, 0, 0.5, 0.5);
+  pg.vertex(L/2, -L/2+l, 0.5, 0.5);
+}
+
+function ARing(args) {
+  Atom.call(this, args);
+}
+
+ARing.prototype = Object.create(Atom.prototype);
+ARing.prototype.constructor = AIchimatsu;
+
+ARing.prototype.drawShape = function (args) {
+  let p = args.p;
+  let pg = args.pg;
+  let tween = args.tween;
+  if(pg == null) {
+    return this.shape;
+  }
+  pg.beginShape(p.TRIANGLES);
+  pg.noStroke();
+  drawDoorway({pg: pg, col: args.colorScheme.get(1), tween: tween});
+  drawCircle({pg: pg, col: args.colorScheme.get(0), tween: tween});
+  pg.endShape();
+}
+
+function AIchimatsu(args) {
+  Atom.call(this, args);
+}
+
+AIchimatsu.prototype = Object.create(Atom.prototype);
+AIchimatsu.prototype.constructor = AIchimatsu;
+
+AIchimatsu.prototype.drawShape = function (args) {
+  let p = args.p;
+  let pg = args.pg;
+  let tween = args.tween;
+  if(pg == null) {
+    return this.shape;
+  }
+  pg.beginShape(p.TRIANGLES);
+  pg.noStroke();
+  drawBase({pg: pg, col: args.colorScheme.get(0), tween: tween});
+  drawIchimatsu({pg: pg, col: args.colorScheme.get(1), tween: tween});
+  pg.endShape();
+}
 
 function S047(p, w, h) {
   TLayer.call(this, p, w, h);
@@ -19,6 +155,7 @@ function S047(p, w, h) {
 }
 
 S047.prototype = Object.create(TLayer.prototype);
+S047.prototype.constructor = S047;
 
 S047.prototype.init = function() {
   let p = this.p;
@@ -38,10 +175,8 @@ S047.prototype.init = function() {
     p.createVector( 0,  1)
   ]
   this.moveCount = 0;
-  // this.scale = 0.25;
-  // this.scaleDest = 0.25;
-  this.scale = 2;
-  this.scaleDest = 2;
+  this.scale = 4;
+  this.scaleDest = 4;
 
   this.matrix = [];
   for(let i = 0; i < 40; i++) {
@@ -350,8 +485,6 @@ S047.prototype.drawLayer = function(pg, key, args) {
 
   pg.popMatrix();
 }
-
-S047.prototype.constructor = S047;
 
 ////////
 
