@@ -235,11 +235,11 @@ S047.prototype.update = function(args) {
   this.lastT = t;
 }
 
-S047.prototype.drawPattern = function (pg, ix, iy, tween) {
+S047.prototype.drawPattern = function (args) {
+  let j = args.j;
+  let i = args.i;
   let n = this.patternParams.nAlternate;
-  let cookedShape = pg == null;
-  let args = {p: this.p, pg: pg, tween: tween, colorScheme: this.colorScheme, cookedShape: cookedShape};
-  if((ix%(n*2)<n && iy%(n*2)<n) || (ix%(n*2)>=n && iy%(n*2)>=n)) {
+  if((j%(n*2)<n && i%(n*2)<n) || (j%(n*2)>=n && i%(n*2)>=n)) {
     return this.tiles.ring.draw(args);
   }
   else {
@@ -299,7 +299,7 @@ S047.prototype.drawLayer = function(pg, key, args) {
       }
 
       if(this.matrix[i][j].state == "done") {
-        pg.shape(this.drawPattern(null, j, i), j * this.gridTick, i * this.gridTick);
+        pg.shape(this.drawPattern({j: j, i: i, cookedShape: true}), j * this.gridTick, i * this.gridTick);
       }
     }
   }
@@ -330,7 +330,7 @@ S047.prototype.drawLayer = function(pg, key, args) {
           if(this.matrix[iy][ix].state == "wait") tween = 0;
           else if(this.matrix[iy][ix].state == "tweening") {
             tween = p.map(t - this.matrix[iy][ix].time, 0, 0.5, 0, 1);
-            this.drawPattern(pg, ix, iy, tween);
+            this.drawPattern({j: ix, i: iy, pg: pg, tween: tween, cookedShape: false});
           }
           else {
             // already drawn
