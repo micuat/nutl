@@ -318,26 +318,20 @@ S047.prototype.drawLayer = function(pg, key, args) {
 
       pg.pushMatrix();
       pg.translate(j * this.gridTick, i * this.gridTick);
-      let sx = pg.screenX(0, 0);
-      let sy = pg.screenY(0, 0);
 
-      // if(Math.abs(sx - this.width / 2) < (this.width + this.gridTick) / 2
-      // && Math.abs(sy - this.height / 2) < (this.height + this.gridTick) / 2) {
-      if(true) {
-        if(this.matrix[iy] != undefined && this.matrix[iy][ix] != undefined) {
-          let tween = 0;
+      if(this.matrix[iy] != undefined && this.matrix[iy][ix] != undefined) {
+        let tween = 0;
 
-          if(this.matrix[iy][ix].state == "wait") tween = 0;
-          else if(this.matrix[iy][ix].state == "tweening") {
-            tween = p.map(t - this.matrix[iy][ix].time, 0, 0.5, 0, 1);
-            this.drawPattern({j: ix, i: iy, pg: pg, tween: tween, cookedShape: false});
-          }
-          else {
-            // already drawn
-          }
+        if(this.matrix[iy][ix].state == "wait") tween = 0;
+        else if(this.matrix[iy][ix].state == "tweening") {
+          tween = p.map(t - this.matrix[iy][ix].time, 0, 0.5, 0, 1);
+          this.drawPattern({j: ix, i: iy, pg: pg, tween: tween, cookedShape: false});
         }
-        // pg.text(ix + " " + iy, 0, 0);
+        else {
+          // already drawn
+        }
       }
+      // pg.text(ix + " " + iy, 0, 0);
 
       pg.popMatrix();
     }
