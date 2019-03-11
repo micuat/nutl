@@ -1,9 +1,10 @@
 function Atom(args) {
   this.p = args.p;
   this.size = args.size;
+  this.colors = args.colorScheme;
   // cooking
   this.shape = this.p.createShape();
-  this.draw({p: this.p, pg: this.shape, tween: 1, colorScheme: args.colorScheme});
+  this.draw({pg: this.shape, tween: 1, colors: this.colors});
 }
 
 Atom.prototype.draw = function (args) {
@@ -11,7 +12,7 @@ Atom.prototype.draw = function (args) {
     return this.shape;
   }
   else {
-    args.pg.beginShape(args.p.TRIANGLES);
+    args.pg.beginShape(this.p.TRIANGLES);
     this.drawShape(args);
     args.pg.endShape();
   }
@@ -110,12 +111,9 @@ ARing.prototype = Object.create(Atom.prototype);
 ARing.prototype.constructor = AIchimatsu;
 
 ARing.prototype.drawShape = function (args) {
-  let p = args.p;
-  let pg = args.pg;
-  let tween = args.tween;
-  pg.noStroke();
-  MotionAtoms.Doorway({p: p, pg: pg, L: 90, col: args.colorScheme.get(1), tween: tween});
-  MotionAtoms.Ring({p: p, pg: pg, r1: 45, r0: 35, col: args.colorScheme.get(0), tween: tween});
+  args.pg.noStroke();
+  MotionAtoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(1), tween: args.tween});
+  MotionAtoms.Ring({p: this.p, pg: args.pg, r1: this.size/2, r0: this.size/2*7/9, col: this.colors.get(0), tween: args.tween});
 }
 
 function AIchimatsu(args) {
@@ -126,12 +124,9 @@ AIchimatsu.prototype = Object.create(Atom.prototype);
 AIchimatsu.prototype.constructor = AIchimatsu;
 
 AIchimatsu.prototype.drawShape = function (args) {
-  let p = args.p;
-  let pg = args.pg;
-  let tween = args.tween;
-  pg.noStroke();
-  MotionAtoms.Doorway({p: p, pg: pg, L: 90, col: args.colorScheme.get(0), tween: tween});
-  MotionAtoms.Bowtie({p: p, pg: pg, L: 90, col: args.colorScheme.get(1), tween: tween});
+  args.pg.noStroke();
+  MotionAtoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(0), tween: args.tween});
+  MotionAtoms.Bowtie({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(1), tween: args.tween});
 }
 
 function S047(p, w, h) {
@@ -186,7 +181,7 @@ S047.prototype.init = function() {
   }
 
   this.tiles = {};
-  let args = {p: p, colorScheme: this.colorScheme};
+  let args = {p: p, colorScheme: this.colorScheme, size: 90};
   this.tiles.ichimatsu = new AIchimatsu(args);
   this.tiles.ring = new ARing(args);
 }
