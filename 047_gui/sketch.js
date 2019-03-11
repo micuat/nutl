@@ -23,8 +23,8 @@ var MotionAtoms = {
     let pg = args.pg;
     let col = args.col;
     let tween = args.tween;
+    let L = args.L;
     pg.fill(70, 255);
-    let L = 90;
     pg.vertex(-L/2, -L/2, 0.5, 0.5);
     pg.vertex(L/2, -L/2, 0.5, 0.5);
     pg.vertex(L/2, L/2, 0.5, 0.5);
@@ -47,8 +47,8 @@ var MotionAtoms = {
     let pg = args.pg;
     let col = args.col;
     let tween = args.tween;
-    let r0 = 45;
-    let r1 = 35;
+    let r0 = args.r0;
+    let r1 = args.r1;
     let a = EasingFunctions.easeInOutQuint(tween);
     if(a > 1) a = 2 - a;
     let rate = a;
@@ -59,28 +59,28 @@ var MotionAtoms = {
       let theta0, theta1, x, y;
       theta0 = i / n * Math.PI * 2.0 * rate + rate * Math.PI;
       theta1 = (i+1) / n * Math.PI * 2.0 * rate + rate * Math.PI;
-      x = r0 * Math.sin(theta0);
-      y = r0 * -Math.cos(theta0);
+      x = r1 * Math.sin(theta0);
+      y = r1 * -Math.cos(theta0);
+      pg.vertex(x, y, 1, 0.5);
+
+      x = r1 * Math.sin(theta1);
+      y = r1 * -Math.cos(theta1);
       pg.vertex(x, y, 1, 0.5);
 
       x = r0 * Math.sin(theta1);
       y = r0 * -Math.cos(theta1);
-      pg.vertex(x, y, 1, 0.5);
-
-      x = r1 * Math.sin(theta1);
-      y = r1 * -Math.cos(theta1);
-      pg.vertex(x, y, 0.5, 0.5);
-
-      x = r0 * Math.sin(theta0);
-      y = r0 * -Math.cos(theta0);
-      pg.vertex(x, y, 1, 0.5);
-
-      x = r1 * Math.sin(theta1);
-      y = r1 * -Math.cos(theta1);
       pg.vertex(x, y, 0.5, 0.5);
 
       x = r1 * Math.sin(theta0);
       y = r1 * -Math.cos(theta0);
+      pg.vertex(x, y, 1, 0.5);
+
+      x = r0 * Math.sin(theta1);
+      y = r0 * -Math.cos(theta1);
+      pg.vertex(x, y, 0.5, 0.5);
+
+      x = r0 * Math.sin(theta0);
+      y = r0 * -Math.cos(theta0);
       pg.vertex(x, y, 0.5, 0.5);
     }
   },
@@ -89,7 +89,7 @@ var MotionAtoms = {
     let pg = args.pg;
     let col = args.col;
     let tween = args.tween;
-    let L = 90;
+    let L = args.L;
     let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2-1,0,1)) * L;
 
     pg.fill(col.r, col.g, col.b, 255);
@@ -114,8 +114,8 @@ ARing.prototype.drawShape = function (args) {
   let pg = args.pg;
   let tween = args.tween;
   pg.noStroke();
-  MotionAtoms.Doorway({p: p, pg: pg, col: args.colorScheme.get(1), tween: tween});
-  MotionAtoms.Ring({p: p, pg: pg, col: args.colorScheme.get(0), tween: tween});
+  MotionAtoms.Doorway({p: p, pg: pg, L: 90, col: args.colorScheme.get(1), tween: tween});
+  MotionAtoms.Ring({p: p, pg: pg, r1: 45, r0: 35, col: args.colorScheme.get(0), tween: tween});
 }
 
 function AIchimatsu(args) {
@@ -130,8 +130,8 @@ AIchimatsu.prototype.drawShape = function (args) {
   let pg = args.pg;
   let tween = args.tween;
   pg.noStroke();
-  MotionAtoms.Doorway({p: p, pg: pg, col: args.colorScheme.get(0), tween: tween});
-  MotionAtoms.Bowtie({p: p, pg: pg, col: args.colorScheme.get(1), tween: tween});
+  MotionAtoms.Doorway({p: p, pg: pg, L: 90, col: args.colorScheme.get(0), tween: tween});
+  MotionAtoms.Bowtie({p: p, pg: pg, L: 90, col: args.colorScheme.get(1), tween: tween});
 }
 
 function S047(p, w, h) {
@@ -141,7 +141,7 @@ function S047(p, w, h) {
   this.lastT = 0;
   this.tBase = 0;
   this.moveStep = 4;
-  this.timeStep = 1;
+  this.timeStep = 0.5;
   this.gridTick = 100;
   this.colorSchemes = [
     new ColorScheme("db2763-b0db43-12eaea-bce7fd-c492b1"),
