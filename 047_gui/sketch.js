@@ -134,7 +134,19 @@ Tiles.Ichimatsu.prototype.drawShape = function (args) {
 var Wefts = {};
 Wefts.Base = function (args) {
   this.p = args.p;
-  this.tiles = args.tiles;
+  this.colorScheme = args.colorScheme;
+  this.gridTick = args.gridTick;
+  this.tileAssets = [Tiles.Ring, Tiles.Ichimatsu];
+  this.tiles = [null, null];
+  for(let i in this.tiles) {
+    let args = {
+      p: this.p,
+      colorScheme: this.colorScheme,
+      colorIndices: [Math.floor(this.p.random(4)), Math.floor(this.p.random(4))],
+      size: this.gridTick * 0.9
+    };
+    this.tiles[i] = new (this.tileAssets[i])(args);
+  }
 }
 
 Wefts.Checkered = function (args) {
@@ -185,7 +197,6 @@ function S047(p, w, h) {
   ];
 
   this.shaderVignette = p.loadShader(p.folderName + "/shaders/vignette.frag", p.folderName + "/shaders/vignette.vert");
-  this.tileAssets = [Tiles.Ring, Tiles.Ichimatsu];
   this.weftAssets = [Wefts.Checkered, Wefts.Uniform];
 
   this.init();
@@ -196,8 +207,6 @@ S047.prototype.constructor = S047;
 
 S047.prototype.init = function() {
   let p = this.p;
-  this.colorScheme = p.random(this.colorSchemes);
-  this.colorScheme.shuffle();
 
   this.finishing = 0;
   this.pos = p.createVector(this.moveStep/2-1, this.moveStep/2);
@@ -220,19 +229,8 @@ S047.prototype.init = function() {
     }
   }
 
-  this.tiles = [null, null];
-  for(let i in this.tiles) {
-    let args = {
-      p: p,
-      colorScheme: this.colorScheme,
-      colorIndices: [Math.floor(p.random(4)), Math.floor(p.random(4))],
-      size: this.gridTick * 0.9
-    };
-    this.tiles[i] = new (this.tileAssets[i])(args);
-  }
-
   {
-    let args = {p: this.p, tiles: this.tiles};
+    let args = {p: this.p, colorScheme: p.random(this.colorSchemes), gridTick: this.gridTick};
     this.weft = new (p.random(this.weftAssets))(args);
   }
 
@@ -294,8 +292,6 @@ S047.prototype.drawLayer = function(pg, key, args) {
   pg.shader(this.shaderVignette);
   pg.clear();
 
-  // let c0 = 4;
-  // pg.background(this.colorScheme.get(c0).r, this.colorScheme.get(c0).g, this.colorScheme.get(c0).b, 150);
   pg.background(128);
 
   pg.translate(this.width / 2, this.height / 2);
