@@ -145,6 +145,7 @@ function S047(p, w, h) {
   ];
 
   this.shaderVignette = p.loadShader(p.folderName + "/shaders/vignette.frag", p.folderName + "/shaders/vignette.vert");
+  this.tileAssets = [ARing, AIchimatsu];
 
   this.init();
 }
@@ -157,17 +158,17 @@ S047.prototype.drawPatternCheckered = function (args) {
   let i = args.i;
   let n = this.patternParams.nAlternate;
   if((j%(n*2)<n && i%(n*2)<n) || (j%(n*2)>=n && i%(n*2)>=n)) {
-    return this.tiles.ring.draw(args);
+    return this.tiles[0].draw(args);
   }
   else {
-    return this.tiles.ichimatsu.draw(args);
+    return this.tiles[1].draw(args);
   }
 }
 
 S047.prototype.drawUniform = function (args) {
   let j = args.j;
   let i = args.i;
-  return this.tiles.ichimatsu.draw(args);
+  return this.tiles[1].draw(args);
 }
 
 S047.prototype.init = function() {
@@ -200,15 +201,16 @@ S047.prototype.init = function() {
     }
   }
 
-  this.tiles = {};
-  let args = {
-    p: p,
-    colorScheme: this.colorScheme,
-    colorIndices: [Math.floor(p.random(4)), Math.floor(p.random(4))],
-    size: 90
-  };
-  this.tiles.ichimatsu = new AIchimatsu(args);
-  this.tiles.ring = new ARing(args);
+  this.tiles = [null, null];
+  for(let i in this.tiles) {
+    let args = {
+      p: p,
+      colorScheme: this.colorScheme,
+      colorIndices: [Math.floor(p.random(4)), Math.floor(p.random(4))],
+      size: 90
+    };
+    this.tiles[i] = new (this.tileAssets[i])(args);
+  }
 }
 
 S047.prototype.update = function(args) {
