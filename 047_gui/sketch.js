@@ -188,7 +188,7 @@ function S047(p, w, h) {
   this.lastT = 0;
   this.tBase = 0;
   this.moveStep = 4; // how many squares for each step (row/col)
-  this.macroRows = 5; // number of bundled rows
+  this.numWefts = 5; // number of bundled rows
   this.timeStep = 0.5;
   this.gridTick = 100;
   this.colorSchemes = [
@@ -217,21 +217,22 @@ S047.prototype.init = function() {
     p.createVector( 0, -1),
     p.createVector( 0,  1)
   ]
-  this.moveCount = 0;
+  this.moveCount = 0; // counts every move
   this.scale = 4;
   this.scaleDest = 4;
 
   this.matrix = [];
   for(let i = 0; i < 40; i++) {
     this.matrix[i] = [];
-    for(let j = 0; j < this.moveStep * this.macroRows; j++) {
+    for(let j = 0; j < this.moveStep * this.numWefts; j++) {
       this.matrix[i][j] = {state: "wait", time: 0};
     }
   }
 
-  {
-    let args = {p: this.p, colorScheme: p.random(this.colorSchemes), gridTick: this.gridTick};
-    this.weft = new (p.random(this.weftAssets))(args);
+  this.wefts = [];
+  let args = {p: this.p, colorScheme: p.random(this.colorSchemes), gridTick: this.gridTick};
+  for(let i = 0; i < this.numWefts; i++) {
+    this.wefts[i] = new (p.random(this.weftAssets))(args);
   }
 
 }
@@ -336,33 +337,37 @@ S047.prototype.drawLayer = function(pg, key, args) {
       }
 
       if(this.matrix[i][j].state == "done") {
-        pg.shape(this.weft.draw({j: j, i: i, cookedShape: true}), j * this.gridTick, i * this.gridTick);
+        pg.shape(this.wefts[Math.floor(j / this.moveStep)].draw({
+          j: j, i: i, cookedShape: true
+        }), j * this.gridTick, i * this.gridTick);
       }
     }
   }
   pg.pop();
   pg.translate(- cx, - cy);
 
-  for(let i = -this.moveStep; i <= this.moveStep; i++) {
-    for(let j = -this.moveStep; j <= this.moveStep; j++) {
+  for(let ii = -this.moveStep; ii <= this.moveStep; ii++) {
+    for(let jj = -this.moveStep; jj <= this.moveStep; jj++) {
       // real position
-      let rx = cx - j * this.gridTick;
-      let ry = cy - i * this.gridTick;
+      let rx = cx - jj * this.gridTick;
+      let ry = cy - ii * this.gridTick;
 
       // real id
-      let ix = Math.floor(rx / this.gridTick);
-      let iy = Math.floor(ry / this.gridTick);
+      let j = Math.floor(rx / this.gridTick);
+      let i = Math.floor(ry / this.gridTick);
 
       pg.pushMatrix();
-      pg.translate(j * this.gridTick, i * this.gridTick);
+      pg.translate(jj * this.gridTick, ii * this.gridTick);
 
-      if(this.matrix[iy] != undefined && this.matrix[iy][ix] != undefined) {
+      if(this.matrix[i] != undefined && this.matrix[i][j] != undefined) {
         let tween = 0;
 
-        if(this.matrix[iy][ix].state == "wait") tween = 0;
-        else if(this.matrix[iy][ix].state == "tweening") {
-          tween = p.map(t - this.matrix[iy][ix].time, 0, 0.5, 0, 1);
-          this.weft.draw({j: ix, i: iy, pg: pg, tween: tween, cookedShape: false});
+        if(this.matrix[i][j].state == "wait") tween = 0;
+        else if(this.matrix[i][j].state == "tweening") {
+          tween = p.map(t - this.matrix[i][j].time, 0, 0.5, 0, 1);
+          this.wefts[Math.floor(j / this.moveStep)].draw({
+            j: j, i: i, pg: pg, tween: tween, cookedShape: false
+          });
         }
         else {
           // already drawn
