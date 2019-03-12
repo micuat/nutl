@@ -1,25 +1,4 @@
-function Atom(args) {
-  this.p = args.p;
-  this.size = args.size;
-  this.colors = args.colorScheme;
-  this.colorIndices = args.colorIndices;
-  // cooking
-  this.shape = this.p.createShape();
-  this.draw({pg: this.shape, tween: 1, colors: this.colors});
-}
-
-Atom.prototype.draw = function (args) {
-  if(args.cookedShape) {
-    return this.shape;
-  }
-  else {
-    args.pg.beginShape(this.p.TRIANGLES);
-    this.drawShape(args);
-    args.pg.endShape();
-  }
-}
-
-var MotionAtoms = {
+var Atoms = {
   Doorway: function (args) {
     let p = args.p;
     let pg = args.pg;
@@ -104,30 +83,52 @@ var MotionAtoms = {
   }
 }
 
-function ARing(args) {
-  Atom.call(this, args);
+var Tiles = {};
+Tiles.Tile = function (args) {
+  this.p = args.p;
+  this.size = args.size;
+  this.colors = args.colorScheme;
+  this.colorIndices = args.colorIndices;
+  // cooking
+  this.shape = this.p.createShape();
+  this.draw({pg: this.shape, tween: 1, colors: this.colors});
 }
 
-ARing.prototype = Object.create(Atom.prototype);
-ARing.prototype.constructor = AIchimatsu;
+Tiles.Tile.prototype.draw = function (args) {
+  if(args.cookedShape) {
+    return this.shape;
+  }
+  else {
+    args.pg.beginShape(this.p.TRIANGLES);
+    this.drawShape(args);
+    args.pg.endShape();
+  }
+}
 
-ARing.prototype.drawShape = function (args) {
+Tiles.Ring = function (args) {
+  Tiles.Tile.call(this, args);
+}
+
+Tiles.Ring.prototype = Object.create(Tiles.Tile.prototype);
+Tiles.Ring.prototype.constructor = Tiles.Ichimatsu;
+
+Tiles.Ring.prototype.drawShape = function (args) {
   args.pg.noStroke();
-  MotionAtoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
-  MotionAtoms.Ring({p: this.p, pg: args.pg, r1: this.size/2, r0: this.size/2*7/9, col: this.colors.get(this.colorIndices[0]), tween: args.tween});
+  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
+  Atoms.Ring({p: this.p, pg: args.pg, r1: this.size/2, r0: this.size/2*7/9, col: this.colors.get(this.colorIndices[0]), tween: args.tween});
 }
 
-function AIchimatsu(args) {
-  Atom.call(this, args);
+Tiles.Ichimatsu = function (args) {
+  Tiles.Tile.call(this, args);
 }
 
-AIchimatsu.prototype = Object.create(Atom.prototype);
-AIchimatsu.prototype.constructor = AIchimatsu;
+Tiles.Ichimatsu.prototype = Object.create(Tiles.Tile.prototype);
+Tiles.Ichimatsu.prototype.constructor = Tiles.Ichimatsu;
 
-AIchimatsu.prototype.drawShape = function (args) {
+Tiles.Ichimatsu.prototype.drawShape = function (args) {
   args.pg.noStroke();
-  MotionAtoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), tween: args.tween});
-  MotionAtoms.Bowtie({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
+  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), tween: args.tween});
+  Atoms.Bowtie({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
 }
 
 function S047(p, w, h) {
@@ -136,7 +137,8 @@ function S047(p, w, h) {
 
   this.lastT = 0;
   this.tBase = 0;
-  this.moveStep = 4;
+  this.moveStep = 4; // how many squares for each step (row/col)
+  this.macroRows = 5; // number of bundled rows
   this.timeStep = 0.5;
   this.gridTick = 100;
   this.colorSchemes = [
@@ -145,7 +147,7 @@ function S047(p, w, h) {
   ];
 
   this.shaderVignette = p.loadShader(p.folderName + "/shaders/vignette.frag", p.folderName + "/shaders/vignette.vert");
-  this.tileAssets = [ARing, AIchimatsu];
+  this.tileAssets = [Tiles.Ring, Tiles.Ichimatsu];
 
   this.init();
 }
@@ -196,7 +198,7 @@ S047.prototype.init = function() {
   this.matrix = [];
   for(let i = 0; i < 40; i++) {
     this.matrix[i] = [];
-    for(let j = 0; j < 20; j++) {
+    for(let j = 0; j < this.moveStep * this.macroRows; j++) {
       this.matrix[i][j] = {state: "wait", time: 0};
     }
   }
@@ -207,7 +209,7 @@ S047.prototype.init = function() {
       p: p,
       colorScheme: this.colorScheme,
       colorIndices: [Math.floor(p.random(4)), Math.floor(p.random(4))],
-      size: 90
+      size: this.gridTick * 0.9
     };
     this.tiles[i] = new (this.tileAssets[i])(args);
   }
