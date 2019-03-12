@@ -2,6 +2,7 @@ function Atom(args) {
   this.p = args.p;
   this.size = args.size;
   this.colors = args.colorScheme;
+  this.colorIndices = args.colorIndices;
   // cooking
   this.shape = this.p.createShape();
   this.draw({pg: this.shape, tween: 1, colors: this.colors});
@@ -112,8 +113,8 @@ ARing.prototype.constructor = AIchimatsu;
 
 ARing.prototype.drawShape = function (args) {
   args.pg.noStroke();
-  MotionAtoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(1), tween: args.tween});
-  MotionAtoms.Ring({p: this.p, pg: args.pg, r1: this.size/2, r0: this.size/2*7/9, col: this.colors.get(0), tween: args.tween});
+  MotionAtoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
+  MotionAtoms.Ring({p: this.p, pg: args.pg, r1: this.size/2, r0: this.size/2*7/9, col: this.colors.get(this.colorIndices[0]), tween: args.tween});
 }
 
 function AIchimatsu(args) {
@@ -125,8 +126,8 @@ AIchimatsu.prototype.constructor = AIchimatsu;
 
 AIchimatsu.prototype.drawShape = function (args) {
   args.pg.noStroke();
-  MotionAtoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(0), tween: args.tween});
-  MotionAtoms.Bowtie({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(1), tween: args.tween});
+  MotionAtoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), tween: args.tween});
+  MotionAtoms.Bowtie({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
 }
 
 function S047(p, w, h) {
@@ -151,6 +152,24 @@ function S047(p, w, h) {
 S047.prototype = Object.create(TLayer.prototype);
 S047.prototype.constructor = S047;
 
+S047.prototype.drawPatternCheckered = function (args) {
+  let j = args.j;
+  let i = args.i;
+  let n = this.patternParams.nAlternate;
+  if((j%(n*2)<n && i%(n*2)<n) || (j%(n*2)>=n && i%(n*2)>=n)) {
+    return this.tiles.ring.draw(args);
+  }
+  else {
+    return this.tiles.ichimatsu.draw(args);
+  }
+}
+
+S047.prototype.drawUniform = function (args) {
+  let j = args.j;
+  let i = args.i;
+  return this.tiles.ichimatsu.draw(args);
+}
+
 S047.prototype.init = function() {
   let p = this.p;
   this.colorScheme = p.random(this.colorSchemes);
@@ -160,6 +179,7 @@ S047.prototype.init = function() {
   this.patternParams = {
     nAlternate: Math.floor(p.random(0, 4) + 1)
   };
+  this.drawPattern = p.random([this.drawPatternCheckered, this.drawUniform]);
   this.pos = p.createVector(this.moveStep/2-1, this.moveStep/2);
   this.direction = p.createVector(0, 1);
   this.availableDirections = [
@@ -181,7 +201,12 @@ S047.prototype.init = function() {
   }
 
   this.tiles = {};
-  let args = {p: p, colorScheme: this.colorScheme, size: 90};
+  let args = {
+    p: p,
+    colorScheme: this.colorScheme,
+    colorIndices: [Math.floor(p.random(4)), Math.floor(p.random(4))],
+    size: 90
+  };
   this.tiles.ichimatsu = new AIchimatsu(args);
   this.tiles.ring = new ARing(args);
 }
@@ -235,18 +260,6 @@ S047.prototype.update = function(args) {
   this.lastT = t;
 }
 
-S047.prototype.drawPattern = function (args) {
-  let j = args.j;
-  let i = args.i;
-  let n = this.patternParams.nAlternate;
-  if((j%(n*2)<n && i%(n*2)<n) || (j%(n*2)>=n && i%(n*2)>=n)) {
-    return this.tiles.ring.draw(args);
-  }
-  else {
-    return this.tiles.ichimatsu.draw(args);
-  }
-}
-
 S047.prototype.drawLayer = function(pg, key, args) {
   let t = args.t * this.timeStep;
   let p = this.p;
@@ -254,8 +267,9 @@ S047.prototype.drawLayer = function(pg, key, args) {
   pg.shader(this.shaderVignette);
   pg.clear();
 
-  let c0 = 4;
-  pg.background(this.colorScheme.get(c0).r, this.colorScheme.get(c0).g, this.colorScheme.get(c0).b, 150);
+  // let c0 = 4;
+  // pg.background(this.colorScheme.get(c0).r, this.colorScheme.get(c0).g, this.colorScheme.get(c0).b, 150);
+  pg.background(128);
 
   pg.translate(this.width / 2, this.height / 2);
 
