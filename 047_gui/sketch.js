@@ -136,7 +136,8 @@ Wefts.Base = function (args) {
   this.p = args.p;
   this.colorScheme = args.colorScheme;
   this.gridTick = args.gridTick;
-  this.tileAssets = [Tiles.Ring, Tiles.Ichimatsu];
+  this.tileAssets = Object.keys(Tiles);
+  this.tileAssets.splice(this.tileAssets.indexOf("Base"), 1);
   this.tiles = [null, null];
   for(let i in this.tiles) {
     let args = {
@@ -145,7 +146,7 @@ Wefts.Base = function (args) {
       colorIndices: [Math.floor(this.p.random(4)), Math.floor(this.p.random(4))],
       size: this.gridTick * 0.9
     };
-    this.tiles[i] = new (this.tileAssets[i])(args);
+    this.tiles[i] = new Tiles[this.tileAssets[i]](args);
   }
 }
 
@@ -198,7 +199,8 @@ function S047(p, w, h) {
   ];
 
   this.shaderVignette = p.loadShader(p.folderName + "/shaders/vignette.frag", p.folderName + "/shaders/vignette.vert");
-  this.weftAssets = [Wefts.Checkered, Wefts.Uniform];
+  this.weftAssets = Object.keys(Wefts);
+  this.weftAssets.splice(this.weftAssets.indexOf("Base"), 1);
 
   this.init();
 }
@@ -233,7 +235,7 @@ S047.prototype.init = function() {
   this.wefts = [];
   let args = {p: this.p, colorScheme: p.random(this.colorSchemes), gridTick: this.gridTick};
   for(let i = 0; i < this.numWefts; i++) {
-    this.wefts[i] = new (p.random(this.weftAssets))(args);
+    this.wefts[i] = new (Wefts[p.random(this.weftAssets)])(args);
   }
 
 }
