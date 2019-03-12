@@ -1,27 +1,55 @@
+var PolygonHelpers = {
+  Quad: function (args) {
+    let t0 = args.vignette ? 0 : 0.5;
+    let t1 = args.vignette ? 1 : 0.5;
+    args.pg.vertex(args.x0, args.y0, t0, t0);
+    args.pg.vertex(args.x1, args.y1, t1, t0);
+    args.pg.vertex(args.x2, args.y2, t1, t1);
+    args.pg.vertex(args.x0, args.y0, t0, t0);
+    args.pg.vertex(args.x2, args.y2, t1, t1);
+    args.pg.vertex(args.x3, args.y3, t0, t1);
+  },
+  Rect: function (args) {
+    let w = args.width / 2;
+    let h = args.height / 2;
+    let x = args.x == undefined ? 0 : args.x;
+    let y = args.y == undefined ? 0 : args.y;
+    PolygonHelpers.Quad({
+      pg: args.pg, vignette: args.vignette,
+      x0: -w+x, y0: -h+y, x1: w+x, y1: -h+y, x2: w+x, y2: h+y, x3: -w+x, y3: h+y
+    });
+  },
+  Square: function (args) {
+    let l = args.size / 2;
+    let x = args.x == undefined ? 0 : args.x;
+    let y = args.y == undefined ? 0 : args.y;
+    PolygonHelpers.Quad({
+      pg: args.pg, vignette: args.vignette,
+      x0: -l+x, y0: -l+y, x1: l+x, y1: -l+y, x2: l+x, y2: l+y, x3: -l+x, y3: l+y
+    });
+  }
+
+}
+
 var Atoms = {
+  Solid: function (args) {
+    let p = args.p;
+    let pg = args.pg;
+    let col = args.col;
+    let L = args.L;
+    pg.fill(col.r, col.g, col.b, 255);
+    PolygonHelpers.Square({pg: pg, size: L, vignette: false});
+  },
   Doorway: function (args) {
     let p = args.p;
     let pg = args.pg;
     let col = args.col;
     let tween = args.tween;
     let L = args.L;
-    pg.fill(70, 255);
-    pg.vertex(-L/2, -L/2, 0.5, 0.5);
-    pg.vertex(L/2, -L/2, 0.5, 0.5);
-    pg.vertex(L/2, L/2, 0.5, 0.5);
-    pg.vertex(-L/2, -L/2, 0.5, 0.5);
-    pg.vertex(L/2, L/2, 0.5, 0.5);
-    pg.vertex(-L/2, L/2, 0.5, 0.5);
-
     let l = EasingFunctions.easeInOutCubic(p.constrain(tween*2,0,1)) * L;
 
     pg.fill(col.r, col.g, col.b, 255);
-    pg.vertex(-l/2, -L/2, 0, 0);
-    pg.vertex(l/2, -L/2, 1, 0);
-    pg.vertex(l/2, L/2, 1, 1);
-    pg.vertex(-l/2, -L/2, 0, 0);
-    pg.vertex(l/2, L/2, 1, 1);
-    pg.vertex(-l/2, L/2, 0, 1);
+    PolygonHelpers.Rect({pg: pg, width: l, height: L, vignette: true, x: args.x, y: args.y, vignette: args.vignette});
   },
   Ring: function (args) {
     let p = args.p;
@@ -100,6 +128,7 @@ Tiles.Base.prototype.draw = function (args) {
   }
   else {
     args.pg.beginShape(this.p.TRIANGLES);
+    args.pg.noStroke();
     this.drawShape(args);
     args.pg.endShape();
   }
@@ -113,8 +142,8 @@ Tiles.Ring.prototype = Object.create(Tiles.Base.prototype);
 Tiles.Ring.prototype.constructor = Tiles.Ring;
 
 Tiles.Ring.prototype.drawShape = function (args) {
-  args.pg.noStroke();
-  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
+  Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
+  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), vignette: true, tween: args.tween});
   Atoms.Ring({p: this.p, pg: args.pg, r1: this.size/2, r0: this.size/2*7/9, col: this.colors.get(this.colorIndices[0]), tween: args.tween});
 }
 
@@ -126,9 +155,23 @@ Tiles.Ichimatsu.prototype = Object.create(Tiles.Base.prototype);
 Tiles.Ichimatsu.prototype.constructor = Tiles.Ichimatsu;
 
 Tiles.Ichimatsu.prototype.drawShape = function (args) {
-  args.pg.noStroke();
-  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), tween: args.tween});
+  Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
+  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), vignette: true, tween: args.tween});
   Atoms.Bowtie({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
+}
+
+Tiles.Grid = function (args) {
+  Tiles.Base.call(this, args);
+}
+
+Tiles.Grid.prototype = Object.create(Tiles.Base.prototype);
+Tiles.Grid.prototype.constructor = Tiles.Grid;
+
+Tiles.Grid.prototype.drawShape = function (args) {
+  Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
+  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), vignette: true, tween: args.tween});
+  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size/2, col: this.colors.get(this.colorIndices[1]), x: -this.size/4, y: -this.size/4, tween: args.tween});
+  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size/2, col: this.colors.get(this.colorIndices[1]), x: this.size/4, y: this.size/4, tween: args.tween});
 }
 
 var Wefts = {};
@@ -146,7 +189,7 @@ Wefts.Base = function (args) {
       colorIndices: [Math.floor(this.p.random(4)), Math.floor(this.p.random(4))],
       size: this.gridTick * 0.9
     };
-    this.tiles[i] = new Tiles[this.tileAssets[i]](args);
+    this.tiles[i] = new Tiles[this.tileAssets[Math.floor(Math.random() * this.tileAssets.length)]](args);
   }
 }
 
