@@ -187,8 +187,9 @@ function S047(p, w, h) {
 
   this.lastT = 0;
   this.tBase = 0;
-  this.moveStep = 4; // how many squares for each step (row/col)
+  this.moveStep = 8; // how many squares for each step (row/col)
   this.numWefts = 5; // number of bundled rows
+  this.weftLength = 4; // length compared to the width (which is moveStep)
   this.timeStep = 0.5;
   this.gridTick = 100;
   this.colorSchemes = [
@@ -222,7 +223,7 @@ S047.prototype.init = function() {
   this.scaleDest = 4;
 
   this.matrix = [];
-  for(let i = 0; i < 40; i++) {
+  for(let i = 0; i < this.moveStep * (this.weftLength + 1); i++) {
     this.matrix[i] = [];
     for(let j = 0; j < this.moveStep * this.numWefts; j++) {
       this.matrix[i][j] = {state: "wait", time: 0};
@@ -249,7 +250,7 @@ S047.prototype.update = function(args) {
     print(this.pos)
 
     this.moveCount++;
-    let cycle = (Math.floor(this.matrix[0].length / this.moveStep) + 1) * 2;
+    let cycle = (this.weftLength + 1) * 2;
     if(this.moveCount % cycle <= cycle / 2 - 1 - 1) {
       this.direction = this.availableDirections[3];
     }
