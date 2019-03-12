@@ -84,7 +84,7 @@ var Atoms = {
 }
 
 var Tiles = {};
-Tiles.Tile = function (args) {
+Tiles.Base = function (args) {
   this.p = args.p;
   this.size = args.size;
   this.colors = args.colorScheme;
@@ -94,7 +94,7 @@ Tiles.Tile = function (args) {
   this.draw({pg: this.shape, tween: 1, colors: this.colors});
 }
 
-Tiles.Tile.prototype.draw = function (args) {
+Tiles.Base.prototype.draw = function (args) {
   if(args.cookedShape) {
     return this.shape;
   }
@@ -106,11 +106,11 @@ Tiles.Tile.prototype.draw = function (args) {
 }
 
 Tiles.Ring = function (args) {
-  Tiles.Tile.call(this, args);
+  Tiles.Base.call(this, args);
 }
 
-Tiles.Ring.prototype = Object.create(Tiles.Tile.prototype);
-Tiles.Ring.prototype.constructor = Tiles.Ichimatsu;
+Tiles.Ring.prototype = Object.create(Tiles.Base.prototype);
+Tiles.Ring.prototype.constructor = Tiles.Ring;
 
 Tiles.Ring.prototype.drawShape = function (args) {
   args.pg.noStroke();
@@ -119,16 +119,54 @@ Tiles.Ring.prototype.drawShape = function (args) {
 }
 
 Tiles.Ichimatsu = function (args) {
-  Tiles.Tile.call(this, args);
+  Tiles.Base.call(this, args);
 }
 
-Tiles.Ichimatsu.prototype = Object.create(Tiles.Tile.prototype);
+Tiles.Ichimatsu.prototype = Object.create(Tiles.Base.prototype);
 Tiles.Ichimatsu.prototype.constructor = Tiles.Ichimatsu;
 
 Tiles.Ichimatsu.prototype.drawShape = function (args) {
   args.pg.noStroke();
   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), tween: args.tween});
   Atoms.Bowtie({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
+}
+
+var Wefts = {};
+Wefts.Base = function (args) {
+  this.p = args.p;
+  this.tiles = args.tiles;
+}
+
+Wefts.Checkered = function (args) {
+  Wefts.Base.call(this, args);
+}
+
+Wefts.Checkered.prototype = Object.create(Wefts.Base.prototype);
+Wefts.Checkered.prototype.constructor = Wefts.Checkered;
+
+Wefts.Checkered.prototype.draw = function (args) {
+  let j = args.j;
+  let i = args.i;
+  let n = 2;//this.patternParams.nAlternate;
+  if((j%(n*2)<n && i%(n*2)<n) || (j%(n*2)>=n && i%(n*2)>=n)) {
+    return this.tiles[0].draw(args);
+  }
+  else {
+    return this.tiles[1].draw(args);
+  }
+}
+
+Wefts.Uniform = function (args) {
+  Wefts.Base.call(this, args);
+}
+
+Wefts.Uniform.prototype = Object.create(Wefts.Base.prototype);
+Wefts.Uniform.prototype.constructor = Wefts.Uniform;
+
+Wefts.Uniform.prototype.draw = function (args) {
+  let j = args.j;
+  let i = args.i;
+  return this.tiles[0].draw(args);
 }
 
 function S047(p, w, h) {
@@ -148,6 +186,7 @@ function S047(p, w, h) {
 
   this.shaderVignette = p.loadShader(p.folderName + "/shaders/vignette.frag", p.folderName + "/shaders/vignette.vert");
   this.tileAssets = [Tiles.Ring, Tiles.Ichimatsu];
+  this.weftAssets = [Wefts.Checkered, Wefts.Uniform];
 
   this.init();
 }
@@ -155,34 +194,12 @@ function S047(p, w, h) {
 S047.prototype = Object.create(TLayer.prototype);
 S047.prototype.constructor = S047;
 
-S047.prototype.drawPatternCheckered = function (args) {
-  let j = args.j;
-  let i = args.i;
-  let n = this.patternParams.nAlternate;
-  if((j%(n*2)<n && i%(n*2)<n) || (j%(n*2)>=n && i%(n*2)>=n)) {
-    return this.tiles[0].draw(args);
-  }
-  else {
-    return this.tiles[1].draw(args);
-  }
-}
-
-S047.prototype.drawUniform = function (args) {
-  let j = args.j;
-  let i = args.i;
-  return this.tiles[1].draw(args);
-}
-
 S047.prototype.init = function() {
   let p = this.p;
   this.colorScheme = p.random(this.colorSchemes);
   this.colorScheme.shuffle();
 
   this.finishing = 0;
-  this.patternParams = {
-    nAlternate: Math.floor(p.random(0, 4) + 1)
-  };
-  this.drawPattern = p.random([this.drawPatternCheckered, this.drawUniform]);
   this.pos = p.createVector(this.moveStep/2-1, this.moveStep/2);
   this.direction = p.createVector(0, 1);
   this.availableDirections = [
@@ -213,6 +230,12 @@ S047.prototype.init = function() {
     };
     this.tiles[i] = new (this.tileAssets[i])(args);
   }
+
+  {
+    let args = {p: this.p, tiles: this.tiles};
+    this.weft = new (p.random(this.weftAssets))(args);
+  }
+
 }
 
 S047.prototype.update = function(args) {
@@ -317,7 +340,7 @@ S047.prototype.drawLayer = function(pg, key, args) {
       }
 
       if(this.matrix[i][j].state == "done") {
-        pg.shape(this.drawPattern({j: j, i: i, cookedShape: true}), j * this.gridTick, i * this.gridTick);
+        pg.shape(this.weft.draw({j: j, i: i, cookedShape: true}), j * this.gridTick, i * this.gridTick);
       }
     }
   }
@@ -343,7 +366,7 @@ S047.prototype.drawLayer = function(pg, key, args) {
         if(this.matrix[iy][ix].state == "wait") tween = 0;
         else if(this.matrix[iy][ix].state == "tweening") {
           tween = p.map(t - this.matrix[iy][ix].time, 0, 0.5, 0, 1);
-          this.drawPattern({j: ix, i: iy, pg: pg, tween: tween, cookedShape: false});
+          this.weft.draw({j: ix, i: iy, pg: pg, tween: tween, cookedShape: false});
         }
         else {
           // already drawn
