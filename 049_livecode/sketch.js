@@ -60,7 +60,7 @@ if(ps == undefined || doUpdate) var ps = new p5(function (p) {
 
   p.setup = function () {
     p.createCanvas(1920, 1080);
-    p.frameRate(30);
+    p.frameRate(60);
   }
 
   p.draw = function () {
@@ -151,20 +151,28 @@ ps.drawPtsNext = function (t, pts, c) {
 //   ps.pop();
 // }
 
-ps.tReturn = function (t) {
+tReturn = function (t) {
   return t % 2 > 1 ? 1 - t % 1: t % 1;
 }
+
+tEase = function (t) {
+  return EasingFunctions.easeInOutCubic(tReturn(t));
+}
+
 ps.drawPtsNext = function (t, pts, c) {
   ps.push();
+  // ps.blendMode(ps.SCREEN)
   ps.colorMode(ps.HSB, 255, 255, 255)
   ps.beginShape();
+  let x, y;
+  let r = 100 * ps.constrain(ps.map(c.x - pts[0].x, 0, 100, 0.8, 1.0), 0.8, 1.0);
   for(let i = 0; i < pts.length; i++) {
-    ps.fill(i * 255 / pts.length, 255, 255, 50);
-    let x = pts[i].x;
-    let y = pts[i].y;
-    let r = 300;
-    x = ps.lerp(x, c.x + r * Math.cos(i/pts.length*2*Math.PI), EasingFunctions.easeInOutCubic(ps.tReturn(t)));
-    y = ps.lerp(y, c.y + r * Math.sin(i/pts.length*2*Math.PI), EasingFunctions.easeInOutCubic(ps.tReturn(t)));
+    ps.fill(i * 255 / pts.length * 0.5 + 128, 255, 255, 150);
+    x = Math.floor(pts[i].x * 0.01) * 100;
+    y = Math.floor(pts[i].y * 0.01) * 100;
+    let r = 100 * ps.constrain(ps.map(c.x - pts[0].x, 0, 100, 0.8, 1.0), 0.8, 1.0);
+    x = ps.lerp(x, ps.width/2-600 + r * Math.cos(i/pts.length*2*Math.PI), tEase(t));
+    y = ps.lerp(y, ps.height/2 + r * Math.sin(i/pts.length*2*Math.PI), tEase(t));
     ps.vertex(x, y, 10, 10)
     // ps.rect(x, y, 10, 10)
   }
