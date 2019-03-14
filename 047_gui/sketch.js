@@ -147,31 +147,55 @@ Tiles.Ring.prototype.drawShape = function (args) {
   Atoms.Ring({p: this.p, pg: args.pg, r1: this.size/2, r0: this.size/2*7/9, col: this.colors.get(this.colorIndices[0]), tween: args.tween});
 }
 
-Tiles.Ichimatsu = function (args) {
+// Tiles.Ichimatsu = function (args) {
+//   Tiles.Base.call(this, args);
+// }
+
+// Tiles.Ichimatsu.prototype = Object.create(Tiles.Base.prototype);
+// Tiles.Ichimatsu.prototype.constructor = Tiles.Ichimatsu;
+
+// Tiles.Ichimatsu.prototype.drawShape = function (args) {
+//   Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
+//   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), vignette: true, tween: args.tween});
+//   Atoms.Bowtie({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
+// }
+
+// Tiles.Grid = function (args) {
+//   Tiles.Base.call(this, args);
+// }
+
+// Tiles.Grid.prototype = Object.create(Tiles.Base.prototype);
+// Tiles.Grid.prototype.constructor = Tiles.Grid;
+
+// Tiles.Grid.prototype.drawShape = function (args) {
+//   Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
+//   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), vignette: true, tween: args.tween});
+//   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size/2, col: this.colors.get(this.colorIndices[1]), x: -this.size/4, y: -this.size/4, tween: args.tween});
+//   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size/2, col: this.colors.get(this.colorIndices[1]), x: this.size/4, y: this.size/4, tween: args.tween});
+// }
+
+
+Tiles.Sine = function (args) {
   Tiles.Base.call(this, args);
 }
 
-Tiles.Ichimatsu.prototype = Object.create(Tiles.Base.prototype);
-Tiles.Ichimatsu.prototype.constructor = Tiles.Ichimatsu;
+Tiles.Sine.prototype = Object.create(Tiles.Base.prototype);
+Tiles.Sine.prototype.constructor = Tiles.Sine;
 
-Tiles.Ichimatsu.prototype.drawShape = function (args) {
+Tiles.Sine.prototype.drawShape = function (args) {
   Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), vignette: true, tween: args.tween});
-  Atoms.Bowtie({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
-}
-
-Tiles.Grid = function (args) {
-  Tiles.Base.call(this, args);
-}
-
-Tiles.Grid.prototype = Object.create(Tiles.Base.prototype);
-Tiles.Grid.prototype.constructor = Tiles.Grid;
-
-Tiles.Grid.prototype.drawShape = function (args) {
-  Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
-  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), vignette: true, tween: args.tween});
-  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size/2, col: this.colors.get(this.colorIndices[1]), x: -this.size/4, y: -this.size/4, tween: args.tween});
-  Atoms.Doorway({p: this.p, pg: args.pg, L: this.size/2, col: this.colors.get(this.colorIndices[1]), x: this.size/4, y: this.size/4, tween: args.tween});
+  let pg = args.pg;
+  let n = 20;
+  let tween = args.tween;
+  for(let i = -n; i < n; i++) {
+    pg.vertex(i / n * this.size * 0.5, Math.sin(i / n * 2 * Math.PI) * this.size * 0.5 * tween);
+    pg.vertex(i / n * this.size * 0.5, 0);
+    pg.vertex((i+1) / n * this.size * 0.5, 0);
+    pg.vertex(i / n * this.size * 0.5, Math.sin(i / n * 2 * Math.PI) * this.size * 0.5 * tween);
+    pg.vertex((i+1) / n * this.size * 0.5, Math.sin((i+1) / n * 2 * Math.PI) * this.size * 0.5 * tween);
+    pg.vertex((i+1) / n * this.size * 0.5, 0);
+  }
 }
 
 var Wefts = {};
