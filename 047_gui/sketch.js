@@ -382,23 +382,42 @@ S047.prototype.init = function() {
   // let globalPattern = function (i, j) {
   //   return (i % 2 + j % 2) % 2;
   // }
+  // let globalPattern = function (i, j) {
+  //   return Math.abs(Math.floor(i/2) - Math.floor(j/2));
+  // }
+  // let globalPattern = function (i, j) {
+  //   let n = 8;
+  //   let I = i % (n*2);
+  //   let J = j % (n*2);
+  //   if(I >= n) I = n * 2 - I;
+  //   if(J >= n) J = n * 2 - J;
+
+  //   return I + J >= n ? 0 : 2;
+  // }
+  // let globalPattern = function (i, j) {
+  //   let n = 8;
+  //   let I = i % (n*2);
+  //   let J = j % (n*2);
+  //   if(I >= n) I = n * 2 - I;
+  //   if(J >= n) J = n * 2 - J;
+
+  //   let ij = I + J;
+  //   let off = 0;
+  //   if(ij >= n) {off=1;ij = n * 2 - ij;}
+
+  //   if(ij <= 2) return 0+off;
+  //   if(ij <= 5) return 2+off;
+  //   return 0+off;
+  // }
   let globalPattern = function (i, j) {
-    // return Math.abs(Math.floor(i/2) - Math.floor(j/2));
     let n = 8;
     let I = i % (n*2);
     let J = j % (n*2);
     if(I >= n) I = n * 2 - I;
     if(J >= n) J = n * 2 - J;
 
-    // return I + J >= n ? 0 : 2;
-
-    let ij = I + J;
-    let off = 0;
-    if(ij >= n) {off=1;ij = n * 2 - ij;}
-
-    if(ij <= 2) return 0+off;
-    if(ij <= 5) return 2+off;
-    return 0+off;
+    return Math.max(I, J);
+    // return Math.max(Math.floor(I/2), Math.floor(J/2))*2;
   }
   this.wefts = [];
   let args = {p: this.p, globalPattern: globalPattern, colorScheme: p.random(this.colorSchemes), gridTick: this.gridTick};
