@@ -31,6 +31,71 @@ var PolygonHelpers = {
 
 }
 
+var TriStripData = {}
+
+var TriStrip = {
+  begin: function (pg) {
+    TriStripData.pg = pg;
+    TriStripData.vertices = [];
+  },
+  fill: function (r, g, b, a) {
+    if(a == undefined) a = 255;
+    TriStripData.curColor = {r: r, g: g, b: b, a: a};
+  },
+  vertex: function (x, y, tx, ty) {
+    if(tx == undefined) {
+      tx = ty = 0.5;
+    }
+    if(TriStripData.curColor != undefined) {
+      let c = TriStripData.curColor;
+      TriStripData.vertices.push({x: x, y: y, tx: tx, ty: ty, r: c.r, g: c.g, b: c.b, a: c.a});
+    }
+    else {
+      TriStripData.vertices.push({x: x, y: y, tx: tx, ty: ty});
+    }
+  },
+  end: function() {
+    for(let i = 0; i < TriStripData.vertices.length - 2; i+=2) {
+      let v0 = TriStripData.vertices[i];
+      let v1 = TriStripData.vertices[i+1];
+      let v2 = TriStripData.vertices[i+2];
+      let v3 = TriStripData.vertices[i+3];
+      let v = v0;
+      if(v.r != undefined) {
+        TriStripData.pg.fill(v.r, v.g, v.b, v.a);
+      }
+      TriStripData.pg.vertex(v.x, v.y, v.tx, v.ty);
+      v = v1;
+      if(v.r != undefined) {
+        TriStripData.pg.fill(v.r, v.g, v.b, v.a);
+      }
+      TriStripData.pg.vertex(v.x, v.y, v.tx, v.ty);
+      v = v2;
+      if(v.r != undefined) {
+        TriStripData.pg.fill(v.r, v.g, v.b, v.a);
+      }
+      TriStripData.pg.vertex(v.x, v.y, v.tx, v.ty);
+
+      v = v2;
+      if(v.r != undefined) {
+        TriStripData.pg.fill(v.r, v.g, v.b, v.a);
+      }
+      TriStripData.pg.vertex(v.x, v.y, v.tx, v.ty);
+      v = v1;
+      if(v.r != undefined) {
+        TriStripData.pg.fill(v.r, v.g, v.b, v.a);
+      }
+      TriStripData.pg.vertex(v.x, v.y, v.tx, v.ty);
+      v = v3;
+      if(v.r != undefined) {
+        TriStripData.pg.fill(v.r, v.g, v.b, v.a);
+      }
+      TriStripData.pg.vertex(v.x, v.y, v.tx, v.ty);
+    }
+    TriStripData = {};
+  }
+}
+
 var Atoms = {
   Solid: function (args) {
     let p = args.p;
@@ -64,34 +129,19 @@ var Atoms = {
     pg.fill(col.r, col.g, col.b, 255);
 
     let n = 20;
-    for(let i = 0; i < n; i++) {
+    TriStrip.begin(pg);
+    for(let i = 0; i <= n; i++) {
       let theta0, theta1, x, y;
       theta0 = i / n * Math.PI * 2.0 * rate + rate * Math.PI;
-      theta1 = (i+1) / n * Math.PI * 2.0 * rate + rate * Math.PI;
       x = r1 * Math.sin(theta0);
       y = r1 * -Math.cos(theta0);
-      pg.vertex(x, y, 1, 0.5);
-
-      x = r1 * Math.sin(theta1);
-      y = r1 * -Math.cos(theta1);
-      pg.vertex(x, y, 1, 0.5);
-
-      x = r0 * Math.sin(theta1);
-      y = r0 * -Math.cos(theta1);
-      pg.vertex(x, y, 0.5, 0.5);
-
-      x = r1 * Math.sin(theta0);
-      y = r1 * -Math.cos(theta0);
-      pg.vertex(x, y, 1, 0.5);
-
-      x = r0 * Math.sin(theta1);
-      y = r0 * -Math.cos(theta1);
-      pg.vertex(x, y, 0.5, 0.5);
+      TriStrip.vertex(x, y, 1, 0.5);
 
       x = r0 * Math.sin(theta0);
       y = r0 * -Math.cos(theta0);
-      pg.vertex(x, y, 0.5, 0.5);
+      TriStrip.vertex(x, y, 0.5, 0.5);
     }
+    TriStrip.end();
   },
   Bowtie: function (args) {
     let p = args.p;
@@ -186,16 +236,17 @@ Tiles.Sine.prototype.drawShape = function (args) {
   Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), vignette: true, tween: args.tween});
   let pg = args.pg;
-  let n = 20;
-  let tween = args.tween;
-  for(let i = -n; i < n; i++) {
-    pg.vertex(i / n * this.size * 0.5, Math.sin(i / n * 2 * Math.PI) * this.size * 0.5 * tween);
-    pg.vertex(i / n * this.size * 0.5, 0);
-    pg.vertex((i+1) / n * this.size * 0.5, 0);
-    pg.vertex(i / n * this.size * 0.5, Math.sin(i / n * 2 * Math.PI) * this.size * 0.5 * tween);
-    pg.vertex((i+1) / n * this.size * 0.5, Math.sin((i+1) / n * 2 * Math.PI) * this.size * 0.5 * tween);
-    pg.vertex((i+1) / n * this.size * 0.5, 0);
+  let n = 32;
+  let tween = EasingFunctions.easeInOutQuint(args.tween);
+  let c = this.colors.get(this.colorIndices[1]);
+  pg.fill(c.r, c.g, c.b);
+  TriStrip.begin(pg);
+  for(let i = -n; i <= n; i++) {
+    let env = Math.cos(i / n * Math.PI / 2);
+    TriStrip.vertex(i / n * this.size * 0.5, Math.sin(i / n * 4 * Math.PI + tween * Math.PI * 4) * this.size * 0.5 * tween * env);
+    TriStrip.vertex(i / n * this.size * 0.5, 0);
   }
+  TriStrip.end();
 }
 
 var Wefts = {};
