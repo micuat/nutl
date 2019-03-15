@@ -339,8 +339,10 @@ function S047(p, w, h) {
   this.timeStep = 0.5;
   this.gridTick = 100;
   this.colorSchemes = [
-    new ColorScheme("db2763-b0db43-12eaea-bce7fd-c492b1"),
-    new ColorScheme("ff6b35-f7c59f-efefd0-004e89-1a659e")
+    new ColorScheme("963484-3066be-60afff-28c2ff-2af5ff"),
+    new ColorScheme("45687a-d62828-f77f00-fcbf49-eae2b7")
+    // new ColorScheme("db2763-b0db43-12eaea-bce7fd-c492b1"),
+    // new ColorScheme("ff6b35-f7c59f-efefd0-004e89-1a659e")
   ];
 
   this.shaderVignette = p.loadShader(p.folderName + "/shaders/vignette.frag", p.folderName + "/shaders/vignette.vert");
