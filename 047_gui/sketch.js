@@ -192,7 +192,7 @@ Tiles.Ring.prototype = Object.create(Tiles.Base.prototype);
 Tiles.Ring.prototype.constructor = Tiles.Ring;
 
 Tiles.Ring.prototype.drawShape = function (args) {
-  Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
+  // Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), vignette: true, tween: args.tween});
   Atoms.Ring({p: this.p, pg: args.pg, r1: this.size/2, r0: this.size/2*7/9, col: this.colors.get(this.colorIndices[0]), tween: args.tween});
 }
@@ -205,7 +205,7 @@ Tiles.Ichimatsu.prototype = Object.create(Tiles.Base.prototype);
 Tiles.Ichimatsu.prototype.constructor = Tiles.Ichimatsu;
 
 Tiles.Ichimatsu.prototype.drawShape = function (args) {
-  Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
+  // Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), vignette: true, tween: args.tween});
   Atoms.Bowtie({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[1]), tween: args.tween});
 }
@@ -218,7 +218,7 @@ Tiles.Grid.prototype = Object.create(Tiles.Base.prototype);
 Tiles.Grid.prototype.constructor = Tiles.Grid;
 
 Tiles.Grid.prototype.drawShape = function (args) {
-  Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
+  // Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), vignette: true, tween: args.tween});
   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size/2, col: this.colors.get(this.colorIndices[1]), x: -this.size/4, y: -this.size/4, tween: args.tween});
   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size/2, col: this.colors.get(this.colorIndices[1]), x: this.size/4, y: this.size/4, tween: args.tween});
@@ -233,7 +233,7 @@ Tiles.Sine.prototype = Object.create(Tiles.Base.prototype);
 Tiles.Sine.prototype.constructor = Tiles.Sine;
 
 Tiles.Sine.prototype.drawShape = function (args) {
-  Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
+  // Atoms.Solid({p: this.p, pg: args.pg, L: this.size, col: {r: 70, g: 70, b: 70}});
   Atoms.Doorway({p: this.p, pg: args.pg, L: this.size, col: this.colors.get(this.colorIndices[0]), vignette: true, tween: args.tween});
   let pg = args.pg;
   let n = 32;
@@ -257,7 +257,7 @@ Wefts.Base = function (args) {
   this.gridTick = args.gridTick;
   this.tileAssets = Object.keys(Tiles);
   this.tileAssets.splice(this.tileAssets.indexOf("Base"), 1);
-  this.tiles = [null, null, null];
+  this.tiles = [null, null, null, null];
   for(let i in this.tiles) {
     let color0 = Math.floor(this.p.random(4));
     let color1 = (color0 + 1) % 5;
@@ -272,7 +272,8 @@ Wefts.Base = function (args) {
 }
 
 Wefts.Base.prototype.getTile = function (j, i, id) {
-  return this.tiles[(this.globalPattern(j, i)+id) % this.tiles.length];
+  let N = this.tiles.length;
+  return this.tiles[(this.globalPattern(j, i) + id + N) % N];
 }
 
 Wefts.Checkered = function (args) {
@@ -285,7 +286,7 @@ Wefts.Checkered.prototype.constructor = Wefts.Checkered;
 Wefts.Checkered.prototype.draw = function (args) {
   let j = args.j;
   let i = args.i;
-  let n = 2;//this.patternParams.nAlternate;
+  let n = 1;//this.patternParams.nAlternate;
   if((j%(n*2)<n && i%(n*2)<n) || (j%(n*2)>=n && i%(n*2)>=n)) {
     return this.getTile(j, i, 0).draw(args);
   }
@@ -376,13 +377,32 @@ S047.prototype.init = function() {
     }
   }
 
+  // let globalPattern = function (i, j) {
+  //   return (i % 2 + j % 2) % 2;
+  // }
   let globalPattern = function (i, j) {
-    return (i % 2 + j % 2) % 2;
+    // return Math.abs(Math.floor(i/2) - Math.floor(j/2));
+    let n = 8;
+    let I = i % (n*2);
+    let J = j % (n*2);
+    if(I >= n) I = n * 2 - I;
+    if(J >= n) J = n * 2 - J;
+
+    // return I + J >= n ? 0 : 2;
+
+    let ij = I + J;
+    let off = 0;
+    if(ij >= n) {off=1;ij = n * 2 - ij;}
+
+    if(ij <= 2) return 0+off;
+    if(ij <= 5) return 2+off;
+    return 0+off;
   }
   this.wefts = [];
   let args = {p: this.p, globalPattern: globalPattern, colorScheme: p.random(this.colorSchemes), gridTick: this.gridTick};
   for(let i = 0; i < this.numWefts; i++) {
     this.wefts[i] = new (Wefts[p.random(this.weftAssets)])(args);
+    // this.wefts[i] = new Wefts.Uniform(args);
   }
 
 }
