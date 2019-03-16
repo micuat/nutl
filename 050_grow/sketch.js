@@ -12,6 +12,8 @@ var Blob = function (args) {
     this.orgy = 0;
   }
   else {
+    this.previous = args.origin;
+    args.origin.next = this;
     this.x = args.origin.x;
     this.y = args.origin.y;
     this.orgx = args.origin.x;
@@ -26,17 +28,21 @@ Blob.prototype.draw = function (args) {
   if(this.done == false) {
     this.x = p050.lerp(this.orgx, this.destx, EasingFunctions.easeInOutQuart(t))
     this.y = p050.lerp(this.orgy, this.desty, EasingFunctions.easeInOutQuart(t))
-    z = 50 * p050.lerp(0, 1, EasingFunctions.easeInOutCubic(1-Math.abs(t*2-1)))
   }
   else {
     this.y = this.desty;
+    if(this.next != undefined && this.next.done == false)
+      z = 0.1 * p050.lerp(0, 1, EasingFunctions.easeInOutCubic(1 - Math.abs(t*2 - 1)))
     t = 1;
   }
   pg.push();
   pg.translate(this.x, this.y, 0);
+  pg.scale(1 + z, 1 + z);
+  // pg.translate(0, 0, z);
   pg.fill(0, 150*t)
-  pg.rect(5,5,90,90);
-  pg.translate(0, 0, z);
+  let d = 10;
+  pg.rect(d/8, d/8,90+d/2,90+d/2);
+  // pg.rect(5,5,90,90);
   let c0 = 4;
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
   pg.rect(0, 0, 90,90);
@@ -54,13 +60,18 @@ function S050(p, w, h) {
   this.blobs = [this.lastBlob];
   this.lastT = 0;
   this.tBase = 0;
+  this.scale = 4;
+  this.scaleDest = 4;
 
   this.availableDirections = [
-    // p.createVector(-1,  0),
+    p.createVector(-1,  0),
+    p.createVector( 0,  1),
     p.createVector( 1,  0),
-    p.createVector( 0, -1),
-    p.createVector( 0,  1)
-  ]
+    p.createVector( 0, -1)
+  ];
+  this.currentDirectionCount = 0;
+  this.currentDirectionIndex = 0;
+  this.currentIteration = -1;
 }
 
 S050.prototype = Object.create(TLayer.prototype);
@@ -70,15 +81,27 @@ S050.prototype.update = function(args) {
   let p = this.p;
 
   if(Math.floor(t) - Math.floor(this.lastT) > 0) {
+    this.currentDirectionCount++;
+    if(this.currentDirectionCount > this.currentIteration / 2) {
+      this.currentDirectionIndex++;
+      if(this.currentDirectionIndex >= this.availableDirections.length) {
+        this.currentDirectionIndex = 0;
+      }
+      this.currentDirectionCount = 0;
+      this.currentIteration++;
+    }
     this.tBase = t;
     this.lastBlob.done = true;
-    let direction = p.random(this.availableDirections);
+    let direction = this.availableDirections[this.currentDirectionIndex];
     this.lastBlob = new Blob({
       x: this.lastBlob.destx + direction.x * 100,
       y: this.lastBlob.desty + direction.y * 100,
       origin: this.lastBlob
     });
     this.blobs.push(this.lastBlob);
+
+    this.scale = this.scaleDest;
+    this.scaleDest = 1 / (Math.max(this.currentIteration, 2) + 10) * 80;
   }
   this.lastT = t;
 }
@@ -99,9 +122,10 @@ S050.prototype.drawLayer = function(pg, key, args) {
   tReturn = function () {
     return 1 - Math.abs(t % 2 - 1);
   }
-  pg.scale(4, 4);
+  let scale = p.map(EasingFunctions.easeInOutCubic(t % 1), 0, 1, this.scale, this.scaleDest);
+  pg.scale(scale, scale);
   this.lastBlob.target(pg);
-  for(let i in this.blobs) {
+  for(let i = this.blobs.length - 1; i >= 0; i--) {
     let bl = this.blobs[i];
     pg.pushMatrix();
     // pg.translate(0, EasingFunctions.easeInOutQuint(tReturn()) * 400)
