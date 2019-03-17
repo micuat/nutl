@@ -41,7 +41,7 @@ SDisplay.prototype.drawLayer = function(pg, key, args) {
     // let env = Math.cos(i / 40 * Math.PI);
     // pg.vertex(i * 20, 100 * Math.sin(i * Math.PI / 40 * 16 + EasingFunctions.easeInOutQuad(t%1) * Math.PI * 8) * env);
     let x = 150 * Math.cos(2 * i / 20 * Math.PI + t * Math.PI);
-    let y = 150 * Math.sin(i / 20 * Math.PI + t * Math.PI);
+    let y = 150 * Math.sin(i / 20 * Math.PI + (t + this.phase) * Math.PI);
     pg.circle(x, y, 10);
   }
 
@@ -59,8 +59,8 @@ SDisplay.prototype.constructor = SDisplay;
 
 ////////
 
-function S051 (p, w, h, tex) {
-  this.tex = tex;
+function S051 (p, w, h, texes) {
+  this.texes = texes;
   SRendererShadow.call(this, p, w, h);
   this.uMetallic = 0.1;
   this.uRoughness = 0.8;
@@ -68,6 +68,7 @@ function S051 (p, w, h, tex) {
   this.uExposure = 4.0;
   this.uVignette = 0.5;
   this.uLightRadius = 1000.0;
+  // this.uGamma = 0.6;
 
   this.shape = p.createShape(p.GROUP);
   this.displays = p.createShape(p.GROUP);
@@ -96,7 +97,7 @@ function S051 (p, w, h, tex) {
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
           s.textureMode(p.NORMAL);
-          s.texture(this.tex);
+          s.texture(p.random(this.texes));
           s.vertex(-40, -40, 0, 0);
           s.vertex(-40, 0, 0, 1);
           s.vertex(40, -40, 1, 0);
@@ -112,7 +113,7 @@ function S051 (p, w, h, tex) {
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
           s.textureMode(p.NORMAL);
-          s.texture(this.tex);
+          s.texture(p.random(this.texes));
           s.vertex(-40, -40, 0, 0);
           s.vertex(-40, 0, 0, 1);
           s.vertex(40, -40, 1, 0);
@@ -139,7 +140,7 @@ function S051 (p, w, h, tex) {
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
           s.textureMode(p.NORMAL);
-          s.texture(this.tex);
+          s.texture(p.random(this.texes));
           s.vertex(-40, -40, 0, 0);
           s.vertex(-40, 0, 0, 1);
           s.vertex(40, -40, 1, 0);
@@ -154,7 +155,7 @@ function S051 (p, w, h, tex) {
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
           s.textureMode(p.NORMAL);
-          s.texture(this.tex);
+          s.texture(p.random(this.texes));
           s.vertex(-40, -40, 0, 0);
           s.vertex(-40, 0, 0, 1);
           s.vertex(40, -40, 1, 0);
@@ -219,9 +220,13 @@ S051.prototype.constructor = S051;
 ////////
 
 var s = function (p) {
-  let tex = new SDisplay(p, 800, 800);
-  tex.c = 4;
-  let s051 = new S051(p, 800, 800, tex.pg);
+  let tex0 = new SDisplay(p, 800, 800);
+  tex0.c = 4;
+  tex0.phase = 0;
+  let tex1 = new SDisplay(p, 800, 800);
+  tex1.c = 1;
+  tex1.phase = 0.25;
+  let s051 = new S051(p, 800, 800, [tex0.pg, tex1.pg]);
   // let s051 = new S051(p, 1920, 1080);
 
 
@@ -240,7 +245,8 @@ var s = function (p) {
       print(p.frameRate())
     }
 
-    tex.draw({t: t});
+    tex0.draw({t: t});
+    tex1.draw({t: t});
 
     p.background(0);
     p.tint(255, 128);
@@ -249,6 +255,7 @@ var s = function (p) {
     s051.draw({t: t});
     p.image(s051.pg, 0, 0);
 
+    // p.tint(255, 128);
     s051.lightPos.set(s051.cameraPosition.x, s051.cameraPosition.y, s051.cameraPosition.z);
     s051.lightDirection = s051.lightPos;
     s051.draw({t: t});
