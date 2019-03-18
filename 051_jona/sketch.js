@@ -180,6 +180,74 @@ SPurpleRain.prototype.drawLayer = function(pg, key, args) {
 
 ////////
 
+function Star(p) {
+  let w = h = 800;
+  this.x = p.random(-w, w);
+  this.y = p.random(-h, h);
+  this.z = p.random(w);
+  this.pz = this.z;
+
+  this.update = function(speed) {
+    this.z = this.z - speed;
+    if (this.z < 1) {
+      this.z = w;
+      this.x = p.random(-w, w);
+      this.y = p.random(-h, h);
+      this.pz = this.z;
+    }
+  }
+
+  this.show = function(pg) {
+    pg.fill(255);
+    pg.noStroke();
+
+    let sx = p.map(this.x / this.z, 0, 1, 0, w);
+    let sy = p.map(this.y / this.z, 0, 1, 0, h);
+
+    let r = p.map(this.z, 0, p.width, 16, 0);
+    pg.ellipse(sx, sy, r, r);
+
+    let px = p.map(this.x / this.pz, 0, 1, 0, w);
+    let py = p.map(this.y / this.pz, 0, 1, 0, h);
+
+    this.pz = this.z;
+
+    pg.stroke(255);
+    pg.line(px, py, sx, sy);
+  }
+}
+
+function SStarField(p, w, h) {
+  TLayer.call(this, p, w, h);
+  this.stars = [];
+  for (let i = 0; i < 200; i++) {
+    this.stars[i] = new Star(p);
+  }
+}
+
+SStarField.prototype = Object.create(TLayer.prototype);
+SStarField.prototype.constructor = SStarField;
+
+SStarField.prototype.update = function(args) {
+  let t = args.t;
+  let p = this.p;
+}
+
+SStarField.prototype.drawLayer = function(pg, key, args) {
+  let t = args.t;
+  let p = this.p;
+
+  let speed = 25;
+  pg.background(0);
+  pg.translate(this.width / 2, this.height / 4);
+  for (let i in this.stars) {
+    this.stars[i].update(speed);
+    this.stars[i].show(pg);
+  }
+}
+
+////////
+
 function S051 (p, w, h, texes) {
   this.texes = texes;
   SRendererShadow.call(this, p, w, h);
@@ -187,7 +255,7 @@ function S051 (p, w, h, texes) {
   this.uRoughness = 0.8;
   this.uSpecular = 0.01;
   this.uExposure = 4.0;
-  this.uVignette = 0.5;
+  this.uVignette = 0.7;
   this.uLightRadius = 1000.0;
   // this.uGamma = 0.6;
 
@@ -207,15 +275,16 @@ function S051 (p, w, h, texes) {
   // wall
   let dw = 47.5;
   let dh = 47.5;
+  let rate = 0.1;
   for(let i = -1.5; i <= 2; i++) {
     for(let j = -1; j <= 1; j++) {
-      if(Math.random() > 0.75) {
+      if(Math.random() > 0.5) {
         let h = 100;
         let s = p.createShape(p.BOX, 5, h, 100);
         s.translate(j * 100, -h/2, i * 100);
         s.disableStyle();
         this.shape.addChild(s);
-        if(Math.random() > 0.25) {
+        if(Math.random() > rate) {
           s = p.createShape();
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
@@ -231,7 +300,7 @@ function S051 (p, w, h, texes) {
           this.displays.addChild(s);
         }
 
-        if(Math.random() > 0.25) {
+        if(Math.random() > rate) {
           s = p.createShape();
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
@@ -251,14 +320,14 @@ function S051 (p, w, h, texes) {
   }
   for(let i = -1; i <= 1; i++) {
     for(let j = -1.5; j <= 2; j++) {
-      if(Math.random() > 0.75) {
+      if(Math.random() > 0.5) {
         let h = 100;
         let s = p.createShape(p.BOX, 100, h, 5);
         s.translate(j * 100, -h/2, i * 100);
         s.disableStyle();
         this.shape.addChild(s);
 
-        if(Math.random() > 0.25) {
+        if(Math.random() > rate) {
           s = p.createShape();
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
@@ -273,7 +342,7 @@ function S051 (p, w, h, texes) {
           this.displays.addChild(s);
         }
 
-        if(Math.random() > 0.25) {
+        if(Math.random() > rate) {
           s = p.createShape();
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
@@ -292,14 +361,23 @@ function S051 (p, w, h, texes) {
     }
   }
 
-  // ceiling
-  for(let i = -1.5; i <= 2; i++) {
-    for(let j = -1.5; j <= 2; j++) {
+  // ceiling / floor
+  for(let i = -3.5; i <= 4; i++) {
+    for(let j = -3.5; j <= 4; j++) {
       let h = 10;
-      let s = p.createShape(p.BOX, 100, h, 100);
-      s.translate(j * 100, -h/2 - 100, i * 100);
-      s.disableStyle();
-      this.shape.addChild(s);
+      if(Math.abs(i) < 2 && Math.abs(j) < 2) {
+        let s = p.createShape(p.BOX, 100, h, 100);
+        s.translate(j * 100, -h/2 - 100, i * 100);
+        s.disableStyle();
+        this.shape.addChild(s);
+      }
+
+      {
+        let s = p.createShape(p.BOX, 100, h, 100);
+        s.translate(j * 100, h/2, i * 100);
+        s.disableStyle();
+        this.shape.addChild(s);
+      }
     }
   }
   this.shape.disableStyle();
@@ -314,6 +392,7 @@ S051.prototype.drawScene = function (pg, isShadow) {
   pg.background(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
   pg.noStroke();
   pg.fill(255);
+  this.defaultShader.set("uUseTexture", 0);
   pg.shape(this.shape, 0, 0);
   if(!isShadow) {
     this.defaultShader.set("uUseTexture", 1);
@@ -321,12 +400,6 @@ S051.prototype.drawScene = function (pg, isShadow) {
   // pg.texture(this.tex);
   // pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
   pg.shape(this.displays, 0, 0);
-
-  this.defaultShader.set("uUseTexture", 0);
-  pg.push();
-  pg.translate(0, 25, 0);
-  pg.box(1000, 50, 1000);
-  pg.pop();
 }
 
 S051.prototype.draw = function (args) {
@@ -343,14 +416,15 @@ S051.prototype.constructor = S051;
 ////////
 
 var s = function (p) {
-  let tex0 = new SDisplay(p, 800, 800);
-  tex0.c = 4;
-  tex0.phase = 0;
+  // let tex0 = new SDisplay(p, 800, 800);
+  // tex0.c = 4;
+  // tex0.phase = 0;
+  let tex0 = new SStarField(p, 800, 1600);
   let tex1 = new SLorenz(p, 800, 800);
   let tex2 = new SPurpleRain(p, 800, 800);
   let s051 = new S051(p, 800, 800, [tex0.pg, tex1.pg, tex2.pg]);
-  // let s051 = new S051(p, 800, 800, [tex2.pg]);
-  // let s051 = new S051(p, 1920, 1080);
+  // let s051 = new S051(p, 800, 800, [tex0.pg]);
+  // let s051 = new S051(p, 1920, 1080, [tex0.pg, tex1.pg, tex2.pg]);
 
 
   p.setup = function () {
