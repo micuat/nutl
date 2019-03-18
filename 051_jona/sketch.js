@@ -248,6 +248,32 @@ SStarField.prototype.drawLayer = function(pg, key, args) {
 
 ////////
 
+function SCamera(p, w, h) {
+  TLayer.call(this, p, w, h);
+  this.lastT = 0;
+}
+
+SCamera.prototype = Object.create(TLayer.prototype);
+SCamera.prototype.constructor = SCamera;
+
+SCamera.prototype.update = function(args) {
+  let t = args.t;
+  let p = this.p;
+}
+
+SCamera.prototype.drawLayer = function(pg, key, args) {
+  let t = args.t * 0.25;
+  let p = this.p;
+  if(true||Math.floor(t) - Math.floor(this.lastT) > 0) {
+    pg.clear();
+    if(this.resultPg != undefined) {
+      pg.image(this.resultPg, 0, 0);
+    }
+  }
+
+  this.lastT = t;
+}
+
 function S051 (p, w, h, texes) {
   this.texes = texes;
   SRendererShadow.call(this, p, w, h);
@@ -289,7 +315,7 @@ function S051 (p, w, h, texes) {
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
           s.textureMode(p.NORMAL);
-          s.texture(p.random(this.texes));
+          s.texture(p.random(this.texes).pg);
           s.vertex(-dw, -dh, 0, 0);
           s.vertex(-dw, dh, 0, 1);
           s.vertex(dw, -dh, 1, 0);
@@ -305,7 +331,7 @@ function S051 (p, w, h, texes) {
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
           s.textureMode(p.NORMAL);
-          s.texture(p.random(this.texes));
+          s.texture(p.random(this.texes).pg);
           s.vertex(-dw, -dh, 0, 0);
           s.vertex(-dw, dh, 0, 1);
           s.vertex(dw, -dh, 1, 0);
@@ -332,7 +358,7 @@ function S051 (p, w, h, texes) {
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
           s.textureMode(p.NORMAL);
-          s.texture(p.random(this.texes));
+          s.texture(p.random(this.texes).pg);
           s.vertex(-dw, -dh, 0, 0);
           s.vertex(-dw, dh, 0, 1);
           s.vertex(dw, -dh, 1, 0);
@@ -347,7 +373,7 @@ function S051 (p, w, h, texes) {
           s.beginShape(p.TRIANGLE_STRIP);
           s.noStroke();
           s.textureMode(p.NORMAL);
-          s.texture(p.random(this.texes));
+          s.texture(p.random(this.texes).pg);
           s.vertex(-dw, -dh, 0, 0);
           s.vertex(-dw, dh, 0, 1);
           s.vertex(dw, -dh, 1, 0);
@@ -404,10 +430,6 @@ S051.prototype.drawScene = function (pg, isShadow) {
 
 S051.prototype.draw = function (args) {
   let p = this.p;
-  let angle = args.t * 0.1;
-  this.cameraPosition = p.createVector(300.0 * Math.cos(angle), -60.0, 300.0 * Math.sin(angle));
-  // this.lightPos.set(200, -50, 50);
-  // this.lightDirection = this.lightPos;
   Object.getPrototypeOf(S051.prototype).draw.call(this);
 }
 
@@ -419,10 +441,12 @@ var s = function (p) {
   // let tex0 = new SDisplay(p, 800, 800);
   // tex0.c = 4;
   // tex0.phase = 0;
-  let tex0 = new SStarField(p, 800, 1600);
-  let tex1 = new SLorenz(p, 800, 800);
-  let tex2 = new SPurpleRain(p, 800, 800);
-  let s051 = new S051(p, 800, 800, [tex0.pg, tex1.pg, tex2.pg]);
+  let texes = [];
+  texes.push(new SStarField(p, 800, 1600));
+  texes.push(new SLorenz(p, 800, 800));
+  texes.push(new SPurpleRain(p, 800, 800));
+  texes.push(new SCamera(p, 800, 1600));
+  let s051 = new S051(p, 800, 800, texes);
   // let s051 = new S051(p, 800, 800, [tex0.pg]);
   // let s051 = new S051(p, 1920, 1080, [tex0.pg, tex1.pg, tex2.pg]);
 
@@ -442,19 +466,20 @@ var s = function (p) {
       print(p.frameRate())
     }
 
-    tex0.draw({t: t});
-    tex1.draw({t: t});
-    tex2.draw({t: t});
+    let angle = t * -0.05;
+    s051.cameraPosition.set(300.0 * Math.cos(angle), -50.0, 300.0 * Math.sin(angle));
+    // s051.cameraPosition.set(100, -50, 100);
+    s051.lightPos.set(200, -20, 50);
+    s051.lightDirection = s051.lightPos;
+    s051.draw({t: t});
+    texes[3].resultPg = s051.pg;
+    for(let i in texes) {
+      texes[i].draw({t: t});
+    }
 
     p.background(0);
-    p.tint(255);
-    // p.tint(255, 128);
-    // s051.lightPos.set(200, -20, 50);
-    // s051.lightDirection = s051.lightPos;
-    // s051.draw({t: t});
-    // p.image(s051.pg, 0, 0);
-
-    // p.tint(255, 128);
+    angle = t * 0.1;
+    s051.cameraPosition.set(300.0 * Math.cos(angle), -50.0, 300.0 * Math.sin(angle));
     s051.lightPos.set(s051.cameraPosition.x, s051.cameraPosition.y, s051.cameraPosition.z);
     s051.lightDirection = s051.lightPos;
     s051.draw({t: t});
