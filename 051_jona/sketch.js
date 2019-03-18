@@ -8,6 +8,7 @@ function SDisplay(p, w, h) {
 }
 
 SDisplay.prototype = Object.create(TLayer.prototype);
+SDisplay.prototype.constructor = SDisplay;
 
 SDisplay.prototype.update = function(args) {
   let t = args.t;
@@ -55,7 +56,127 @@ SDisplay.prototype.drawLayer = function(pg, key, args) {
   }
 }
 
-SDisplay.prototype.constructor = SDisplay;
+////////
+
+function SLorenz(p, w, h) {
+  TLayer.call(this, p, w, h);
+  this.x = 0.01;
+  this.y = 0;
+  this.z = 0;
+  
+  this.a = 10;
+  this.b = 28;
+  this.c = 8.0 / 3.0;
+  
+  this.points = new Array();
+}
+
+SLorenz.prototype = Object.create(TLayer.prototype);
+SLorenz.prototype.constructor = SLorenz;
+
+SLorenz.prototype.update = function(args) {
+  let t = args.t;
+  let p = this.p;
+
+  let dt = 0.01;
+  let dx = (this.a * (this.y - this.x)) * dt;
+  let dy = (this.x * (this.b - this.z) - this.y) * dt;
+  let dz = (this.x * this.y - this.c * this.z) * dt;
+  this.x += dx;
+  this.y += dy;
+  this.z += dz;
+
+  this.points.push(new p5.Vector(this.x, this.y, this.z));
+  if(this.points.length > 500) {
+    this.points.shift();
+  }
+}
+
+SLorenz.prototype.drawLayer = function(pg, key, args) {
+  let t = args.t;
+  let p = this.p;
+
+  pg.colorMode(p.HSB);
+
+  pg.background(0);
+
+  pg.translate(0, 0, -80);
+  pg.translate(this.width/2, this.height/2/2);
+  pg.scale(5);
+  pg.stroke(255);
+  pg.noFill();
+  pg.rotateY(t * 0.25 * Math.PI);
+
+  let hu = 0;
+  pg.beginShape();
+
+  for (let i in this.points) {
+    let v = this.points[i];
+    pg.stroke(hu, 255, 255);
+    pg.vertex(v.x, v.y, v.z);
+
+    hu += 1;
+    if (hu > 255) {
+      hu = 0;
+    }
+  }
+  pg.endShape();
+}
+
+////////
+
+function Drop(p) {
+  this.x = p.random(800);
+  this.y = p.random(-500, -50);
+  this.z = p.random(0, 20);
+  this.len = p.map(this.z, 0, 20, 10, 20);
+  this.yspeed = p.map(this.z, 0, 20, 1, 20);
+
+  this.fall = function() {
+    this.y = this.y + this.yspeed;
+    var grav = p.map(this.z, 0, 20, 0, 0.2);
+    this.yspeed = this.yspeed + grav;
+
+    if (this.y > 400) {
+      this.y = p.random(-200, -100);
+      this.yspeed = p.map(this.z, 0, 20, 4, 10);
+    }
+  }
+
+  this.show = function(pg) {
+    var thick = p.map(this.z, 0, 20, 1, 3);
+    pg.strokeWeight(thick);
+    pg.stroke(138, 43, 226);
+    pg.line(this.x, this.y, this.x, this.y+this.len);
+  }
+}
+
+function SPurpleRain(p, w, h) {
+  TLayer.call(this, p, w, h);
+  this.drops = [];
+  for (let i = 0; i < 200; i++) {
+    this.drops[i] = new Drop(p);
+  }
+}
+
+SPurpleRain.prototype = Object.create(TLayer.prototype);
+SPurpleRain.prototype.constructor = SPurpleRain;
+
+SPurpleRain.prototype.update = function(args) {
+  let t = args.t;
+  let p = this.p;
+}
+
+SPurpleRain.prototype.drawLayer = function(pg, key, args) {
+  let t = args.t;
+  let p = this.p;
+
+  pg.background(230, 230, 250);
+  for (let i in this.drops) {
+    this.drops[i].fall();
+    this.drops[i].show(pg);
+  }
+}
 
 ////////
 
@@ -84,6 +205,8 @@ function S051 (p, w, h, texes) {
   }
 
   // wall
+  let dw = 47.5;
+  let dh = 47.5;
   for(let i = -1.5; i <= 2; i++) {
     for(let j = -1; j <= 1; j++) {
       if(Math.random() > 0.75) {
@@ -98,10 +221,10 @@ function S051 (p, w, h, texes) {
           s.noStroke();
           s.textureMode(p.NORMAL);
           s.texture(p.random(this.texes));
-          s.vertex(-40, -40, 0, 0);
-          s.vertex(-40, 0, 0, 1);
-          s.vertex(40, -40, 1, 0);
-          s.vertex(40, 0, 1, 1);
+          s.vertex(-dw, -dh, 0, 0);
+          s.vertex(-dw, dh, 0, 1);
+          s.vertex(dw, -dh, 1, 0);
+          s.vertex(dw, dh, 1, 1);
           s.endShape();
           s.rotateY(Math.PI / 2);
           s.translate(j * 100 - 2.51, -h/2, i * 100);
@@ -114,10 +237,10 @@ function S051 (p, w, h, texes) {
           s.noStroke();
           s.textureMode(p.NORMAL);
           s.texture(p.random(this.texes));
-          s.vertex(-40, -40, 0, 0);
-          s.vertex(-40, 0, 0, 1);
-          s.vertex(40, -40, 1, 0);
-          s.vertex(40, 0, 1, 1);
+          s.vertex(-dw, -dh, 0, 0);
+          s.vertex(-dw, dh, 0, 1);
+          s.vertex(dw, -dh, 1, 0);
+          s.vertex(dw, dh, 1, 1);
           s.endShape();
           s.rotateY(-Math.PI / 2);
           s.translate(j * 100 + 2.51, -h/2, i * 100);
@@ -141,10 +264,10 @@ function S051 (p, w, h, texes) {
           s.noStroke();
           s.textureMode(p.NORMAL);
           s.texture(p.random(this.texes));
-          s.vertex(-40, -40, 0, 0);
-          s.vertex(-40, 0, 0, 1);
-          s.vertex(40, -40, 1, 0);
-          s.vertex(40, 0, 1, 1);
+          s.vertex(-dw, -dh, 0, 0);
+          s.vertex(-dw, dh, 0, 1);
+          s.vertex(dw, -dh, 1, 0);
+          s.vertex(dw, dh, 1, 1);
           s.endShape();
           s.translate(j * 100, -h/2, i * 100 - 2.51);
           this.displays.addChild(s);
@@ -156,10 +279,10 @@ function S051 (p, w, h, texes) {
           s.noStroke();
           s.textureMode(p.NORMAL);
           s.texture(p.random(this.texes));
-          s.vertex(-40, -40, 0, 0);
-          s.vertex(-40, 0, 0, 1);
-          s.vertex(40, -40, 1, 0);
-          s.vertex(40, 0, 1, 1);
+          s.vertex(-dw, -dh, 0, 0);
+          s.vertex(-dw, dh, 0, 1);
+          s.vertex(dw, -dh, 1, 0);
+          s.vertex(dw, dh, 1, 1);
           s.endShape();
           s.rotateY(Math.PI);
           s.translate(j * 100, -h/2, i * 100 + 2.51);
@@ -223,10 +346,10 @@ var s = function (p) {
   let tex0 = new SDisplay(p, 800, 800);
   tex0.c = 4;
   tex0.phase = 0;
-  let tex1 = new SDisplay(p, 800, 800);
-  tex1.c = 1;
-  tex1.phase = 0.25;
-  let s051 = new S051(p, 800, 800, [tex0.pg, tex1.pg]);
+  let tex1 = new SLorenz(p, 800, 800);
+  let tex2 = new SPurpleRain(p, 800, 800);
+  let s051 = new S051(p, 800, 800, [tex0.pg, tex1.pg, tex2.pg]);
+  // let s051 = new S051(p, 800, 800, [tex2.pg]);
   // let s051 = new S051(p, 1920, 1080);
 
 
@@ -247,13 +370,15 @@ var s = function (p) {
 
     tex0.draw({t: t});
     tex1.draw({t: t});
+    tex2.draw({t: t});
 
     p.background(0);
-    p.tint(255, 128);
-    s051.lightPos.set(200, -20, 50);
-    s051.lightDirection = s051.lightPos;
-    s051.draw({t: t});
-    p.image(s051.pg, 0, 0);
+    p.tint(255);
+    // p.tint(255, 128);
+    // s051.lightPos.set(200, -20, 50);
+    // s051.lightDirection = s051.lightPos;
+    // s051.draw({t: t});
+    // p.image(s051.pg, 0, 0);
 
     // p.tint(255, 128);
     s051.lightPos.set(s051.cameraPosition.x, s051.cameraPosition.y, s051.cameraPosition.z);
