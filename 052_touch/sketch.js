@@ -4,9 +4,12 @@ var colorScheme = new ColorScheme("247ba0-70c1b3-b2dbbf-f3ffbd-ff1654");
 var Tile = function (args) {
   this.x = args.x;
   this.y = args.y;
+  this.dx = args.dx == undefined ? 0 : args.dx;
+  this.dy = args.dy == undefined ? 0 : args.dy;
   this.tick = args.tick;
-  this.size = this.tick;// * 0.9;
+  this.size = this.tick * 0.9;
   this.startTime = args.startTime;
+  this.colorIndex = args.colorIndex;
 }
 
 Tile.prototype.draw = function (args) {
@@ -14,9 +17,20 @@ Tile.prototype.draw = function (args) {
   let pg = args.pg;
   pg.push();
   pg.translate(this.x * this.tick, this.y * this.tick, 0);
-  let c0 = 4;
+  let c0 = this.colorIndex;
+  let tw = EasingFunctions.easeInOutCubic(tween);
+  let sw = this.size;
+  let sh = this.size;
+  if(this.dx != 0) {
+    sw *= tw;
+  }
+  else {
+    sh *= tw;
+  }
+  pg.fill(0, 50);
+  pg.rect(this.size * (1 - tw) * 0.5 * -this.dx, this.size * (1 - tw) * 0.5 * -this.dy, sw+8, sh+8);
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-  pg.rect(0, 0, this.size * tween, this.size * tween);
+  pg.rect(this.size * (1 - tw) * 0.5 * -this.dx, this.size * (1 - tw) * 0.5 * -this.dy, sw, sh);
   pg.pop();
 }
 
@@ -25,14 +39,25 @@ Tile.prototype.trigger = function (args) {
   // let dx = 0;
   let dx = 0;
   let dy = 0;
+  let colorIndex = 0;
   if(Math.abs(args.sx) > Math.abs(args.sy)) {
     dx = args.sx > 0 ? 1 : -1;
+    colorIndex = args.sx > 0 ? 1 : 0;
   }
   else {
     dy = args.sy > 0 ? 1 : -1;
+    colorIndex = args.sx > 0 ? 3 : 2;
   }
   if(tiles[this.y + dy][this.x + dx] == undefined) {
-    tiles[this.y + dy][this.x + dx] = new Tile({x: this.x + dx, y: this.y + dy, tick: this.tick, startTime: args.t});
+    tiles[this.y + dy][this.x + dx] = new Tile({
+      x: this.x + dx,
+      y: this.y + dy,
+      dx: dx,
+      dy: dy,
+      tick: this.tick,
+      startTime: args.t,
+      colorIndex: colorIndex
+    });
   }
 }
 
@@ -47,7 +72,13 @@ function S052(p, w, h) {
   }
   let x = Math.floor(w / this.tick / 2);
   let y = Math.floor(h / this.tick / 2);
-  this.tiles[y][x] = new Tile({x: x, y: y, tick: this.tick, startTime: 0});
+  this.tiles[y][x] = new Tile({
+    x: x,
+    y: y,
+    tick: this.tick,
+    startTime: 0,
+    colorIndex: 4
+  });
 }
 
 S052.prototype = Object.create(TLayer.prototype);
