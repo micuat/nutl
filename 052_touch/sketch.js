@@ -137,9 +137,22 @@ S052.prototype.drawLayer = function(pg, key, args) {
     return 1 - Math.abs(t % 2 - 1);
   }
 
-  for(let i in this.tiles) {
-    for(let j in this.tiles[i]) {
-      this.tiles[i][j].draw({pg: pg, t: t});
+  pg.translate(this.width / 2, this.height / 2);
+  if(t % 8 > 4) {
+    let s = p.map(EasingFunctions.easeInOutQuart(Math.abs(t % 8 - 4 - 2) * 0.5), 1, 0, 1, 0.25);
+    pg.scale(s, s);
+  }
+  pg.translate(-this.width / 2, -this.height / 2);
+  for(let y = -3; y <= 3; y++) {
+    for(let x = -3; x <= 3; x++) {
+      pg.push();
+      pg.translate(x * 1000, y * 1000);
+      for(let i in this.tiles) {
+        for(let j in this.tiles[i]) {
+          this.tiles[i][j].draw({pg: pg, t: t});
+        }
+      }
+      pg.pop();
     }
   }
 }
