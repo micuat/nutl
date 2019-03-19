@@ -5,31 +5,41 @@ var Tile = function (args) {
   this.x = args.x;
   this.y = args.y;
   this.tick = args.tick;
-  this.size = this.tick * 0.9;
+  this.size = this.tick;// * 0.9;
+  this.startTime = args.startTime;
 }
 
 Tile.prototype.draw = function (args) {
-  let t = args.tween;
+  let tween = Math.min(1, args.t - this.startTime);
   let pg = args.pg;
   pg.push();
   pg.translate(this.x * this.tick, this.y * this.tick, 0);
   let c0 = 4;
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-  pg.rect(0, 0, this.size, this.size);
+  pg.rect(0, 0, this.size * tween, this.size * tween);
   pg.pop();
 }
 
 Tile.prototype.trigger = function (args) {
   let tiles = args.tiles;
-  if(tiles[this.y][this.x + 1] == undefined) {
-    tiles[this.y][this.x + 1] = new Tile({x: this.x + 1, y: this.y, tick: this.tick});
+  // let dx = 0;
+  let dx = 0;
+  let dy = 0;
+  if(Math.abs(args.sx) > Math.abs(args.sy)) {
+    dx = args.sx > 0 ? 1 : -1;
+  }
+  else {
+    dy = args.sy > 0 ? 1 : -1;
+  }
+  if(tiles[this.y + dy][this.x + dx] == undefined) {
+    tiles[this.y + dy][this.x + dx] = new Tile({x: this.x + dx, y: this.y + dy, tick: this.tick, startTime: args.t});
   }
 }
 
 function S052(p, w, h) {
   TLayer.call(this, p, w, h);
   this.tiles = []; // [y][x]
-  this.tick = 100;
+  this.tick = 200;
   for(let i = 0; i < h / this.tick; i++) {
     this.tiles[i] = [];
     // for(let j = 0; j < w / this.tick; j++) {
@@ -37,7 +47,7 @@ function S052(p, w, h) {
   }
   let x = Math.floor(w / this.tick / 2);
   let y = Math.floor(h / this.tick / 2);
-  this.tiles[y][x] = new Tile({x: x, y: y, tick: this.tick});
+  this.tiles[y][x] = new Tile({x: x, y: y, tick: this.tick, startTime: 0});
 }
 
 S052.prototype = Object.create(TLayer.prototype);
@@ -71,7 +81,7 @@ S052.prototype.drawLayer = function(pg, key, args) {
 
   for(let i in this.tiles) {
     for(let j in this.tiles[i]) {
-      this.tiles[i][j].draw({pg: pg});
+      this.tiles[i][j].draw({pg: pg, t: t});
     }
   }
 }
@@ -83,8 +93,10 @@ S052.prototype.touch = function(args) {
   let y = args.y;
   x = Math.floor(x / this.tick + 0.5);
   y = Math.floor(y / this.tick + 0.5);
+  let sx = args.x - x * this.tick;
+  let sy = args.y - y * this.tick;
   if(this.tiles[y][x] != undefined) {
-    this.tiles[y][x].trigger({x: args.x, y: args.y, tiles: this.tiles});
+    this.tiles[y][x].trigger({x: args.x, y: args.y, sx: sx, sy: sy, tiles: this.tiles, t: args.t});
   } 
 }
 
@@ -113,7 +125,7 @@ var s = function (p) {
   }
 
   p.mousePressed = function () {
-    s052.touch({x: p.mouseX, y: p.mouseY});
+    s052.touch({x: p.mouseX, y: p.mouseY, t: p.millis() * 0.001});
   }
 };
 
