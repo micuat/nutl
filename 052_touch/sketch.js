@@ -1,7 +1,7 @@
 var colorScheme = new ColorScheme("247ba0-70c1b3-b2dbbf-f3ffbd-ff1654");
 // var colorScheme = new ColorScheme("ff6b35-f7c59f-efefd0-004e89-1a659e");
 
-var hexMode = false;
+var hexMode = true;
 var Tile = function (args) {
   this.idx = args.idx;
   this.idy = args.idy;
@@ -19,11 +19,9 @@ Tile.prototype.draw = function (args) {
   let tween = Math.min(1, args.t - this.startTime);
   let pg = args.pg;
   pg.push();
-  if(hexMode && this.idx % 2 == 1) {
-    pg.translate(0, this.tick / 2);
-  }
-  let shiftx = hexMode ? 1 / 2 * Math.sqrt(3) : 1;
-  pg.translate(this.idx * this.tick * shiftx, this.idy * this.tick, 0);
+  let px = this.idx * this.tick * (hexMode ? 1 / 2 * Math.sqrt(3) : 1);
+  let py = this.idy * this.tick + ((hexMode && this.idx % 2 == 1) ? this.tick / 2 : 0)
+  pg.translate(px, py, 0);
   let c0 = (this.colorIndex + args.colorShift) % 5;
   let tw0 = EasingFunctions.easeInOutCubic(Math.min(1, tween * 2));
   let tw1 = EasingFunctions.easeInOutCubic(Math.max(0, tween * 2 - 1));
@@ -84,21 +82,33 @@ Tile.prototype.draw = function (args) {
 }
 
 Tile.prototype.trigger = function (args) {
+  let correctx = args.x;// + this.unitSize * x;
+  let correcty = args.y;// + this.unitSize * y;
+
+  let px = this.idx * this.tick * (hexMode ? 1 / 2 * Math.sqrt(3) : 1);
+  let py = this.idy * this.tick + ((hexMode && this.idx % 2 == 1) ? this.tick / 2 : 0)
+
+  if(Math.abs(px - correctx) > this.size / 2 || Math.abs(py - correcty) > this.size / 2) {
+    return;
+  }
+
+  let centricx = correctx - px;
+  let centricy = correcty - py;
+
   let tiles = args.tiles;
-  // let dx = 0;
   let dx = 0;
   let dy = 0;
   let colorIndex = 0;
-  if(Math.abs(args.centricx) > Math.abs(args.centricy)) {
-    dx = args.centricx > 0 ? 1 : -1;
-    colorIndex = args.centricx > 0 ? 1 : 0;
+  if(Math.abs(centricx) > Math.abs(centricy)) {
+    dx = centricx > 0 ? 1 : -1;
+    colorIndex = centricx > 0 ? 1 : 0;
   }
   else {
-    dy = args.centricy > 0 ? 1 : -1;
-    colorIndex = args.centricx > 0 ? 3 : 2;
+    dy = centricy > 0 ? 1 : -1;
+    colorIndex = centricx > 0 ? 3 : 2;
   }
 
-  if(Math.abs(args.centricx) < this.tick * 0.25 && Math.abs(args.centricy) < this.tick * 0.25) {
+  if(Math.abs(centricx) < this.tick * 0.25 && Math.abs(centricy) < this.tick * 0.25) {
     colorIndex = 4;
   }
 
@@ -196,21 +206,13 @@ S052.prototype.drawLayer = function(pg, key, args) {
 
 S052.prototype.touched = function(args) {
   let p = this.p;
-  let n = 1;
+  let n = 0;
   for(let y = -n; y <= n; y++) {
     for(let x = -n; x <= n; x++) {
-      let correctx = args.x + this.unitSize * x;
-      let correcty = args.y + this.unitSize * y;
-
-      let idx = Math.floor(correctx / this.tick + 0.5);
-      let idy = Math.floor(correcty / this.tick + 0.5);
-      if(idx < 0 || idy < 0) continue;
-      print(args.x, args.y, correctx, correcty, idx, idy)
-      let centricx = correctx - idx * this.tick;
-      let centricy = correcty - idy * this.tick;
-      if(this.tiles[idy] != undefined && this.tiles[idy][idx] != undefined) {
-        this.tiles[idy][idx].trigger({centricx: centricx, centricy: centricy, tiles: this.tiles, t: args.t});
-        break;
+      for(let i in this.tiles) {
+        for(let j in this.tiles[i]) {
+          this.tiles[i][j].trigger({x: args.x, y: args.y, t: args.t, globalx: x, globaly: y, tiles: this.tiles});
+        }
       }
     }
   }
