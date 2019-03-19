@@ -1,6 +1,7 @@
 var colorScheme = new ColorScheme("247ba0-70c1b3-b2dbbf-f3ffbd-ff1654");
 // var colorScheme = new ColorScheme("ff6b35-f7c59f-efefd0-004e89-1a659e");
 
+var hexMode = false;
 var Tile = function (args) {
   this.idx = args.idx;
   this.idy = args.idy;
@@ -18,10 +19,11 @@ Tile.prototype.draw = function (args) {
   let tween = Math.min(1, args.t - this.startTime);
   let pg = args.pg;
   pg.push();
-  if(this.idx % 2 == 1) {
-    // pg.translate(0, this.tick / 2);
+  if(hexMode && this.idx % 2 == 1) {
+    pg.translate(0, this.tick / 2);
   }
-  pg.translate(this.idx * this.tick, this.idy * this.tick, 0);
+  let shiftx = hexMode ? 1 / 2 * Math.sqrt(3) : 1;
+  pg.translate(this.idx * this.tick * shiftx, this.idy * this.tick, 0);
   let c0 = (this.colorIndex + args.colorShift) % 5;
   let tw0 = EasingFunctions.easeInOutCubic(Math.min(1, tween * 2));
   let tw1 = EasingFunctions.easeInOutCubic(Math.max(0, tween * 2 - 1));
@@ -37,31 +39,47 @@ Tile.prototype.draw = function (args) {
   }
   pg.push();
   pg.fill(255);
+  if(hexMode && this.dx != 0) {
+    pg.rotate(-Math.PI/6);
+  }
   pg.translate(this.connectorSize * (1 - tw0) * -this.dx, this.connectorSize * (1 - tw0) * -this.dy);
   pg.translate(this.tick * -this.dx / 2, this.tick * -this.dy / 2, -0.001);
   pg.rect(0, 0, this.connectorSize, this.connectorSize);
   pg.pop();
-  // pg.fill(0, 50);
-  // pg.rect(this.size * (1 - tw1) * 0.5 * -this.dx, this.size * (1 - tw1) * 0.5 * -this.dy, sw+8, sh+8);
+
   pg.translate(this.size * (1 - tw1) * 0.5 * -this.dx, this.size * (1 - tw1) * 0.5 * -this.dy);
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-  pg.rect(0, 0, sw, sh);
-  c0 = (c0 + 1) % 5;
-  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-  if(this.dx == -1) {
-    pg.rotate(Math.PI);
+  if(hexMode) {
+    let n = 6;
+    pg.beginShape();
+    for(let i = 0; i < n; i++) {
+      let r = this.size * 0.7;
+      let x = r * Math.cos((i+0.5) / n * 2 * Math.PI);
+      let y = r * Math.sin((i+0.5) / n * 2 * Math.PI);
+      pg.vertex(x, y);
+    }
+    pg.endShape();
   }
-  if(this.dy == -1) {
-    pg.rotate(-Math.PI / 2);
+  else {
+    pg.rect(0, 0, sw, sh);
+    c0 = (c0 + 1) % 5;
+    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
+    if(this.dx == -1) {
+      pg.rotate(Math.PI);
+    }
+    if(this.dy == -1) {
+      pg.rotate(-Math.PI / 2);
+    }
+    if(this.dy == 1) {
+      pg.rotate(Math.PI / 2);
+    }
+    pg.scale(tw1, tw1);
+    pg.triangle(-this.size/2, -this.size/2, 0, 0, -this.size/2, this.size/2);
+    if(this.ichimatsu) {
+      pg.triangle(this.size/2, -this.size/2, 0, 0, this.size/2, this.size/2);
+    }
   }
-  if(this.dy == 1) {
-    pg.rotate(Math.PI / 2);
-  }
-  pg.scale(tw1, tw1);
-  pg.triangle(-this.size/2, -this.size/2, 0, 0, -this.size/2, this.size/2);
-  if(this.ichimatsu) {
-    pg.triangle(this.size/2, -this.size/2, 0, 0, this.size/2, this.size/2);
-  }
+
   pg.pop();
 }
 
@@ -102,7 +120,7 @@ function S052(p, w, h) {
   TLayer.call(this, p, w, h);
   this.tiles = []; // [y][x]
   this.tick = 200;
-  this.unitSize = 1000;
+  this.unitSize = 1200;
   for(let i = 0; i < h / this.tick; i++) {
     this.tiles[i] = [];
     // for(let j = 0; j < w / this.tick; j++) {
@@ -156,11 +174,12 @@ S052.prototype.drawLayer = function(pg, key, args) {
   }
   pg.translate(-this.width / 2, -this.height / 2);
   pg.fill(0, 150);
-  pg.rect(this.tick * 5, this.tick * 5, this.tick, this.tick);
+  // pg.rect(this.tick * 5, this.tick * 5, this.tick, this.tick);
   for(let y = -3; y <= 3; y++) {
     for(let x = -3; x <= 3; x++) {
       pg.push();
-      pg.translate(x * this.unitSize, y * this.unitSize);
+      let shift = hexMode ? 2 / Math.sqrt(3) : 1;
+      pg.translate(x * this.unitSize * shift, y * this.unitSize);
       let colorShift = 0;
       if(this.tiles[5][5] != undefined) {
         colorShift = x % 2;
