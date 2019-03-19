@@ -18,15 +18,17 @@ Tile.prototype.draw = function (args) {
   let pg = args.pg;
   pg.push();
   pg.translate(this.idx * this.tick, this.idy * this.tick, 0);
-  let c0 = this.colorIndex;
+  let c0 = (this.colorIndex + args.colorShift) % 5;
   let tw0 = EasingFunctions.easeInOutCubic(Math.min(1, tween * 2));
   let tw1 = EasingFunctions.easeInOutCubic(Math.max(0, tween * 2 - 1));
   let sw = this.size;
   let sh = this.size;
   if(this.dx != 0) {
     sw *= tw1;
+    sh *= tw1 * 0.5 + 0.5;
   }
   else {
+    sw *= tw1 * 0.5 + 0.5;
     sh *= tw1;
   }
   pg.push();
@@ -140,7 +142,7 @@ S052.prototype.drawLayer = function(pg, key, args) {
 
   pg.translate(this.width / 2, this.height / 2);
   if(t % 8 > 4) {
-    let s = p.map(EasingFunctions.easeInOutQuart(Math.abs(t % 8 - 4 - 2) * 0.5), 1, 0, 1, 0.25);
+    let s = p.map(EasingFunctions.easeInOutQuint(Math.abs(t % 8 - 4 - 2) * 0.5), 1, 0, 1, 0.25);
     pg.scale(s, s);
   }
   pg.translate(-this.width / 2, -this.height / 2);
@@ -150,7 +152,7 @@ S052.prototype.drawLayer = function(pg, key, args) {
       pg.translate(x * this.unitSize, y * this.unitSize);
       for(let i in this.tiles) {
         for(let j in this.tiles[i]) {
-          this.tiles[i][j].draw({pg: pg, t: t});
+          this.tiles[i][j].draw({pg: pg, t: t, colorShift: x % 2});
         }
       }
       pg.pop();
@@ -160,14 +162,24 @@ S052.prototype.drawLayer = function(pg, key, args) {
 
 S052.prototype.touched = function(args) {
   let p = this.p;
+  let n = 1;
+  for(let y = -n; y <= n; y++) {
+    for(let x = -n; x <= n; x++) {
+      let correctx = args.x + this.unitSize * x;
+      let correcty = args.y + this.unitSize * y;
 
-  let idx = Math.floor(args.x / this.tick + 0.5);
-  let idy = Math.floor(args.y / this.tick + 0.5);
-  let centricx = args.x - idx * this.tick;
-  let centricy = args.y - idy * this.tick;
-  if(this.tiles[idy][idx] != undefined) {
-    this.tiles[idy][idx].trigger({centricx: centricx, centricy: centricy, tiles: this.tiles, t: args.t});
-  } 
+      let idx = Math.floor(correctx / this.tick + 0.5);
+      let idy = Math.floor(correcty / this.tick + 0.5);
+      if(idx < 0 || idy < 0) continue;
+      print(args.x, args.y, correctx, correcty, idx, idy)
+      let centricx = correctx - idx * this.tick;
+      let centricy = correcty - idy * this.tick;
+      if(this.tiles[idy] != undefined && this.tiles[idy][idx] != undefined) {
+        this.tiles[idy][idx].trigger({centricx: centricx, centricy: centricy, tiles: this.tiles, t: args.t});
+        break;
+      }
+    }
+  }
 }
 
 S052.prototype.constructor = S052;
