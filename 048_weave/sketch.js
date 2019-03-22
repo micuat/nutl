@@ -49,13 +49,15 @@ S048.prototype.drawLayer = function(pg, key, args) {
         }
       }
       else {
-        if(noise > p.map(jr, 0, N-1, 0, 1)) {
-          over = true;
+        if((i+j)%2 == 0) {
+            over = true;
         }
         else {
           over = false;
         }
-        if((i+j)%2 == 1) over = !over;
+        if((jr+0.5) % 8 > Math.sin((i+jj*0)/(16+jj*2)*Math.PI)*3+4
+        && (jr-0.5) % 8 <= Math.sin((i+jj*0)/(16+jj*2)*Math.PI)*3+4) over = !over;
+        // if(p.sin(jr * Math.PI *0.25 + (i + jj*1) * Math.PI * 0.125) > 0.0) over = !over;
       }
 
       let realColor = false;
