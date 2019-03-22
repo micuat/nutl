@@ -1,3 +1,15 @@
+// vignette
+// void setup() {
+//   size(512, 512);
+//   for(int i = 0; i < height; i++) {
+//     for(int j = 0; j < width; j++) {
+//       float r = mag(j - width/2, i - height / 2) / width;
+//       r *= r;
+//       set(j, i, color(floor(map(r, 0, 1, 255, 0))));
+//     }
+//   }
+// }
+
 // Camera Properties
 let camera_angle = 0;
 let camera_range = -10;
@@ -7,7 +19,7 @@ let camera_focal = 70;
 let camera_near = 0.1;
 let camera_far = 50;
 
-let plane_width = 2;
+let plane_width = 1.8;
 let plane_position = { x: 0, y: 0, z: 0 };
 
 // Box properties
@@ -35,9 +47,9 @@ camera.lookAt(camera_target);
 scene.add(new THREE.AmbientLight(0xdddddd));
 
 // Add directional light
-let light_spot_positions = [{ x: -1, y: -1, z: 1.5 },{ x: 1, y: 1, z: 1.5 }]
+let light_spot_positions = [{ x: -2, y: -2, z: 1.5 },{ x: 3, y: 1, z: 1.5 }]
 for(let i = 0; i < 2; i++) {
-    let spot_light = new THREE.SpotLight(0xDDDDDD, 0.7);
+    let spot_light = new THREE.SpotLight(0xDDDDDD, 0.5);
     spot_light.position.set(light_spot_positions[i].x, light_spot_positions[i].y, light_spot_positions[i].z);
     spot_light.target = scene;
     spot_light.castShadow = true;
@@ -48,29 +60,25 @@ for(let i = 0; i < 2; i++) {
     scene.add(spot_light);
 }
 
-{
-    let plane_geometry = new THREE.PlaneGeometry(30, 30, 1, 1);
-    let plane_material = new THREE.MeshLambertMaterial({ color: 0xDDDDDD });
-    let plane_mesh = new THREE.Mesh(plane_geometry, plane_material);
-    plane_mesh.position.set(0, 0, -1);
-    plane_mesh.receiveShadow = true;
-    scene.add(plane_mesh);
+let textureVig = new THREE.TextureLoader().load( "vig.png" );
+let tile_material = new THREE.MeshLambertMaterial({ color: 0xdddddd, map: textureVig });
+
+for(let i = -5; i <= 5; i++) {
+    for(let j = -5; j <= 5; j++) {
+        {
+            let plane_geometry = new THREE.PlaneGeometry(2, 2, 1, 1);
+            let plane_mesh = new THREE.Mesh(plane_geometry, tile_material);
+            plane_mesh.position.set(j * 2, i * 2, -1);
+            plane_mesh.receiveShadow = true;
+            scene.add(plane_mesh);
+        }
+    }
 }
-
-// let box_material = new THREE.MeshLambertMaterial({ color: 0xff0000 });
-// let box_geometry = new THREE.BoxGeometry(0.5, 0.5, 1);
-// let box_mesh = new THREE.Mesh(box_geometry, box_material);
-// box_mesh.castShadow = true;
-// box_mesh.receiveShadow = true;
-// box_mesh.position.set(box_position.x, box_position.y, box_position.z);
-// scene.add(box_mesh);
-
 for(let i = -2.5; i <= 2.5; i++) {
     for(let j = -2.5; j <= 2.5; j++) {
         if(Math.random() > 0.75) {
-            let box_material = new THREE.MeshLambertMaterial({ color: 0xdddddd });
             let box_geometry = new THREE.BoxGeometry(0.25, 0.25, 3);
-            let box_mesh = new THREE.Mesh(box_geometry, box_material);
+            let box_mesh = new THREE.Mesh(box_geometry, tile_material);
             box_mesh.castShadow = true;
             box_mesh.receiveShadow = true;
             box_mesh.position.set(j * 2, i * 2, 0.5);
@@ -84,23 +92,34 @@ let plane_materials = [];
 
 for(let i = 0; i < 2; i++) {
     plane_materials[i] = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[i]);
-    plane_mesh.position.set(plane_position.x+i*plane_width, plane_position.y, plane_position.z);
-    plane_mesh.rotation.x = Math.PI / 2;
-    plane_mesh.receiveShadow = false;//true;
-    scene.add(plane_mesh);
 }
 
 for(let i = -2.5; i <= 2.5; i++) {
     for(let j = -2; j <= 2; j++) {
         if(Math.random() > 0.875) {
-            let box_material = new THREE.MeshLambertMaterial({ color: 0xdddddd });
             let box_geometry = new THREE.BoxGeometry(2, 0.125, 3);
-            let box_mesh = new THREE.Mesh(box_geometry, box_material);
+            let box_mesh = new THREE.Mesh(box_geometry, tile_material);
             box_mesh.castShadow = true;
             box_mesh.receiveShadow = true;
             box_mesh.position.set(j * 2, i * 2, 0.5);
             scene.add(box_mesh);
+
+            {
+                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * 2)]);
+                plane_mesh.position.set(j * 2, i * 2 - 0.1, 0.5);
+                plane_mesh.rotation.x = Math.PI / 2;
+                // plane_mesh.rotation.y = Math.PI / 2;
+                plane_mesh.receiveShadow = false;//true;
+                scene.add(plane_mesh);
+            }
+            {
+                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * 2)]);
+                plane_mesh.position.set(j * 2, i * 2 + 0.1, 0.5);
+                plane_mesh.rotation.x = Math.PI / 2;
+                plane_mesh.rotation.y = -Math.PI;
+                plane_mesh.receiveShadow = false;//true;
+                scene.add(plane_mesh);
+            }
         }
     }
 }
@@ -108,21 +127,36 @@ for(let i = -2.5; i <= 2.5; i++) {
 for(let i = -2; i <= 2; i++) {
     for(let j = -2.5; j <= 2.5; j++) {
         if(Math.random() > 0.875) {
-            let box_material = new THREE.MeshLambertMaterial({ color: 0xdddddd });
             let box_geometry = new THREE.BoxGeometry(0.125, 2, 3);
-            let box_mesh = new THREE.Mesh(box_geometry, box_material);
+            let box_mesh = new THREE.Mesh(box_geometry, tile_material);
             box_mesh.castShadow = true;
             box_mesh.receiveShadow = true;
             box_mesh.position.set(j * 2, i * 2, 0.5);
             scene.add(box_mesh);
+
+            {
+                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * 2)]);
+                plane_mesh.position.set(j * 2 - 0.1, i * 2, 0.5);
+                plane_mesh.rotation.x = Math.PI / 2;
+                plane_mesh.rotation.y = -Math.PI / 2;
+                plane_mesh.receiveShadow = false;//true;
+                scene.add(plane_mesh);
+            }
+            {
+                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * 2)]);
+                plane_mesh.position.set(j * 2 + 0.1, i * 2, 0.5);
+                plane_mesh.rotation.x = Math.PI / 2;
+                plane_mesh.rotation.y = Math.PI / 2;
+                plane_mesh.receiveShadow = false;//true;
+                scene.add(plane_mesh);
+            }
         }
     }
 }
 
 {
-    let box_material = new THREE.MeshLambertMaterial({ color: 0xdddddd });
-    let box_geometry = new THREE.BoxGeometry(10, 10, 0.125);
-    let box_mesh = new THREE.Mesh(box_geometry, box_material);
+    let box_geometry = new THREE.BoxGeometry(11.5, 11.5, 0.125);
+    let box_mesh = new THREE.Mesh(box_geometry, tile_material);
     box_mesh.castShadow = true;
     box_mesh.receiveShadow = true;
     box_mesh.position.set(0, 0, 2);

@@ -8,7 +8,7 @@
 // instance mode by Naoto Hieda
 
 var cols, rows;
-var scl = 80;
+var scl = 60;
 var w = 1400;
 var h = 1000;
 
@@ -47,8 +47,8 @@ var s = function (sketch) {
 
     sketch.background(0);
     sketch.translate(0, 50);
-    sketch.rotateX(sketch.PI / 3);
-    sketch.fill(200, 200, 200, 50);
+    sketch.rotateX(sketch.PI / 2.1);
+    sketch.fill(200, 200, 200, 100);
     sketch.translate(-w / 2, -h / 2);
     for (var y = 0; y < rows - 1; y++) {
       sketch.beginShape(sketch.TRIANGLE_STRIP);
