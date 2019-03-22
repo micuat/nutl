@@ -107,6 +107,14 @@ plane_mesh.position.set(plane_position.x, plane_position.y, plane_position.z);
 plane_mesh.receiveShadow = true;
 scene.add(plane_mesh);
 
+// Add the ground plane
+let plane_geometry1 = new THREE.PlaneGeometry(plane_width, plane_height, plane_width_segs, plane_height_segs);
+let plane_material1 = new THREE.MeshLambertMaterial({ color: plane_color });
+let plane_mesh1 = new THREE.Mesh(plane_geometry1, plane_material1);
+plane_mesh1.position.set(plane_position.x+plane_width, plane_position.y, plane_position.z);
+plane_mesh1.receiveShadow = true;
+scene.add(plane_mesh1);
+
 // Add the box
 // let texture = new THREE.Texture(document.getElementById('defaultCanvas0'));
 
@@ -130,9 +138,10 @@ sphere_mesh.position.set(sphere_position.x, sphere_position.y, sphere_position.z
 scene.add(sphere_mesh);
 
 // Render loop
-let texture;
+let texture, texture1;
 let render = function () {
-    if (texture != undefined) texture.needsUpdate = true;
+    texture.needsUpdate = true;
+    texture1.needsUpdate = true;
 
     camera_angle += camera_speed;
     camera.position.x = Math.cos(camera_angle) * camera_range;
@@ -176,6 +185,10 @@ setTimeout(() => {
     if (document.getElementById('defaultCanvas0') != null) {
         texture = new THREE.Texture(document.getElementById('defaultCanvas0'));
         plane_material.map = texture;
+    }
+    if (document.getElementById('defaultCanvas1') != null) {
+        texture1 = new THREE.Texture(document.getElementById('defaultCanvas1'));
+        plane_material1.map = texture1;
     }
 
     render();

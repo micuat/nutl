@@ -8,7 +8,7 @@
 // instance mode by Naoto Hieda
 
 var cols, rows;
-var scl = 20;
+var scl = 80;
 var w = 1400;
 var h = 1000;
 
@@ -62,4 +62,4 @@ var s = function (sketch) {
 
 };
 
-var myp5 = new p5(s);
+var pPerlinNoiseTerrain = new p5(s);

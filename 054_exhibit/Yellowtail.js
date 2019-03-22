@@ -198,7 +198,6 @@ SYellowtail.prototype.clearGestures = function () {
 
 var s = function (p) {
   let sYellowtail;
-	
 
   p.setup = function () {
     p.createCanvas(512, 512);
@@ -221,5 +220,5 @@ var s = function (p) {
   }
 };
 
-var p5js = new p5(s);
+var pYellowtail = new p5(s);
 
