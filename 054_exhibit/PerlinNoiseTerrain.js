@@ -19,7 +19,7 @@ var terrain = [];
 var s = function (sketch) {
 
   sketch.setup = function () {
-    sketch.createCanvas(512, 512, sketch.WEBGL);
+    sketch.createCanvas(512, 512, sketch.WEBGL).parent('sketch-holder');
     cols = w / scl;
     rows = h / scl;
 

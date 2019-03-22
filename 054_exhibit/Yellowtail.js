@@ -200,7 +200,7 @@ var s = function (p) {
   let sYellowtail;
 
   p.setup = function () {
-    p.createCanvas(512, 512);
+    p.createCanvas(512, 512);//.parent('sketch-holder');
     p.frameRate(60);
 	  sYellowtail = new SYellowtail(p, p.windowWidth, p.windowHeight);
   }
