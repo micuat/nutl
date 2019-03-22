@@ -90,7 +90,7 @@ for(let i = -2.5; i <= 2.5; i++) {
 let plane_geometry = new THREE.PlaneGeometry(plane_width, plane_width, 1, 1);
 let plane_materials = [];
 
-for(let i = 0; i < 2; i++) {
+for(let i = 0; i < 3; i++) {
     plane_materials[i] = new THREE.MeshBasicMaterial({ color: 0xffffff });
 }
 
@@ -105,7 +105,7 @@ for(let i = -2.5; i <= 2.5; i++) {
             scene.add(box_mesh);
 
             {
-                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * 2)]);
+                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * plane_materials.length)]);
                 plane_mesh.position.set(j * 2, i * 2 - 0.1, 0.5);
                 plane_mesh.rotation.x = Math.PI / 2;
                 // plane_mesh.rotation.y = Math.PI / 2;
@@ -113,7 +113,7 @@ for(let i = -2.5; i <= 2.5; i++) {
                 scene.add(plane_mesh);
             }
             {
-                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * 2)]);
+                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * plane_materials.length)]);
                 plane_mesh.position.set(j * 2, i * 2 + 0.1, 0.5);
                 plane_mesh.rotation.x = Math.PI / 2;
                 plane_mesh.rotation.y = -Math.PI;
@@ -135,7 +135,7 @@ for(let i = -2; i <= 2; i++) {
             scene.add(box_mesh);
 
             {
-                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * 2)]);
+                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * plane_materials.length)]);
                 plane_mesh.position.set(j * 2 - 0.1, i * 2, 0.5);
                 plane_mesh.rotation.x = Math.PI / 2;
                 plane_mesh.rotation.y = -Math.PI / 2;
@@ -143,7 +143,7 @@ for(let i = -2; i <= 2; i++) {
                 scene.add(plane_mesh);
             }
             {
-                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * 2)]);
+                let plane_mesh = new THREE.Mesh(plane_geometry, plane_materials[Math.floor(Math.random() * plane_materials.length)]);
                 plane_mesh.position.set(j * 2 + 0.1, i * 2, 0.5);
                 plane_mesh.rotation.x = Math.PI / 2;
                 plane_mesh.rotation.y = Math.PI / 2;
@@ -185,9 +185,11 @@ let render = function () {
 };
 
 setTimeout(() => {
-    for(let i = 0; i < 2; i++) {
+    for(let i = 0; i < 3; i++) {
         if (document.getElementById('defaultCanvas' + i) != null) {
             textures[i] = new THREE.Texture(document.getElementById('defaultCanvas' + i));
+            if(textures[i].image.width < 256)
+                textures[i].minFilter = THREE.NearestFilter;
             plane_materials[i].map = textures[i];
         }
     }
