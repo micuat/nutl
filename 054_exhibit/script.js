@@ -90,7 +90,7 @@ for(let i = -2.5; i <= 2.5; i++) {
 let plane_geometry = new THREE.PlaneGeometry(plane_width, plane_width, 1, 1);
 let plane_materials = [];
 
-for(let i = 0; i < 3; i++) {
+for(let i = 0; i < 4; i++) {
     plane_materials[i] = new THREE.MeshBasicMaterial({ color: 0xffffff });
 }
 
@@ -185,7 +185,7 @@ let render = function () {
 };
 
 setTimeout(() => {
-    for(let i = 0; i < 3; i++) {
+    for(let i = 0; i < 4; i++) {
         if (document.getElementById('defaultCanvas' + i) != null) {
             textures[i] = new THREE.Texture(document.getElementById('defaultCanvas' + i));
             if(textures[i].image.width < 256)
