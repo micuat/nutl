@@ -41,35 +41,43 @@ SynthDef(\sinamb, { |out=0, t_trig=0, attack=0.01, decay=0.08, doneAction=0, amp
 )
 
 (
-SynthDef(\sawamb, { |out=0, t_trig=0, attack=0.01, decay=0.08, doneAction=0, amp=0.1, freq=1000|
+SynthDef(\sawamb, { |out=0, t_trig=0, attack=0.01, decay=0.08, doneAction=0, amp=0.1, freq=1000,sawfreq=40|
 	var pitch, son;
 	amp   = amp * EnvGen.ar(Env.perc(attack, decay).delay(0.03), t_trig, doneAction: doneAction);
 
-	son = Saw.ar(freq);
-	son = LPF.ar(son, 400);
+	son = Formant.ar(
+		freq,100,Saw.kr(sawfreq,200,200)
+    );
+
+	// son = LPF.ar(son, 400);
 	// high-pass to remove any lowpitched artifacts, scale amplitude
 	son = son * amp * 10;
 	Out.ar([0, 1], son);
 }).add;
 )
 
+y = Synth(\sinamb);
+y.set(\t_trig, 1, \decay, 1.0, \freq,4); // run this line multiple times, to get multiple (very similar) bubbles!
+y.free;
+
+x = Synth("sik-goo");
+y = Synth("sik-goo");
+y.free;
+
+
+
+
 
 x = Synth(\pop);
 x.set(\t_trig, 1, \freq,1500); // run this line multiple times, to get multiple (very similar) bubbles!
 x.free;
 
-x = Synth(\sinamb);
-x.set(\t_trig, 1, \decay, 1.0, \freq,4); // run this line multiple times, to get multiple (very similar) bubbles!
-x.free;
-
-x = Synth(\sawamb);
-x.set(\t_trig, 1, \decay, 1.0, \freq,440); // run this line multiple times, to get multiple (very similar) bubbles!
-x.free;
+y = Synth(\sawamb);
+y.set(\t_trig, 1, \decay, 4.0, \freq,40, \sawfreq,100); // run this line multiple times, to get multiple (very similar) bubbles!
+y.free;
 
 
 
-x = Synth("sik-goo");
-y = Synth("sik-goo");
 
 //set the action:
 (
@@ -77,16 +85,15 @@ y = Synth("sik-goo");
 	if(chan==1) {
 		[src, chan, num, vel].postln;
 		x.set(\t_trig, 1);
-		//x.set(\decay, 1);
+		x.set(\decay, 0.5);
 		x.set(\freq, num.midicps / 4.0);
-		//x.set(\gate, vel / 200 );
-		//x.set(\formfreq, vel / 127 * 1000);
 	};
 
 	if(chan==0) {
+		y.set(\t_trig, 1);
+		y.set(\decay, 2.0);
 		y.set(\freq, num.midicps / 4.0);
-		y.set(\gate, vel / 200 );
-		y.set(\formfreq, vel / 127 * 1000);
+		y.set(\sawfreq, 200);//min(num.midicps / 4.0, 100));
 	};
 };
 MIDIIn.addFuncTo(\noteOn, ~noteOn);
