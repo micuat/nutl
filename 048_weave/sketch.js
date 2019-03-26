@@ -32,7 +32,7 @@ S048.prototype.drawLayer = function(pg, key, args) {
   let J = 24+4;
   let N = 8;
   pg.noStroke();
-  for(let i = 0; i < 100; i++) {
+  for(let i = 0; i < 200; i++) {
     for(let j = 0; j < J; j++) {
       let jj = Math.floor((j-2) / N);
       let jr = (j-2) % N;
@@ -97,8 +97,8 @@ S048.prototype.constructor = S048;
 ////////
 
 var s = function (p) {
-  let s048 = new S048(p, 800, 2000);
-  let counter = 0;
+  let s048 = new S048(p, 800, 3000);
+  let counter = 99;
 
   p.setup = function () {
     p.createCanvas(800, 800);
@@ -129,7 +129,7 @@ var s = function (p) {
       counter = Math.max(counter - 1, 0);
     }
     else if(p.key == 's') {
-      counter = Math.min(counter + 1, 99);
+      counter = Math.min(counter + 1, 199);
     }
     print(counter)
   }
