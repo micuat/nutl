@@ -40,6 +40,10 @@ import geomerative.*;
 import oscP5.*;
 import netP5.*;
 
+import themidibus.*;
+
+public MidiBus midiBus;
+
 public OscP5 oscP5;
 NetAddress myRemoteLocation;
 
@@ -96,6 +100,8 @@ void setup() {
 
   oscP5 = new OscP5(this, 7000);
 
+  midiBus = new MidiBus(this, -1, "loopMIDI Port");
+  
   RG.init(this);
 
   // pixelflow context
