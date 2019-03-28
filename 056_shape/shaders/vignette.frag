@@ -92,7 +92,7 @@ vec4 noise(vec2 st, float scale, float offset) {
 
 float edgeFactor(){
     vec3 d = fwidth(vertColor.xyz);// * mix(1, 2, 0.5+0.5*sin(_noise(vec3(iTime,iTime,0)*3.0+0.1*vertPosition.xyz)));
-    vec3 a3 = smoothstep(vec3(0.0), d*2.5, vertColor.xyz);
+    vec3 a3 = smoothstep(vec3(0.0), d*1.0, vertColor.xyz);
     return min(min(a3.x, a3.y), a3.z);
 }
 
@@ -102,34 +102,83 @@ float edgeFactor2(){
     return min(min(a3.x, a3.y), a3.z);
 }
 
+// https://github.com/mattdesl/webgl-wireframes/blob/gh-pages/lib/wire.frag
+// This is like
+float aastep (float threshold, float dist) {
+  float afwidth = fwidth(dist) * 0.5;
+  return smoothstep(threshold - afwidth, threshold + afwidth, dist);
+}
+
+// This function is not currently used, but it can be useful
+// to achieve a fixed width wireframe regardless of z-depth
+float computeScreenSpaceWireframe (vec3 barycentric, float lineWidth) {
+  vec3 dist = fwidth(barycentric);
+  vec3 smoothed = smoothstep(dist * ((lineWidth * 0.5) - 0.5), dist * ((lineWidth * 0.5) + 0.5), barycentric);
+  return 1.0 - min(min(smoothed.x, smoothed.y), smoothed.z);
+}
+
+// This function returns the fragment color for our styled wireframe effect
+// based on the barycentric coordinates for this fragment
+vec4 getStyledWireframe (vec3 barycentric) {
+  // this will be our signed distance for the wireframe edge
+  float d = min(min(barycentric.x, barycentric.y), barycentric.z);
+
+  // for dashed rendering, we can use this to get the 0 .. 1 value of the line length
+  float positionAlong = max(barycentric.x, barycentric.y);
+  if (barycentric.y < barycentric.x && barycentric.y < barycentric.z) {
+    positionAlong = 1.0 - positionAlong;
+  }
+
+  // the thickness of the stroke
+  float computedThickness = 0.01;
+
+  // if we want to shrink the thickness toward the center of the line segment
+  if (true) {
+    computedThickness *= mix(0.2, 1.5, (1.0 - sin(positionAlong * 3.1415)));
+  }
+
+  // if we should create a dash pattern
+  if (true) {
+    // here we offset the stroke position depending on whether it
+    // should overlap or not
+    float dashRepeats = 9;
+    float dashLength = 0.7;
+    float offset = 1.0 / dashRepeats * dashLength / 2.0;
+
+    // create the repeating dash pattern
+    float pattern = fract((positionAlong + offset) * dashRepeats);
+    computedThickness *= 1.0 - aastep(dashLength, pattern);
+  }
+
+  // compute the anti-aliased stroke edge  
+  float edge = 1.0 - aastep(computedThickness, d);
+
+  // now compute the final color of the mesh
+  vec4 outColor = vec4(0.0);
+  if (true) {
+    outColor = vec4(gColor.rgb, edge);
+    if (!gl_FrontFacing) {
+      outColor.rgb = vec3(0,0,0);
+    }
+  }
+  return outColor;
+}
+
 void main() {
 	vec4 color = vec4(gColor);//vertColor;
+  color = getStyledWireframe(vertColor.xyz);
   float alpha = 0;
-  alpha = (1.0-edgeFactor())*0.95;
-	if(fract(iTime/3.0) < 1.0/3.0)
-	alpha = max(alpha, abs(vertColor.x - fract(iTime)) < 0.01 ? 1.0 : 0.0);
-	else if(fract(iTime/3.0) < 2.0/3.0)
-	alpha = max(alpha, abs(vertColor.y - fract(iTime)) < 0.01 ? 1.0 : 0.0);
-	else if(fract(iTime/3.0) < 3.0/3.0)
-	alpha = max(alpha, abs(vertColor.z - fract(iTime)) < 0.01 ? 1.0 : 0.0);
-	// if(length(vertColor.xyz-vec3(0.5))<0.4) {
-	// 	color.rgb = fColor.rgb;
-	//   alpha = max(alpha, 0.5);
-	// }
-	// else if(length(vertColor.xyz-vec3(0.75,0.25,0.25))<0.2) {
-	// 	color.rgb = fColor.rgb;
-	//   alpha = max(alpha, 0.5);
-	// }
-	// else if(length(vertColor.xyz-vec3(0.25,0.75,0.25))<0.2) {
-	// 	color.rgb = fColor.rgb;
-	//   alpha = max(alpha, 0.5);
-	// }
-	// else if(length(vertColor.xyz-vec3(0.25,0.25,0.75))<0.2) {
-	// 	color.rgb = fColor.rgb;
-	//   alpha = max(alpha, 0.5);
-	// }
+  // alpha = (1.0-edgeFactor())*0.95;
+	float index = vertColor.w * 5.0;
+	float n = 6.0;
+	float tAlpha = 0.75;
+	if(fract(iTime/n + index) < 1.0/n)
+	alpha = max(alpha, abs(1.0+vertColor.x - 4.0*fract(iTime + index * n)) < 0.501 ? tAlpha : 0.0);
+	else if(fract(iTime/n + index) < 2.0/n)
+	alpha = max(alpha, abs(1.0+vertColor.y - 4.0*fract(iTime + index * n)) < 0.501 ? tAlpha : 0.0);
+	else if(fract(iTime/n + index) < 3.0/n)
+	alpha = max(alpha, abs(1.0+vertColor.z - 4.0*fract(iTime + index * n)) < 0.501 ? tAlpha : 0.0);
 
-  // alpha = max(alpha, (1.0-edgeFactor2() * 0.75)*0.95);
-	color.a = alpha;
+	color.a = max(color.a, alpha * 0.9 + 0.1);
   gl_FragColor = color;
 }

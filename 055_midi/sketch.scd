@@ -19,7 +19,7 @@ SynthDef(\pop, { |out=0, t_trig=0, attack=0.01, decay=0.08, doneAction=0, amp=0.
 	var pitch, son;
 	amp   = amp * EnvGen.ar(Env.perc(attack, decay).delay(0.003), t_trig, doneAction: doneAction);
 
-	son = SinOsc.ar(pitch);
+	son = SinOsc.ar(freq);
 	// high-pass to remove any lowpitched artifacts, scale amplitude
 	son = son * amp * 10;
 	son = FreeVerb.ar(son, mix: 0.5, damp: 0.4, room: 0.58);

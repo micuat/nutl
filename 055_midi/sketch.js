@@ -12,7 +12,7 @@ function S055(p, w, h) {
 S055.prototype = Object.create(TLayer.prototype);
 S055.prototype.constructor = S055;
 
-var soundOn = false||true;
+var soundOn = false//||true;
 
 function Tween (args) {
   this.startTime = args.startTime;
@@ -44,7 +44,7 @@ S055.prototype.update = function(args) {
   let t = args.t * this.timeStep;
   let p = this.p;
 
-  let mel = [60, 62, 64, 66, 60, 62, 61, 62];
+  let mel = [60, 62, 64, 0, 60, 62, 61, 0];
   if(Math.floor(t*4) - Math.floor(this.lastT*4) > 0) {
     this.tBase = t;
     let index = Math.floor(t*4) % mel.length;//Math.floor(p.random(3));
@@ -60,6 +60,11 @@ S055.prototype.update = function(args) {
       startTime: t, duration: 0.5,
       channel: 0, note: p.random([46, 48, 50]), velocity: 127,
       soundDelay: 0.25, p: p, delay: 0.25});
+
+    this.obj2 = new Tween({
+      startTime: t, duration: 4,
+      channel: 100, note: 0, velocity: 0,
+      soundDelay: 0, p: p, delay: 0});
   }
   this.lastT = t;
 }
@@ -77,6 +82,9 @@ S055.prototype.drawLayer = function(pg, key, args) {
   pg.push();
 
   pg.noStroke();
+
+  let bar = this.obj2 == undefined ? 0 : this.obj2.get(t);
+  pg.rect(-250, -300, 500 * (1-bar), 50);
 
   let tween;
   tween = this.obj0 == undefined ? 0 : this.obj0.get(t);
@@ -99,7 +107,7 @@ var s = function (p) {
 
   p.setup = function () {
     p.createCanvas(1080, 1080);
-    p.frameRate(1000);
+    p.frameRate(60);
   }
 
   p.draw = function () {
@@ -112,6 +120,20 @@ var s = function (p) {
     s055.draw({t: t});
     p.background(0);
     p.image(s055.pg, 0, 0);
+  }
+
+  let lastT = 0;
+  p.update = function () {
+    let t = p.millis() * 0.001;
+    if(Math.floor(t*2) - Math.floor(lastT*2) > 0) {
+      print(t)
+      p.midiBus.sendNoteOn(1, p.random([84,82]), 127);
+      // print(p.frameRate())
+    }
+    if(Math.floor(t*0.5 + 0.5) - Math.floor(lastT*0.5 + 0.5) > 0) {
+      p.midiBus.sendNoteOn(0, 40, 127);
+    }
+    lastT = t;
   }
 };
 

@@ -18,7 +18,7 @@ S056.prototype.update = function(args) {
 
   if(Math.floor(t) - Math.floor(this.lastT) > 0) {
     this.tBase = t;
-    this.shader = p.loadShader(p.folderName + "/shaders/vignette.frag", p.folderName + "/shaders/vignette.vert");
+    // this.shader = p.loadShader(p.folderName + "/shaders/vignette.frag", p.folderName + "/shaders/vignette.vert");
   }
   this.lastT = t;
 }
@@ -41,31 +41,40 @@ S056.prototype.drawLayer = function(pg, key, args) {
   // pg.background(0);
 
   pg.translate(this.width / 2, this.height / 2);
-  pg.rotateX(Math.PI / 6);
+  pg.rotateX(Math.PI / 4);
   pg.rotateY(t * 0.1);
 
   pg.pushMatrix();
   pg.noStroke();
   pg.blendMode(p.BLEND);
 
-  for(let i = -3; i <= 3; i++) {
-    for(let j = -3; j <= 3; j++) {
+  for(let i = -25; i <= 5; i++) {
+    for(let j = 0; j < 8; j++) {
       for(let k = 0; k < 2; k++) {
         pg.push();
-        pg.rotateY(j / 3 * Math.PI);
-        pg.translate(0, i * 300, 260);
-        if(Math.floor((t*(j%2+0.5)) % 7) == i + 3)
-        pg.rotateY(2*Math.PI*EasingFunctions.easeInOutCubic((t*(j%2+0.5))-Math.floor((t*(j%2+0.5)))));
-        if((i+3)%2==0)
+        pg.rotateY(j / 4 * Math.PI);// + (i) / 16 * Math.PI);
+        let tween = (t*1 + i * 0.25 + 3) % 4;
+        if(tween < 2) {
+          pg.rotateY(EasingFunctions.easeInOutQuad(tween/2)*2 * Math.PI);
+          if(tween > 1) tween = 2 - tween;
+          pg.translate(0, 0, -220 * EasingFunctions.easeInOutQuad(tween));
+          pg.scale(1-0.5*EasingFunctions.easeInOutQuint(tween), 1, 1);
+        }
+        // obviously this is quite ffkked up
+        pg.scale(0.5, 75.0/275.0, 1);
+        let side = 275;
+        pg.translate(0, i * side*2, 370);
+        if((i+3+j)%2==0)
         pg.rotateY(Math.PI)
         pg.rotate(k * Math.PI);
         pg.beginShape();
-        pg.fill(255, 0, 0, (i + 3) * 7 + (j + 3));
-        pg.vertex(-150, -150, 0);
-        pg.fill(0, 255, 0, (i + 3) * 7 + (j + 3));
-        pg.vertex(150, -150, 0);
-        pg.fill(0, 0, 255, (i + 3) * 7 + (j + 3));
-        pg.vertex(-150, 150, 0);
+        let index = (i + 6) * 2.0;// + (j*2);// + k * 56;
+        pg.fill(255, 0, 0, index);
+        pg.vertex(-side, -side, 0);
+        pg.fill(0, 255, 0, index);
+        pg.vertex(side, -side, 0);
+        pg.fill(0, 0, 255, index);
+        pg.vertex(-side, side, 0);
         pg.endShape();
         pg.pop();
       }
@@ -78,23 +87,31 @@ S056.prototype.drawLayer = function(pg, key, args) {
 ////////
 
 var s = function (p) {
-  let s056 = new S056(p, 1920, 1080);
+  let s056 = new S056(p, 800, 800);
 
   p.setup = function () {
-    p.createCanvas(1920, 1080);
+    p.createCanvas(800, 800);
     p.frameRate(60);
   }
 
   p.draw = function () {
     let t = p.millis() * 0.001;
 
-    if(p.frameCount % 30 == 0) {
-      print(p.frameRate())
-    }
-
     s056.draw({t: t});
     p.background(0);
     p.image(s056.pg, 0, 0);
+  }
+
+  let lastT = 0;
+  p.update = function () {
+    let t = p.millis() * 0.001;
+    if(Math.floor(t) - Math.floor(lastT) > 0) {
+      print(t, p.oscP5)
+    }
+    lastT = t;
+    // if(p.frameCount % 30 == 0) {
+    //   print(p.frameRate())
+    // }
   }
 };
 

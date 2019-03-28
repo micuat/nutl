@@ -66,6 +66,7 @@ public int newWidth, newHeight;
 public PApplet that = this;
 
 public String folderName = "";
+public int updateDelayMillis = 5;
 
 public OpenSimplexNoise osnoise = new OpenSimplexNoise();
 
@@ -114,6 +115,25 @@ void setup() {
   frameRate(60);
 
   scriptPaths.add(sketchPath(folderName + "/sketch.js"));
+  
+  thread("updateThread");
+}
+
+void updateThread() {
+  while(true) {
+    if (libInited) {
+      try {
+        //nashorn.eval("for(var prop in pApplet) {if(!this.isReservedFunction(prop)) {alternateSketch[prop] = pApplet[prop]}}");
+        if (nashorn.eval("alternateSketch.update") != null)
+          nashorn.eval("alternateSketch.update();");
+      }
+      catch (ScriptException e) {
+        e.printStackTrace();
+      }
+    }
+
+    delay(updateDelayMillis);
+  }
 }
 
 void movieEvent(Movie m) {
@@ -283,7 +303,7 @@ void draw() {
   //background(0);
 
   try {
-    nashorn.eval("for(var prop in pApplet) {if(!this.isReservedFunction(prop)) {alternateSketch[prop] = pApplet[prop]}}");
+    //nashorn.eval("for(var prop in pApplet) {if(!this.isReservedFunction(prop)) {alternateSketch[prop] = pApplet[prop]}}");
     if (drawMode == "webgl") {
       translate(width / 2, height / 2);
     }
