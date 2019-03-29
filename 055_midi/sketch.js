@@ -7,6 +7,7 @@ function S055(p, w, h) {
   this.lastT = 0;
   this.tBase = 0;
   this.timeStep = 1.0;
+  this.objs = [];
 }
 
 S055.prototype = Object.create(TLayer.prototype);
@@ -49,17 +50,17 @@ S055.prototype.update = function(args) {
     this.tBase = t;
     let index = Math.floor(t*4) % mel.length;//Math.floor(p.random(3));
     if(p.random(1)>0.9) index = Math.floor(p.random(mel.length))
-    this.obj0 = new Tween({
-      startTime: t, duration: 0.25,
-      channel: 1, note: mel[index] + 12*1, velocity: 127,
-      soundDelay: 0.125, p: p, delay: index==4?0.125:0});
+    // this.obj0 = new Tween({
+    //   startTime: t, duration: 0.25,
+    //   channel: 1, note: mel[index] + 12*1, velocity: 127,
+    //   soundDelay: 0.125, p: p, delay: index==4?0.125:0});
   }
 
   if(Math.floor(t/4) - Math.floor(this.lastT/4) > 0) {
-    this.obj1 = new Tween({
-      startTime: t, duration: 0.5,
-      channel: 0, note: p.random([46, 48, 50]), velocity: 127,
-      soundDelay: 0.25, p: p, delay: 0.25});
+    // this.obj1 = new Tween({
+    //   startTime: t, duration: 0.5,
+    //   channel: 0, note: p.random([46, 48, 50]), velocity: 127,
+    //   soundDelay: 0.25, p: p, delay: 0.25});
 
     this.obj2 = new Tween({
       startTime: t, duration: 4,
@@ -75,7 +76,7 @@ S055.prototype.drawLayer = function(pg, key, args) {
 
   pg.clear();
   let c0 = 0;
-  pg.background(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
+  pg.background(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 100);
 
   pg.translate(this.width / 2, this.height / 2);
 
@@ -83,20 +84,21 @@ S055.prototype.drawLayer = function(pg, key, args) {
 
   pg.noStroke();
 
-  let bar = this.obj2 == undefined ? 0 : this.obj2.get(t);
-  pg.rect(-250, -300, 500 * (1-bar), 50);
+  // let bar = this.obj2 == undefined ? 0 : this.obj2.get(t);
+  // pg.rect(-250, -300, 500 * (1-bar), 50);
 
-  let tween;
-  tween = this.obj0 == undefined ? 0 : this.obj0.get(t);
-  c0 = 3;
-  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-  pg.ellipse(0, 100 * EasingFunctions.easeInOutCubic(tween), 100, 100);
-
-  tween = this.obj1 == undefined ? 0 : this.obj1.get(t);
-  c0 = 4;
-  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-  pg.ellipse(200, 100 * EasingFunctions.easeInOutCubic(tween), 100, 100);
-
+  for(let i = 0; i < this.objs.length; i++) {
+    for(let j = 0; j < 4; j++) {
+      let o = this.objs[i];
+      let tween;
+      tween = o == undefined ? 0 : o.get(t + 0.02 * j);
+      c0 = i;
+      pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 51*(j+1));
+      let x = (i - 2) * 200;
+      let y = 0 + o.note * 200 * EasingFunctions.easeInOutCubic(tween);
+      pg.ellipse(x, y, 100, 100);
+    }
+  }
   pg.pop();
 }
 
@@ -125,13 +127,17 @@ var s = function (p) {
   let lastT = 0;
   p.update = function () {
     let t = p.millis() * 0.001;
-    if(Math.floor(t*2) - Math.floor(lastT*2) > 0) {
-      print(t)
-      p.midiBus.sendNoteOn(1, p.random([84,82]), 127);
-      // print(p.frameRate())
-    }
-    if(Math.floor(t*0.5 + 0.5) - Math.floor(lastT*0.5 + 0.5) > 0) {
-      p.midiBus.sendNoteOn(0, 40, 127);
+
+    for(let i = 0; i < 5; i++) {
+      if(Math.floor(t*(i+1) * 0.5) - Math.floor(lastT*(i+1) * 0.5) > 0) {
+        // print(t)
+        // p.midiBus.sendNoteOn(1, p.random([84,82]), 127);
+
+        s055.objs[i] = new Tween({
+          startTime: t, duration: 0.5,
+          channel: 1, note: p.random([1, -1]), velocity: 127,
+          soundDelay: 0.125, p: p, delay: 0});
+      }
     }
     lastT = t;
   }
