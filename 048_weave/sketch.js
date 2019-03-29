@@ -55,8 +55,6 @@ S048.prototype.drawLayer = function(pg, key, args) {
         else {
           over = false;
         }
-        if((jr+0.5) % 8 > Math.sin((i+jj*0)/(16+jj*2)*Math.PI)*3+4
-        && (jr-0.5) % 8 <= Math.sin((i+jj*0)/(16+jj*2)*Math.PI)*3+4) over = !over;
         // if(p.sin(jr * Math.PI *0.25 + (i + jj*1) * Math.PI * 0.125) > 0.0) over = !over;
       }
 
@@ -77,12 +75,7 @@ S048.prototype.drawLayer = function(pg, key, args) {
           }
         }
         else {
-          if((j-3+8) % 8 < 6) {
-            pg.fill(0);
-          }
-          else {
-            pg.fill(0, 0, 255);
-          }
+          pg.fill(0, 0, 255);
         }
       }
       pg.rect(j * W, i * W, w, w);
