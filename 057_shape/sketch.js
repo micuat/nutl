@@ -61,6 +61,7 @@ S057.prototype.drawLayer = function(pg, key, args) {
   pg.translate(this.width / 2, this.height / 2);
   pg.scale(1.5, 1.5);
   pg.translate(-this.width / 2, -this.height / 2);
+  pg.noStroke();
 
   for(let i in this.voronoi.getTriangles()) {
     let triangle = this.voronoi.getTriangles()[i];

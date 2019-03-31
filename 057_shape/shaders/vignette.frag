@@ -135,7 +135,7 @@ vec4 getStyledWireframe (vec3 barycentric) {
   // if we want to shrink the thickness toward the center of the line segment
   if (true) {
     // computedThickness *= mix(0.2, 1.5, (1.0 - sin(positionAlong * 3.1415)));
-    computedThickness *= mix(0.8, 2.5, (1.0 - sin(positionAlong * 3.1415)));
+    computedThickness *= mix(10.0, 0.0, (1.0 - sin(positionAlong * 3.1415)));
   }
 
   // if we should create a dash pattern
