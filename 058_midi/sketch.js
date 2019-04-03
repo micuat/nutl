@@ -3,6 +3,8 @@ var colorScheme = new ColorScheme("247ba0-70c1b3-b2dbbf-f3ffbd-ff1654");
 var soundOn = false//||true;
 
 function Tween () {
+  this.inited = false;
+  this.note = 0;
 }
 
 Tween.prototype.init = function (args) {
@@ -94,16 +96,18 @@ S058.prototype.drawLayer = function(pg, key, args) {
   let t = args.t * this.timeStep;
   let p = this.p;
 
-  let tween = EasingFunctions.easeInOutCubic(this.objs[1].get(t));
-  let tween2 = EasingFunctions.easeInOutCubic(this.objs[2].get(t));
-  let tween3 = EasingFunctions.easeInOutCubic(this.objs[3].get(t));
-  let tween4 = EasingFunctions.easeInOutCubic(this.objs[4].get(t));
+  let tw = [];
+  let dir = [];
+  for(let i in this.objs) {
+    tw[i] = EasingFunctions.easeInOutCubic(this.objs[i].get(t));
+    dir[i] = this.objs[1].note - 0.5;
+  }
 
   if(key == "default")
     pg.clear();
   else {
     let c0 = 0;
-    pg.fill(colorScheme.get(c0).r*0.5, colorScheme.get(c0).g*0.5, colorScheme.get(c0).b*0.5, 200*tween3);
+    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 250*tw[3]+5);
     pg.rect(0, 0, this.width, this.height);
   }
   pg.translate(this.width / 2, this.height / 2);
@@ -115,29 +119,31 @@ S058.prototype.drawLayer = function(pg, key, args) {
   // pg.rect(-250, -300, 500 * (1-bar), 50);
   {
     for(let i = 0; i < this.agents.length; i++) {
-      c0 = 4;
+      c0 = 3;
       let agent = this.agents[i];
       pg.noStroke();
       if(key == "default") {
-        pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255 * (1-tween3));
-        agent.angle += tween2 * agent.angle2 * 0.3;
-        let x0 = this.width / 4 * (tween+0.5) * Math.cos(agent.angle);
-        let y0 = this.width / 4 * (tween+0.5) * Math.sin(agent.angle);
+        pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+        agent.angle = (agent.angle + tw[2] * 0.1) % (Math.PI * 2);
+        let x0 = this.width / 4 * (tw[1]*0.5+1) * Math.cos(agent.angle);
+        let y0 = this.width / 4 * (tw[1]*0.5+1) * Math.sin(agent.angle);
+        if(dir[1] > 2) y0 = this.width / 4 * (tw[1]*0.5+1) * Math.sin(3*agent.angle);
 
-        let x1 = this.width / 2 * (i - 32) / 32.0;
-        let y1 = 200 * Math.sin(agent.angle2 * 4.0 + 4.0*t * Math.PI + agent.angle3);
+        let x1 = p.map(agent.angle, 0, Math.PI*2, -this.width/2, this.width/2);
+        let y1 = 150 * Math.sin(agent.angle * 4.0 + 4.0*t * Math.PI + agent.angle3);
 
-        let x = p.lerp(x0, x1, tween4);
-        let y = p.lerp(y0, y1, tween4);
-        agent.x = p.lerp(agent.x, x, agent.stick);
-        agent.y = p.lerp(agent.y, y, agent.stick);
+        let x = p.lerp(x0, x1, tw[4]);
+        let y = p.lerp(y0, y1, tw[4]);
+        let stick = tw[4] > 0.5 ? 0.4 : agent.stick;
+        agent.x = p.lerp(agent.x, x, stick);
+        agent.y = p.lerp(agent.y, y, stick);
         pg.ellipse(agent.x, agent.y, 10,10);
       }
 
       if(i < this.agents.length - 1 && key == "lines") {
         pg.strokeWeight(2);
         c0 = 3;
-        pg.stroke(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 200 * tween3);
+        pg.stroke(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 355 * tw[3]);
         pg.line(agent.x, agent.y, this.agents[i+1].x, this.agents[i+1].y);
       }
     }
@@ -198,7 +204,7 @@ var s = function (p) {
 
     if(Math.floor(t*0.5) - Math.floor(lastT*0.5) > 0) {
       for(let i = 0; i < 5; i++) {
-        if(Math.random() < 0.5) continue;
+        if(Math.random() < 0.25) continue;
         let j0 = Math.floor(p.random(timings[i].length));
         let j1 = Math.floor(p.random(timings[i].length));
         let tmp = timings[i][j0];
