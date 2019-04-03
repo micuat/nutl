@@ -50,7 +50,7 @@ function S055(p, w, h) {
         y: p.map(i, 0, 9, -h*0.4, h*0.4),
         i: i,
         j: j,
-        index: Math.floor(p.random(5))
+        index: Math.floor(p.map(i, 0, 10, 0, 5))//Math.floor(p.random(5))
       });
     }
   }
@@ -120,8 +120,21 @@ S055.prototype.drawLayer = function(pg, key, args) {
       c0 = c.index;
       let note = o == undefined ? 0 : o.note;
       pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 51*(j+1));
-      let x = c.x + (note > 0 ? note - 2 : 0) * 40 * EasingFunctions.easeInOutCubic(tween);
-      let y = c.y + (note < 0 ? note + 2 : 0) * 40 * EasingFunctions.easeInOutCubic(tween);
+      let x = c.x;
+      let y = c.y;
+      note = ((note - 1 + c.j * 2) % 4) + 1;
+      if(note == 1) {
+        x += 40 * EasingFunctions.easeInOutCubic(tween);
+      }
+      if(note == 2) {
+        y += 40 * EasingFunctions.easeInOutCubic(tween);
+      }
+      if(note == 3) {
+        x -= 40 * EasingFunctions.easeInOutCubic(tween);
+      }
+      if(note == 4) {
+        y -= 40 * EasingFunctions.easeInOutCubic(tween);
+      }
       pg.ellipse(x, y, 40, 40);
     }
   }
@@ -132,6 +145,14 @@ S055.prototype.drawLayer = function(pg, key, args) {
 
 var s = function (p) {
   let s055 = new S055(p, 1080, 1080);
+
+  let timings = [
+    [0,3,0,4,0,0,1,2],
+    [0,4,0,1,0,2,0,3],
+    [0,0,0,4,0,0,4,4],
+    [0,0,3,2,0,3,0,2],
+    [0,0,0,1,0,0,0,3]
+  ];
 
   p.setup = function () {
     p.createCanvas(1080, 1080);
@@ -159,14 +180,34 @@ var s = function (p) {
       print(t)
     }
 
-    for(let i = 0; i < 5; i++) {
-      if(Math.floor(t*(i+1) * 0.5) - Math.floor(lastT*(i+1) * 0.5) > 0) {
-        // print(t)
-        // p.midiBus.sendNoteOn(1, p.random([84,82]), 127);
+    // for(let i = 0; i < 5; i++) {
+    //   if(Math.floor(t*(i+1) * 0.5) - Math.floor(lastT*(i+1) * 0.5) > 0) {
+    //     // print(t)
+    //     // p.midiBus.sendNoteOn(1, p.random([84,82]), 127);
 
+    //     s055.objs[i].init({
+    //       startTime: t, duration: 0.25,
+    //       channel: 1, note: p.random([-3, -1, 1, 3]), velocity: 127,
+    //       soundDelay: 0.125, p: p, delay: 0});
+    //   }
+    // }
+
+    if(Math.floor(t*0.5) - Math.floor(lastT*0.5) > 0) {
+      for(let i = 0; i < 5; i++) {
+        if(Math.random() < 0.9) continue;
+        let j0 = Math.floor(p.random(timings[i].length));
+        let j1 = Math.floor(p.random(timings[i].length));
+        let tmp = timings[i][j0];
+        timings[i][j0] = timings[i][j1];
+        timings[i][j1] = tmp;
+      }
+    }
+    for(let i = 0; i < 5; i++) {
+      let index = Math.floor(t*4) % timings[i].length;
+      if(Math.floor(t*4) - Math.floor(lastT*4) > 0 && timings[i][index] != "0") {
         s055.objs[i].init({
           startTime: t, duration: 0.25,
-          channel: 1, note: p.random([-3, -1, 1, 3]), velocity: 127,
+          channel: 1, note: parseInt(timings[i][index]), velocity: 127,
           soundDelay: 0.125, p: p, delay: 0});
       }
     }
