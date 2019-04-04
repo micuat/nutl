@@ -107,7 +107,8 @@ S058.prototype.drawLayer = function(pg, key, args) {
     pg.clear();
   else {
     let c0 = 0;
-    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 250*tw[3]+5);
+    pg.noStroke();
+    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255*tw[3]);
     pg.rect(0, 0, this.width, this.height);
   }
   pg.translate(this.width / 2, this.height / 2);
@@ -119,11 +120,12 @@ S058.prototype.drawLayer = function(pg, key, args) {
   // pg.rect(-250, -300, 500 * (1-bar), 50);
   {
     for(let i = 0; i < this.agents.length; i++) {
-      c0 = 3;
+      c0 = 4;
       let agent = this.agents[i];
       pg.noStroke();
       if(key == "default") {
-        pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+        // pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255);
+        pg.fill(255, 255);
         agent.angle = (agent.angle + tw[2] * 0.1) % (Math.PI * 2);
         let x0 = this.width / 4 * (tw[1]*0.5+1) * Math.cos(agent.angle);
         let y0 = this.width / 4 * (tw[1]*0.5+1) * Math.sin(agent.angle);
@@ -137,13 +139,14 @@ S058.prototype.drawLayer = function(pg, key, args) {
         let stick = tw[4] > 0.5 ? 0.4 : agent.stick;
         agent.x = p.lerp(agent.x, x, stick);
         agent.y = p.lerp(agent.y, y, stick);
-        pg.ellipse(agent.x, agent.y, 10,10);
+        pg.ellipse(agent.x, agent.y, 10, 10);
       }
 
       if(i < this.agents.length - 1 && key == "lines") {
-        pg.strokeWeight(2);
+        pg.strokeWeight(3);
         c0 = 3;
-        pg.stroke(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 355 * tw[3]);
+        pg.stroke(255, 355 * tw[3]);
+        // pg.stroke(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 355 * tw[3]);
         pg.line(agent.x, agent.y, this.agents[i+1].x, this.agents[i+1].y);
       }
     }
@@ -153,8 +156,46 @@ S058.prototype.drawLayer = function(pg, key, args) {
 
 ////////
 
+function S058Master(p, w, h) {
+  TLayer.call(this, p, w, h);
+  this.pg.smooth(0);
+  this.s058 = new S058(p, w, h);
+  this.postProcess0 = new PostProcess(p);
+  this.postProcess0.setup();
+}
+
+S058Master.prototype = Object.create(TLayer.prototype);
+S058Master.prototype.constructor = S058Master;
+
+S058Master.prototype.update = function(args) {
+  let t = args.t;
+  let p = this.p;
+
+  this.s058.draw({t: t});
+  this.postProcess0.draw("rgbshift", this.s058.pgs.lines, {
+    delta: 400 * p.constrain(-Math.sin(t*5.0) * 1 + 1, 0, 1)
+  });
+}
+
+S058Master.prototype.drawLayer = function(pg, key, args) {
+  let t = args.t;
+  let p = this.p;
+
+  let c0 = 0;
+  pg.noStroke();
+  pg.background(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
+  pg.push();
+  let angle = t * 0.9;
+  pg.translate(100.0*(p.noise(angle*2.0)-0.5), 100.0*(p.noise(angle*1.7)-0.5));
+  pg.image(this.postProcess0.pg, 0, 0);
+  pg.pop();
+  pg.image(this.s058.pgs.default, 0, 0);
+}
+
+////////
+
 var s = function (p) {
-  let s058 = new S058(p, 800, 800);
+  let s058 = new S058Master(p, 800, 800);
 
   let timings = [
     [0,3,0,4,0,0,1,2],
@@ -177,9 +218,9 @@ var s = function (p) {
       // print(p.frameRate())
     }
 
+    s058.update({t: t});
     s058.draw({t: t});
-    p.image(s058.pgs.lines, 0, 0);
-    p.image(s058.pgs.default, 0, 0);
+    p.image(s058.pg, 0, 0);
   }
 
   let lastT = 0;
@@ -215,7 +256,7 @@ var s = function (p) {
     for(let i = 0; i < 5; i++) {
       let index = Math.floor(t*4) % timings[i].length;
       if(Math.floor(t*4+i) - Math.floor(lastT*4+i) > 0 && timings[i][index] != "0") {
-        s058.objs[i].init({
+        s058.s058.objs[i].init({
           startTime: t, duration: i==4?1.0:0.25,
           channel: 1, note: parseInt(timings[i][index]), velocity: 127,
           soundDelay: 0.125, p: p, delay: 0});
