@@ -61,6 +61,7 @@ function S059A(p, w, h) {
     oindex: {type: "fixed", min: 0, max: 5, value: 0},
     angle: {type: "fixed", min: 0, max: 4, value: 0},
     numCircles: {type: "fixed", min: 2, max: 8, value: 0},
+    doLines: {type: "fixed", min: 0, max: 2, value: 0},
     angleImpulse: {type: "fixed", min: -1, max: 2, value: 0},
     noise: {type: "fixed", min: -8, max: 8, value: 0},
     noiseAmp: {type: "fixed", min: 50, max: 200, value: 0}
@@ -82,7 +83,7 @@ S059A.prototype.drawLayer = function(pg, key, args) {
   let p = this.p;
   let tw = EasingFunctions.easeInOutCubic(objs[this.params.oindex.value].get(t, true));
 
-  pg.clear();
+  // pg.clear();
   pg.translate(this.width / 2, this.height / 2);
   // pg.translate(this.params.noiseAmp.value*(p.noise(t*2.0, this.params.noise.value)-0.5),
   // this.params.noiseAmp.value*(p.noise(t*1.7, this.params.noise.value)-0.5));
@@ -106,6 +107,8 @@ S059A.prototype.drawLayer = function(pg, key, args) {
     pg.push();
     pg.rotate(i / n * 2 * Math.PI);
     let l = p.lerp(objs[this.params.oindex.value].lastNote, objs[this.params.oindex.value].note, tw) * this.width * 0.1;
+    if(this.params.doLines.value == 1)
+    pg.rect(0, -r/2, l, r);
     pg.translate(l, 0);
     pg.ellipse(0, 0, r, r);
     pg.pop();
@@ -268,7 +271,7 @@ S059.prototype.update = function(args) {
 
   this.lastT = t;
   for(let i in this.ss) {
-    this.ss[i].draw({t: t});
+    // this.ss[i].draw({t: t});
   }
 }
 
@@ -281,17 +284,9 @@ S059.prototype.drawLayer = function(pg, key, args) {
   pg.background(colorScheme.get(c0).r+200, colorScheme.get(c0).g+200, colorScheme.get(c0).b+200);
 
   for(let i in this.ss) {
-    if(Math.floor(t) % 5 == i) {
-      pg.push();
-      pg.image(this.ss[i].pgs.default, 0, 0);
-      pg.translate(this.width / 2, this.height / 2);
-      pg.rotate(Math.PI * 0.1);
-      pg.translate(-this.width / 2, -this.height / 2);
-      // pg.image(this.ss[i].pgs.default, 0, 0);
-      pg.pop();
-    }
-    else
-      pg.image(this.ss[i].pgs.default, 0, 0);
+    pg.push();
+    this.ss[i].drawLayer(pg, "default", {t: t});
+    pg.pop();
   }
   pg.translate(this.width / 2, this.height / 2);
 
