@@ -57,7 +57,7 @@ function S059A(p, w, h) {
 
   this.params = {
     fill: {type: "fixed", min: 0, max: 5, value: 0},
-    radius: {type: "fixed", min: 1, max: 5, value: 0},
+    radius: {type: "fixed", min: 10, max: 40, value: 0},
     oindex: {type: "fixed", min: 0, max: 5, value: 0},
     angle: {type: "fixed", min: 0, max: 4, value: 0},
     numCircles: {type: "fixed", min: 2, max: 8, value: 0},
@@ -84,7 +84,7 @@ S059A.prototype.drawLayer = function(pg, key, args) {
   let tw = EasingFunctions.easeInOutCubic(objs[this.params.oindex.value].get(t, true));
 
   // pg.clear();
-  pg.translate(this.width / 2, this.height / 2);
+  // pg.translate(this.width / 2, this.height / 2);
   // pg.translate(this.params.noiseAmp.value*(p.noise(t*2.0, this.params.noise.value)-0.5),
   // this.params.noiseAmp.value*(p.noise(t*1.7, this.params.noise.value)-0.5));
 
@@ -100,17 +100,18 @@ S059A.prototype.drawLayer = function(pg, key, args) {
     pg.noFill();
   }
   let n = this.params.numCircles.value;
-  let r = this.params.radius.value * 10 + 10;
+  let r = this.params.radius.value;
   // pg.rotate(EasingFunctions.easeInOutCubic(tw) * this.params.angleImpulse.value * 0.5 * Math.PI
   //   + this.params.angle.value / n * 0.5 * Math.PI);
   for(let i = 0; i < n; i++) {
     pg.push();
-    pg.rotate(i / n * 2 * Math.PI);
+    pg.rotateY(i / n * 2 * Math.PI);
     let l = p.lerp(objs[this.params.oindex.value].lastNote, objs[this.params.oindex.value].note, tw) * this.width * 0.1;
     if(this.params.doLines.value == 1)
-    pg.rect(0, -r/2, l, r);
-    pg.translate(l, 0);
-    pg.ellipse(0, 0, r, r);
+    pg.translate(l/2, 0);
+    pg.box(l, r/8, r/8);
+    pg.translate(l/2, 0);
+    pg.sphere(r);
     pg.pop();
   }
   pg.pop();
@@ -245,7 +246,14 @@ S059E.prototype.drawLayer = function(pg, key, args) {
 
 
 function S059(p, w, h) {
-  TLayer.call(this, p, w, h);
+  SRendererShadow.call(this, p, w, h);
+  this.uMetallic = 0.1;
+  this.uRoughness = 0.8;
+  this.uSpecular = 0.01;
+  this.uExposure = 4.0;
+  this.uVignette = 0.0;
+  this.uLightRadius = 800.0;
+  
   this.ss = [];
   // let Ss = [S059B, S059B, S059B, S059B, S059B];
   // let Ss = [S059A, S059A, S059A, S059A, S059A];
@@ -262,37 +270,24 @@ function S059(p, w, h) {
   }
 }
 
-S059.prototype = Object.create(TLayer.prototype);
+S059.prototype = Object.create(SRendererShadow.prototype);
 S059.prototype.constructor = S059;
 
-S059.prototype.update = function(args) {
-  let t = args.t;
+S059.prototype.drawScene = function (pg, isShadow) {
+  let t = this.t;
   let p = this.p;
-
-  this.lastT = t;
-  for(let i in this.ss) {
-    // this.ss[i].draw({t: t});
-  }
-}
-
-S059.prototype.drawLayer = function(pg, key, args) {
-  let t = args.t;
-  let p = this.p;
-
-  pg.clear();
-  let c0 = 3;
-  pg.background(colorScheme.get(c0).r+200, colorScheme.get(c0).g+200, colorScheme.get(c0).b+200);
 
   for(let i in this.ss) {
     pg.push();
     this.ss[i].drawLayer(pg, "default", {t: t});
     pg.pop();
   }
-  pg.translate(this.width / 2, this.height / 2);
 
   pg.push();
-
-
+  pg.translate(0, 100, 0);
+  let c0 = 3;
+  pg.fill(colorScheme.get(c0).r+200, colorScheme.get(c0).g+200, colorScheme.get(c0).b+200);
+  pg.box(10000, 10, 10000);
   pg.pop();
 }
 
@@ -309,15 +304,29 @@ var s = function (p) {
     [0,0,0,0,0,0,0,3]
   ];
 
+  let lastPos = {x: 100, y: -100, z: 100};
+  let targetPos = {x: 100, y: -100, z: 100};
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(60);
+    s059.setup();
   }
 
   p.draw = function () {
     let t = p.millis() * 0.001;
 
+    s059.t = t;
+    let x = p.lerp(lastPos.x, targetPos.x, EasingFunctions.easeInOutQuint(t/4 % 1));
+    let y = p.lerp(lastPos.y, targetPos.y, EasingFunctions.easeInOutQuint(t/4 % 1));
+    let z = p.lerp(lastPos.z, targetPos.z, EasingFunctions.easeInOutQuint(t/4 % 1));
+    s059.cameraPosition.set(x, y, z);
+    s059.lightPos.set(x, y, z);
+    s059.lightDirection = s059.lightPos;
     s059.draw({t: t});
+
+    let c0 = 3;
+    p.background(colorScheme.get(c0).r+200, colorScheme.get(c0).g+200, colorScheme.get(c0).b+200);
+  
     p.image(s059.pg, 0, 0);
   }
 
@@ -325,8 +334,14 @@ var s = function (p) {
   p.update = function () {
     let t = p.millis() * 0.001;
 
-    if(Math.floor(t) - Math.floor(lastT) > 0) {
+    if(Math.floor(t/4) - Math.floor(lastT/4) > 0) {
       print(t, p.frameRate())
+      lastPos.x = targetPos.x;
+      lastPos.y = targetPos.y;
+      lastPos.z = targetPos.z;
+      targetPos.x = p.random(-500, 500);
+      targetPos.y = p.random(-700, -100);
+      targetPos.z = p.random(-500, 500);
     }
 
     if(Math.floor(t*0.5) - Math.floor(lastT*0.5) > 0) {
@@ -343,7 +358,7 @@ var s = function (p) {
       let index = Math.floor(t*4) % timings[i].length;
       if(Math.floor(t*4) - Math.floor(lastT*4) > 0){//} && timings[i][index] != "0") {
         objs[i].init({
-          startTime: t, duration: 0.3,
+          startTime: t, duration: 0.4,
           channel: 1, note: parseInt(timings[i][index]), velocity: 127,
           soundDelay: 0.125, p: p, delay: 0});
       }
