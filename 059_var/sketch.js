@@ -2,7 +2,9 @@ var colorScheme = new ColorScheme("390099-9e0059-ff0054-ff5400-ffbd00");
 
 var soundOn = false//||true;
 
-function Tween () {
+function Tween (args) {
+  this.notes = args.notes;
+  this.mult = args.mult;
   this.inited = false;
   this.note = 0;
   this.lastNote = 0;
@@ -20,6 +22,26 @@ Tween.prototype.init = function (args) {
   this.p = args.p;
   this.ringed = false;
   this.inited = true;
+}
+
+Tween.prototype.update = function (args) {
+  let mult = this.mult;
+  let index = Math.floor(args.t*mult) % this.notes.length;
+  if(Math.floor(args.t * mult) - Math.floor(args.lastT * mult) > 0){
+    this.init({
+      startTime: args.t, duration: 1.5 / mult,
+      channel: 1, note: parseInt(this.notes[index]), velocity: 127,
+      soundDelay: 0.125, p: args.p, delay: 0});
+  }
+}
+
+Tween.prototype.mutate = function () {
+  if(Math.random() < 0.25) return;
+  let j0 = Math.floor(Math.random() * this.notes.length);
+  let j1 = Math.floor(Math.random() * this.notes.length);
+  let tmp = this.notes[j0];
+  this.notes[j0] = this.notes[j1];
+  this.notes[j1] = tmp;
 }
 
 Tween.prototype.get = function (t, noReturn) {
@@ -43,10 +65,20 @@ Tween.prototype.get = function (t, noReturn) {
 }
 
 objs = [];
-for(let i = 0; i < 6; i++) {
-  objs[i] = new Tween();
-}
+{
+  let timings = [
+    {notes: [0,3,0,4,0,0,1,2], mult: 4},
+    {notes: [0,4,0,1,0,2,0,3], mult: 4},
+    {notes: [0,0,0,4,0,0,4,4], mult: 4},
+    {notes: [0,0,3,2,0,3,0,2], mult: 4},
+    {notes: [0,0,0,0,0,0,0,3], mult: 4},
+    {notes: [0,1,2,2,1,0], mult: 1}
+  ];
 
+  for(let i = 0; i < timings.length; i++) {
+    objs[i] = new Tween(timings[i]);
+  }
+}
 ////////
 
 function S059A(p, w, h) {
@@ -244,6 +276,8 @@ function S059(p, w, h) {
   this.uExposure = 4.0;
   this.uVignette = 0.0;
   this.uLightRadius = 800.0;
+  this.setup();
+  this.pg.perspective(60.0 / 180 * Math.PI, this.pg.width / this.pg.height, 10, 5000);
   
   this.ss = [];
   // let Ss = [S059B, S059B, S059B, S059B, S059B];
@@ -270,12 +304,13 @@ S059.prototype.drawScene = function (pg, isShadow) {
 
   pg.push();
   let tw = EasingFunctions.easeInOutCubic(objs[5].get(t, true));
-  let angle = p.lerp(objs[5].lastNote, objs[5].note, tw) * Math.PI * 0.5;
+  let angle = p.lerp(objs[5].lastNote, objs[5].note, tw);
   for(let i in this.ss) {
     pg.translate(0, -this.ss[i].params.radius.value * angle, 0);
     pg.push();
     this.ss[i].drawLayer(pg, "default", {t: t});
     pg.pop();
+    pg.translate(0, -this.ss[i].params.radius.value * angle, 0);
   }
   pg.pop();
 
@@ -292,21 +327,12 @@ S059.prototype.drawScene = function (pg, isShadow) {
 var s = function (p) {
   let s059 = new S059(p, 800, 800);
 
-  let timings = [
-    {notes: [0,3,0,4,0,0,1,2], mult: 4},
-    {notes: [0,4,0,1,0,2,0,3], mult: 4},
-    {notes: [0,0,0,4,0,0,4,4], mult: 4},
-    {notes: [0,0,3,2,0,3,0,2], mult: 4},
-    {notes: [0,0,0,0,0,0,0,3], mult: 4},
-    {notes: [0,1,2,2,1,0], mult: 1}
-  ];
-
   let lastPos = {x: 100, y: -100, z: 100};
   let targetPos = {x: 100, y: -100, z: 100};
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(60);
-    s059.setup();
+    // s059.setup();
   }
 
   p.draw = function () {
@@ -346,23 +372,11 @@ var s = function (p) {
 
     if(Math.floor(t*0.5) - Math.floor(lastT*0.5) > 0) {
       for(let i = 0; i < 5; i++) {
-        if(Math.random() < 0.25) continue;
-        let j0 = Math.floor(p.random(timings[i].notes.length));
-        let j1 = Math.floor(p.random(timings[i].notes.length));
-        let tmp = timings[i].notes[j0];
-        timings[i].notes[j0] = timings[i].notes[j1];
-        timings[i].notes[j1] = tmp;
+        objs[i].mutate();
       }
     }
-    for(let i in timings) {
-      let mult = timings[i].mult;
-      let index = Math.floor(t*mult) % timings[i].notes.length;
-      if(Math.floor(t*mult) - Math.floor(lastT*mult) > 0){//} && timings[i][index] != "0") {
-        objs[i].init({
-          startTime: t, duration: 1.6 / mult,
-          channel: 1, note: parseInt(timings[i].notes[index]), velocity: 127,
-          soundDelay: 0.125, p: p, delay: 0});
-      }
+    for(let i in objs) {
+      objs[i].update({p: p, t: t, lastT: lastT});
     }
 
     lastT = t;
