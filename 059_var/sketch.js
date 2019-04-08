@@ -50,10 +50,8 @@ for(let i = 0; i < 5; i++) {
 ////////
 
 function S059A(p, w, h) {
-  this.patterns = ["default", "lines"];
   TLayer.call(this, p, w, h);
   this.pgs.default.smooth(0);
-  this.pgs.lines.smooth(0);
 
   this.params = {
     fill: {type: "fixed", min: 0, max: 5, value: 0},
@@ -90,15 +88,9 @@ S059A.prototype.drawLayer = function(pg, key, args) {
 
   pg.push();
   let c0 = this.params.fill.value;
-  if(key == "default") {
-    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-    pg.noStroke();
-  }
-  if(key == "lines") {
-    pg.stroke(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-    pg.strokeWeight(3);
-    pg.noFill();
-  }
+  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
+  pg.noStroke();
+
   let n = this.params.numCircles.value;
   let r = this.params.radius.value;
   // pg.rotate(EasingFunctions.easeInOutCubic(tw) * this.params.angleImpulse.value * 0.5 * Math.PI
@@ -316,12 +308,15 @@ var s = function (p) {
     let t = p.millis() * 0.001;
 
     s059.t = t;
-    let x = p.lerp(lastPos.x, targetPos.x, EasingFunctions.easeInOutQuint(t/4 % 1));
-    let y = p.lerp(lastPos.y, targetPos.y, EasingFunctions.easeInOutQuint(t/4 % 1));
-    let z = p.lerp(lastPos.z, targetPos.z, EasingFunctions.easeInOutQuint(t/4 % 1));
+    let tw = EasingFunctions.easeInOutQuint(p.constrain(t/4 % 1, 0, 1));
+    let x = p.lerp(lastPos.x, targetPos.x, tw);
+    let y = p.lerp(lastPos.y, targetPos.y, tw);
+    let z = p.lerp(lastPos.z, targetPos.z, tw);
     s059.cameraPosition.set(x, y, z);
+    s059.cameraTarget.set(200.0*(p.noise(t*0.47)-0.5), 200.0*(p.noise(t*0.37)-0.5), 200.0*(p.noise(t*0.57)-0.5));
     s059.lightPos.set(x, y, z);
     s059.lightDirection = s059.lightPos;
+    s059.uLightRadius = s059.lightPos.mag() * 1.3;
     s059.draw({t: t});
 
     let c0 = 3;
