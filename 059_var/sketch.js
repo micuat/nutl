@@ -43,7 +43,7 @@ Tween.prototype.get = function (t, noReturn) {
 }
 
 objs = [];
-for(let i = 0; i < 5; i++) {
+for(let i = 0; i < 6; i++) {
   objs[i] = new Tween();
 }
 
@@ -99,7 +99,6 @@ S059A.prototype.drawLayer = function(pg, key, args) {
     pg.push();
     pg.rotateY(i / n * 2 * Math.PI);
     let l = p.lerp(objs[this.params.oindex.value].lastNote, objs[this.params.oindex.value].note, tw) * this.width * 0.1;
-    if(this.params.doLines.value == 1)
     pg.translate(l/2, 0);
     pg.box(l, r/8, r/8);
     pg.translate(l/2, 0);
@@ -269,11 +268,16 @@ S059.prototype.drawScene = function (pg, isShadow) {
   let t = this.t;
   let p = this.p;
 
+  pg.push();
+  let tw = EasingFunctions.easeInOutCubic(objs[5].get(t, true));
+  let angle = p.lerp(objs[5].lastNote, objs[5].note, tw) * Math.PI * 0.5;
   for(let i in this.ss) {
+    pg.translate(0, -this.ss[i].params.radius.value * angle, 0);
     pg.push();
     this.ss[i].drawLayer(pg, "default", {t: t});
     pg.pop();
   }
+  pg.pop();
 
   pg.push();
   pg.translate(0, 100, 0);
@@ -289,11 +293,12 @@ var s = function (p) {
   let s059 = new S059(p, 800, 800);
 
   let timings = [
-    [0,3,0,4,0,0,1,2],
-    [0,4,0,1,0,2,0,3],
-    [0,0,0,4,0,0,4,4],
-    [0,0,3,2,0,3,0,2],
-    [0,0,0,0,0,0,0,3]
+    {notes: [0,3,0,4,0,0,1,2], mult: 4},
+    {notes: [0,4,0,1,0,2,0,3], mult: 4},
+    {notes: [0,0,0,4,0,0,4,4], mult: 4},
+    {notes: [0,0,3,2,0,3,0,2], mult: 4},
+    {notes: [0,0,0,0,0,0,0,3], mult: 4},
+    {notes: [0,1,2,2,1,0], mult: 1}
   ];
 
   let lastPos = {x: 100, y: -100, z: 100};
@@ -342,19 +347,20 @@ var s = function (p) {
     if(Math.floor(t*0.5) - Math.floor(lastT*0.5) > 0) {
       for(let i = 0; i < 5; i++) {
         if(Math.random() < 0.25) continue;
-        let j0 = Math.floor(p.random(timings[i].length));
-        let j1 = Math.floor(p.random(timings[i].length));
-        let tmp = timings[i][j0];
-        timings[i][j0] = timings[i][j1];
-        timings[i][j1] = tmp;
+        let j0 = Math.floor(p.random(timings[i].notes.length));
+        let j1 = Math.floor(p.random(timings[i].notes.length));
+        let tmp = timings[i].notes[j0];
+        timings[i].notes[j0] = timings[i].notes[j1];
+        timings[i].notes[j1] = tmp;
       }
     }
     for(let i in timings) {
-      let index = Math.floor(t*4) % timings[i].length;
-      if(Math.floor(t*4) - Math.floor(lastT*4) > 0){//} && timings[i][index] != "0") {
+      let mult = timings[i].mult;
+      let index = Math.floor(t*mult) % timings[i].notes.length;
+      if(Math.floor(t*mult) - Math.floor(lastT*mult) > 0){//} && timings[i][index] != "0") {
         objs[i].init({
-          startTime: t, duration: 0.4,
-          channel: 1, note: parseInt(timings[i][index]), velocity: 127,
+          startTime: t, duration: 1.6 / mult,
+          channel: 1, note: parseInt(timings[i].notes[index]), velocity: 127,
           soundDelay: 0.125, p: p, delay: 0});
       }
     }
