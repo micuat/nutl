@@ -5,6 +5,7 @@ var soundOn = false//||true;
 function Tween (args) {
   this.notes = args.notes;
   this.mult = args.mult;
+  this.doMutate = args.doMutate;
   this.inited = false;
   this.note = 0;
   this.lastNote = 0;
@@ -22,6 +23,13 @@ Tween.prototype.init = function (args) {
   this.p = args.p;
   this.ringed = false;
   this.inited = true;
+  this.refreshed = true;
+}
+
+Tween.prototype.isRefreshed = function () {
+  let r = this.refreshed;
+  this.refreshed = false;
+  return r;
 }
 
 Tween.prototype.update = function (args) {
@@ -36,7 +44,7 @@ Tween.prototype.update = function (args) {
 }
 
 Tween.prototype.mutate = function () {
-  if(Math.random() < 0.25) return;
+  if(this.doMutate == false || Math.random() < 0.25) return;
   let j0 = Math.floor(Math.random() * this.notes.length);
   let j1 = Math.floor(Math.random() * this.notes.length);
   let tmp = this.notes[j0];
@@ -67,12 +75,13 @@ Tween.prototype.get = function (t, noReturn) {
 objs = [];
 {
   let timings = [
-    {notes: [0,3,0,4,0,0,1,2], mult: 4},
-    {notes: [0,4,0,1,0,2,0,3], mult: 4},
-    {notes: [0,0,0,4,0,0,4,4], mult: 4},
-    {notes: [0,0,3,2,0,3,0,2], mult: 4},
-    {notes: [0,0,0,0,0,0,0,3], mult: 4},
-    {notes: [0,1,2,2,1,0], mult: 1}
+    {notes: [0,3,0,4,0,0,1,2], mult: 4, doMutate: true},
+    {notes: [0,4,0,1,0,2,0,3], mult: 4, doMutate: true},
+    {notes: [0,0,0,4,0,0,4,4], mult: 4, doMutate: true},
+    {notes: [0,0,3,2,0,3,0,2], mult: 4, doMutate: true},
+    {notes: [0,0,0,0,0,0,0,3], mult: 4, doMutate: true},
+    {notes: [0,1,2,2,1,0], mult: 1, doMutate: false},
+    {notes: [0,1], mult: 0.25, doMutate: false}
   ];
 
   for(let i = 0; i < timings.length; i++) {
@@ -338,6 +347,15 @@ var s = function (p) {
   p.draw = function () {
     let t = p.millis() * 0.001;
 
+    if(objs[6].isRefreshed()) {
+      lastPos.x = targetPos.x;
+      lastPos.y = targetPos.y;
+      lastPos.z = targetPos.z;
+      targetPos.x = p.random(-500, 500);
+      targetPos.y = p.random(-700, -100);
+      targetPos.z = p.random(-500, 500);
+    }
+
     s059.t = t;
     let tw = EasingFunctions.easeInOutQuint(p.constrain(t/4 % 1, 0, 1));
     let x = p.lerp(lastPos.x, targetPos.x, tw);
@@ -362,16 +380,10 @@ var s = function (p) {
 
     if(Math.floor(t/4) - Math.floor(lastT/4) > 0) {
       print(t, p.frameRate())
-      lastPos.x = targetPos.x;
-      lastPos.y = targetPos.y;
-      lastPos.z = targetPos.z;
-      targetPos.x = p.random(-500, 500);
-      targetPos.y = p.random(-700, -100);
-      targetPos.z = p.random(-500, 500);
     }
 
     if(Math.floor(t*0.5) - Math.floor(lastT*0.5) > 0) {
-      for(let i = 0; i < 5; i++) {
+      for(let i in objs) {
         objs[i].mutate();
       }
     }
