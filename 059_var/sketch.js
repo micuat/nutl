@@ -3,6 +3,9 @@ var colorScheme = new ColorScheme("ff99c9-c1bddb-a2c7e5-58fcec-f3e9dc");
 
 var soundOn = false//||true;
 
+var numRandomNotes = 8;
+var maxRandomNote = 8;
+
 function Tween (args) {
   this.notes = args.notes;
   this.mult = args.mult;
@@ -11,6 +14,8 @@ function Tween (args) {
   this.inited = false;
   this.note = 0;
   this.lastNote = 0;
+  this.randomNotes = new Array(numRandomNotes);
+  this.lastRandomNotes = new Array(numRandomNotes);
 }
 
 Tween.prototype.init = function (args) {
@@ -20,6 +25,9 @@ Tween.prototype.init = function (args) {
   this.channel = args.channel;
   this.lastNote = this.note;
   this.note = args.note;
+  this.lastRandomNotes = this.randomNotes;
+  this.randomNotes = new Array(numRandomNotes);
+  for(let i = 0; i < maxRandomNote; i++) this.randomNotes[i] = Math.floor(Math.random() * maxRandomNote);
   this.velocity = args.velocity;
   this.p = args.p;
   this.ringed = false;
@@ -81,6 +89,14 @@ Tween.prototype.lerpedNote = function (t, func) {
   return (1 - tween) * this.lastNote + (tween) * this.note;
 }
 
+Tween.prototype.lerpedRandomNote = function (t, func, i) {
+  let tween = this.get(t, true);
+  if(func != undefined) {
+    tween = func(tween);
+  }
+  return (1 - tween) * this.lastRandomNotes[i] + (tween) * this.randomNotes[i];
+}
+
 objs = [];
 {
   let timings = [
@@ -91,7 +107,8 @@ objs = [];
     {notes: [0,0,0,0,0,0,0,3], mult: 4, doMutate: true, duration: 0.4},
     {notes: [0,1,2,2,1,0], mult: 1, doMutate: false, duration: 1.0},
     {notes: [0,1], mult: 0.25, doMutate: false, duration: 0.4},
-    {notes: [0,1,2,1], mult: 0.25, doMutate: true, duration: 1.0},
+    {notes: [2,2], mult: 0.25, doMutate: true, duration: 1.0},
+    // {notes: [0,1,2,1], mult: 0.25, doMutate: true, duration: 1.0},
   ];
 
   for(let i = 0; i < timings.length; i++) {
@@ -223,12 +240,25 @@ S059C.prototype.drawLayer = function(pg, key, args) {
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
   pg.noStroke();
 
+  let obj = objs[this.params.oindex.value];
+  let getNote = obj.lerpedRandomNote.bind(obj, t, EasingFunctions.easeInOutCubic);
+
+  let size = this.params.size.value * 0.125 * getNote(1);
   pg.translate(0, -this.params.size.value/2, 0);
-  pg.push();
-  let rot = objs[this.params.oindex.value].lerpedNote(t, EasingFunctions.easeInOutCubic) * Math.PI * 0.25;
-  pg.rotateY(rot);
-  pg.box(this.params.size.value);
-  pg.pop();
+  for(let i = 0; i < getNote(3)+1; i++) {
+    pg.push();
+    let rot = obj.lerpedNote(t, EasingFunctions.easeInOutCubic) * Math.PI * 0.25;
+    pg.translate((getNote(0)-4 + (i % 2)*2)*50, 0, (getNote(2)-4 + Math.floor(i/2)*2)*50);
+    pg.rotateY(rot);
+    pg.box(size, size * (getNote(4) < 3 ? 0.25: 1), size * (getNote(4) < 3 ? 0.25: 1));
+    pg.pop();
+  }
+
+  // pg.push();
+  // pg.translate((8-getNote(0))*50, 0, (getNote(2)-4)*50);
+  // pg.rotateY(rot);
+  // pg.box(this.params.size.value * 0.125 * (8-getNote(1)));
+  // pg.pop();
   pg.translate(0, -this.params.size.value/2, 0);
 }
 
@@ -287,7 +317,7 @@ function S059(p, w, h) {
   this.uLightRadius = 800.0;
   this.setup();
   this.pg.perspective(60.0 / 180 * Math.PI, this.pg.width / this.pg.height, 10, 5000);
-  this.shadowMap.ortho(-400, 400, -400, 1000, -200, 10000); // Setup orthogonal view matrix for the directional light
+  this.shadowMap.ortho(-400, 400, -400, 1000, -200, 2000); // Setup orthogonal view matrix for the directional light
   
   this.ss = [[], [], []];
   // let Ss = [S059B, S059B, S059B, S059B, S059B];
