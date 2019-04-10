@@ -1,4 +1,5 @@
-var colorScheme = new ColorScheme("390099-9e0059-ff0054-ff5400-ffbd00");
+var colorScheme = new ColorScheme("ff99c9-c1bddb-a2c7e5-58fcec-f3e9dc");
+// var colorScheme = new ColorScheme("390099-9e0059-ff0054-ff5400-ffbd00");
 
 var soundOn = false//||true;
 
@@ -6,6 +7,7 @@ function Tween (args) {
   this.notes = args.notes;
   this.mult = args.mult;
   this.doMutate = args.doMutate;
+  this.duration = args.duration;
   this.inited = false;
   this.note = 0;
   this.lastNote = 0;
@@ -13,7 +15,6 @@ function Tween (args) {
 
 Tween.prototype.init = function (args) {
   this.startTime = args.startTime;
-  this.duration = args.duration;
   this.soundDelay = args.soundDelay;
   this.delay = args.delay;
   this.channel = args.channel;
@@ -37,7 +38,7 @@ Tween.prototype.update = function (args) {
   let index = Math.floor(args.t*mult) % this.notes.length;
   if(Math.floor(args.t * mult) - Math.floor(args.lastT * mult) > 0){
     this.init({
-      startTime: args.t, duration: 1.5 / mult,
+      startTime: args.t,
       channel: 1, note: parseInt(this.notes[index]), velocity: 127,
       soundDelay: 0.125, p: args.p, delay: 0});
   }
@@ -72,16 +73,25 @@ Tween.prototype.get = function (t, noReturn) {
   else return 2 - tt * 2;
 }
 
+Tween.prototype.lerpedNote = function (t, func) {
+  let tween = this.get(t, true);
+  if(func != undefined) {
+    tween = func(tween);
+  }
+  return (1 - tween) * this.lastNote + (tween) * this.note;
+}
+
 objs = [];
 {
   let timings = [
-    {notes: [0,3,0,4,0,0,1,2], mult: 4, doMutate: true},
-    {notes: [0,4,0,1,0,2,0,3], mult: 4, doMutate: true},
-    {notes: [0,0,0,4,0,0,4,4], mult: 4, doMutate: true},
-    {notes: [0,0,3,2,0,3,0,2], mult: 4, doMutate: true},
-    {notes: [0,0,0,0,0,0,0,3], mult: 4, doMutate: true},
-    {notes: [0,1,2,2,1,0], mult: 1, doMutate: false},
-    {notes: [0,1], mult: 0.25, doMutate: false}
+    {notes: [0,3,0,4,0,0,1,2], mult: 4, doMutate: true, duration: 0.4},
+    {notes: [0,4,0,1,0,2,0,3], mult: 4, doMutate: true, duration: 0.4},
+    {notes: [0,0,0,4,0,0,4,4], mult: 4, doMutate: true, duration: 0.4},
+    {notes: [0,0,3,2,0,3,0,2], mult: 4, doMutate: true, duration: 0.4},
+    {notes: [0,0,0,0,0,0,0,3], mult: 4, doMutate: true, duration: 0.4},
+    {notes: [0,1,2,2,1,0], mult: 1, doMutate: false, duration: 1.0},
+    {notes: [0,1], mult: 0.25, doMutate: false, duration: 0.4},
+    {notes: [0,1,2,1], mult: 0.25, doMutate: true, duration: 1.0},
   ];
 
   for(let i = 0; i < timings.length; i++) {
@@ -110,22 +120,11 @@ function S059A(p, w, h) {
 S059A.prototype = Object.create(TLayer.prototype);
 S059A.prototype.constructor = S059A;
 
-S059A.prototype.update = function(args) {
-  let t = args.t;
-  let p = this.p;
-
-  this.lastT = t;
-}
+S059A.prototype.update = function(args) {}
 
 S059A.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
-  let tw = EasingFunctions.easeInOutCubic(objs[this.params.oindex.value].get(t, true));
-
-  // pg.clear();
-  // pg.translate(this.width / 2, this.height / 2);
-  // pg.translate(this.params.noiseAmp.value*(p.noise(t*2.0, this.params.noise.value)-0.5),
-  // this.params.noiseAmp.value*(p.noise(t*1.7, this.params.noise.value)-0.5));
 
   pg.push();
   let c0 = this.params.fill.value;
@@ -134,12 +133,10 @@ S059A.prototype.drawLayer = function(pg, key, args) {
 
   let n = this.params.numCircles.value;
   let r = this.params.radius.value;
-  // pg.rotate(EasingFunctions.easeInOutCubic(tw) * this.params.angleImpulse.value * 0.5 * Math.PI
-  //   + this.params.angle.value / n * 0.5 * Math.PI);
   for(let i = 0; i < n; i++) {
     pg.push();
     pg.rotateY(i / n * 2 * Math.PI);
-    let l = p.lerp(objs[this.params.oindex.value].lastNote, objs[this.params.oindex.value].note, tw) * this.width * 0.1;
+    let l = objs[this.params.oindex.value].lerpedNote(t, EasingFunctions.easeInOutCubic) * this.width * 0.2;
     pg.translate(l/2, 0);
     pg.box(l, r/8, r/8);
     pg.translate(l/2, 0);
@@ -156,6 +153,7 @@ function S059B(p, w, h) {
   this.params = {
     fill: {type: "fixed", min: 0, max: 5, value: 0},
     center: {type: "fixed", min: -5, max: 6, value: 0},
+    rotate: {type: "fixed", min: 0, max: 5, value: 0},
     oindex: {type: "fixed", min: 0, max: 5, value: 0},
   };
 }
@@ -163,115 +161,115 @@ function S059B(p, w, h) {
 S059B.prototype = Object.create(TLayer.prototype);
 S059B.prototype.constructor = S059B;
 
-S059B.prototype.update = function(args) {
-  let t = args.t;
-  let p = this.p;
-
-  this.lastT = t;
-}
+S059B.prototype.update = function(args) {}
 
 S059B.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
   let tw = objs[this.params.oindex.value].get(t);
 
-  pg.clear();
-  pg.translate(this.width / 2, this.height / 2);
+  pg.rotateY((this.params.rotate.value) * Math.PI * 0.5);
 
-  pg.push();
-  pg.noStroke();
   let c0 = this.params.fill.value;
   pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-  let w = 50;
-  let h = 50 + 300 * tw;
-  pg.rect(-w/2 + this.params.center.value * 50, -h/2, w, h);
-  pg.pop();}
+  pg.noStroke();
+
+
+  let len = 400;
+  let thick = 10;
+  let l = 0.1 + objs[this.params.oindex.value].lerpedNote(t, EasingFunctions.easeInOutCubic);
+  pg.push();
+  pg.rotateY((l * 0.25) * Math.PI * 0.5);
+  pg.box(thick, thick, len);
+  pg.translate(0, 0, len/2 * 0.9);
+  pg.rotateY(-(l * 0.25) * Math.PI * 0.5 * 2);
+  pg.translate(0, -thick * 1.2, len/2 * 0.9);
+  pg.box(thick, thick, len);
+  pg.pop();
+
+  pg.push();
+  pg.translate(0, -thick * 1.2, 0);
+  pg.rotateY((-l * 0.25) * Math.PI * 0.5);
+  pg.box(thick, thick, len);
+  pg.translate(0, 0, len/2 * 0.9);
+  pg.rotateY((l * 0.25) * Math.PI * 0.5 * 2);
+  pg.translate(0, thick * 1.2, len/2 * 0.9);
+  pg.box(thick, thick, len);
+  pg.pop();
+}
 
 ////////
 
 function S059C(p, w, h) {
   TLayer.call(this, p, w, h);
-  this.oindex = 0;
+  this.params = {
+    fill: {type: "fixed", min: 0, max: 5, value: 0},
+    oindex: {type: "fixed", min: 0, max: 5, value: 0},
+    size: {type: "fixed", min: 50, max: 100, value: 0},
+  };
 }
 
 S059C.prototype = Object.create(TLayer.prototype);
 S059C.prototype.constructor = S059C;
 
-S059C.prototype.update = function(args) {
-  let t = args.t;
-  let p = this.p;
-
-  this.lastT = t;
-}
+S059C.prototype.update = function(args) {}
 
 S059C.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
+  let tw = objs[this.params.oindex.value].get(t);
 
-  pg.clear();
-  pg.translate(this.width / 2, this.height / 2);
+  let c0 = this.params.fill.value;
+  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
+  pg.noStroke();
 
+  pg.translate(0, -this.params.size.value/2, 0);
   pg.push();
-
+  pg.box(this.params.size.value);
   pg.pop();
+  pg.translate(0, -this.params.size.value/2, 0);
 }
 
 ////////
 
 function S059D(p, w, h) {
   TLayer.call(this, p, w, h);
-  this.oindex = 0;
+  this.params = {
+    fill: {type: "fixed", min: 0, max: 5, value: 0},
+    oindex: {type: "fixed", min: 0, max: 5, value: 0},
+  };
 }
 
 S059D.prototype = Object.create(TLayer.prototype);
 S059D.prototype.constructor = S059D;
 
-S059D.prototype.update = function(args) {
-  let t = args.t;
-  let p = this.p;
-
-  this.lastT = t;
-}
+S059D.prototype.update = function(args) {}
 
 S059D.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
-
-  pg.clear();
-  pg.translate(this.width / 2, this.height / 2);
-
-  pg.push();
-
-  pg.pop();
+  let tw = objs[this.params.oindex.value].get(t);
 }
 
 ////////
 
 function S059E(p, w, h) {
   TLayer.call(this, p, w, h);
-  this.oindex = 0;
+  this.params = {
+    fill: {type: "fixed", min: 0, max: 5, value: 0},
+    oindex: {type: "fixed", min: 0, max: 5, value: 0},
+  };
 }
 
 S059E.prototype = Object.create(TLayer.prototype);
 S059E.prototype.constructor = S059E;
 
-S059E.prototype.update = function(args) {
-  let t = args.t;
-  let p = this.p;
-
-  this.lastT = t;
-}
+S059E.prototype.update = function(args) {}
 
 S059E.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
-
-  pg.clear();
-  pg.translate(this.width / 2, this.height / 2);
-
-  pg.push();
-
-  pg.pop();
+  let tw = objs[this.params.oindex.value].get(t);
 }
 
 ////////
@@ -288,19 +286,21 @@ function S059(p, w, h) {
   this.setup();
   this.pg.perspective(60.0 / 180 * Math.PI, this.pg.width / this.pg.height, 10, 5000);
   
-  this.ss = [];
+  this.ss = [[], [], []];
   // let Ss = [S059B, S059B, S059B, S059B, S059B];
   // let Ss = [S059A, S059A, S059A, S059A, S059A];
   // let Ss = [S059A, S059B, S059C, S059D, S059E];
-  for(let i = 0; i < 5; i++) {
-    let SS = S059A;//p.random([S059A, S059B]);
-    this.ss[i] = new SS(p, w, h);
-    for(key in this.ss[i].params) {
-      let param = this.ss[i].params[key];
-      param.value = Math.floor(p.random(param.min, param.max));
+  for(let i = 0; i < 3; i++) {
+    for(let j = 0; j < 5; j++) {
+      let SS = [S059A, S059B, S059C][i];//p.random([S059A, S059B]);
+      this.ss[i][j] = new SS(p, w, h);
+      for(key in this.ss[i][j].params) {
+        let param = this.ss[i][j].params[key];
+        param.value = Math.floor(p.random(param.min, param.max));
+      }
+      this.ss[i][j].params.fill.value = j;
+      this.ss[i][j].params.oindex.value = j;
     }
-    this.ss[i].params.fill.value = i;
-    this.ss[i].params.oindex.value = i;
   }
 }
 
@@ -311,17 +311,40 @@ S059.prototype.drawScene = function (pg, isShadow) {
   let t = this.t;
   let p = this.p;
 
-  pg.push();
-  let tw = EasingFunctions.easeInOutCubic(objs[5].get(t, true));
-  let angle = p.lerp(objs[5].lastNote, objs[5].note, tw);
-  for(let i in this.ss) {
-    pg.translate(0, -this.ss[i].params.radius.value * angle, 0);
+  let y = objs[7].lerpedNote(t, EasingFunctions.easeInOutCubic);
+
+  if(y < 0.5) {
     pg.push();
-    this.ss[i].drawLayer(pg, "default", {t: t});
+    pg.translate(y * 2000, 0, 0);
+    let angle = objs[5].lerpedNote(t, EasingFunctions.easeInOutCubic);
+    for(let i in this.ss[0]) {
+      pg.translate(0, -this.ss[0][i].params.radius.value * angle, 0);
+      pg.push();
+      this.ss[0][i].drawLayer(pg, "default", {t: t});
+      pg.pop();
+      pg.translate(0, -this.ss[0][i].params.radius.value * angle, 0);
+    }
     pg.pop();
-    pg.translate(0, -this.ss[i].params.radius.value * angle, 0);
   }
-  pg.pop();
+  if(y >= 0.5 && y < 1.5) {
+    pg.push();
+    pg.translate(-2000 + y * 2000, 0, 0);
+    for(let i in this.ss[1]) {
+      pg.translate(0, -50, 0);
+      pg.push();
+      this.ss[1][i].drawLayer(pg, "default", {t: t});
+      pg.pop();
+    }
+    pg.pop();
+  }
+  if(y >= 1.5) {
+    pg.push();
+    pg.translate(-4000 + y * 2000, 0, 0);
+    for(let i in this.ss[2]) {
+      this.ss[2][i].drawLayer(pg, "default", {t: t});
+    }
+    pg.pop();
+  }
 
   pg.push();
   pg.translate(0, 100, 0);
@@ -362,7 +385,7 @@ var s = function (p) {
     let y = p.lerp(lastPos.y, targetPos.y, tw);
     let z = p.lerp(lastPos.z, targetPos.z, tw);
     s059.cameraPosition.set(x, y, z);
-    s059.cameraTarget.set(200.0*(p.noise(t*0.47)-0.5), 200.0*(p.noise(t*0.37)-0.5), 200.0*(p.noise(t*0.57)-0.5));
+    s059.cameraTarget.set(200.0*(p.noise(t*0.47)-0.5), -100 + 200.0*(p.noise(t*0.37)-0.5), 200.0*(p.noise(t*0.57)-0.5));
     s059.lightPos.set(x, y, z);
     s059.lightDirection = s059.lightPos;
     s059.uLightRadius = s059.lightPos.mag() * 1.3;
