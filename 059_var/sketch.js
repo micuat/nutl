@@ -225,6 +225,8 @@ S059C.prototype.drawLayer = function(pg, key, args) {
 
   pg.translate(0, -this.params.size.value/2, 0);
   pg.push();
+  let rot = objs[this.params.oindex.value].lerpedNote(t, EasingFunctions.easeInOutCubic) * Math.PI * 0.25;
+  pg.rotateY(rot);
   pg.box(this.params.size.value);
   pg.pop();
   pg.translate(0, -this.params.size.value/2, 0);
@@ -285,6 +287,7 @@ function S059(p, w, h) {
   this.uLightRadius = 800.0;
   this.setup();
   this.pg.perspective(60.0 / 180 * Math.PI, this.pg.width / this.pg.height, 10, 5000);
+  this.shadowMap.ortho(-400, 400, -400, 1000, -200, 10000); // Setup orthogonal view matrix for the directional light
   
   this.ss = [[], [], []];
   // let Ss = [S059B, S059B, S059B, S059B, S059B];
