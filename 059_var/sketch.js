@@ -1,5 +1,6 @@
-var colorScheme = new ColorScheme("ff99c9-c1bddb-a2c7e5-58fcec-f3e9dc");
+// var colorScheme = new ColorScheme("ff99c9-c1bddb-a2c7e5-58fcec-f3e9dc");
 // var colorScheme = new ColorScheme("390099-9e0059-ff0054-ff5400-ffbd00");
+var colorScheme = new ColorScheme("1446a0-db3069-f5d547-ebebd3-3c3c3b");
 
 var soundOn = false//||true;
 
@@ -14,20 +15,25 @@ function Tween (args) {
   this.inited = false;
   this.note = 0;
   this.lastNote = 0;
-  this.randomNotes = new Array(numRandomNotes);
-  this.lastRandomNotes = new Array(numRandomNotes);
+  this.randomNotes = new Array(this.notes.length);
+  for(let i = 0; i < this.randomNotes.length; i++) {
+    this.randomNotes[i] = [];
+    for(let j = 0; j < maxRandomNote; j++) {
+      this.randomNotes[i][j] = Math.floor(Math.random() * maxRandomNote);
+    }
+  }
+  this.index = this.lastIndex = 0;
 }
 
 Tween.prototype.init = function (args) {
+  this.lastIndex = this.index;
+  this.index = args.index;
   this.startTime = args.startTime;
   this.soundDelay = args.soundDelay;
   this.delay = args.delay;
   this.channel = args.channel;
   this.lastNote = this.note;
   this.note = args.note;
-  this.lastRandomNotes = this.randomNotes;
-  this.randomNotes = new Array(numRandomNotes);
-  for(let i = 0; i < maxRandomNote; i++) this.randomNotes[i] = Math.floor(Math.random() * maxRandomNote);
   this.velocity = args.velocity;
   this.p = args.p;
   this.ringed = false;
@@ -46,7 +52,7 @@ Tween.prototype.update = function (args) {
   let index = Math.floor(args.t*mult) % this.notes.length;
   if(Math.floor(args.t * mult) - Math.floor(args.lastT * mult) > 0){
     this.init({
-      startTime: args.t,
+      startTime: args.t, index: index,
       channel: 1, note: parseInt(this.notes[index]), velocity: 127,
       soundDelay: 0.125, p: args.p, delay: 0});
   }
@@ -59,6 +65,10 @@ Tween.prototype.mutate = function () {
   let tmp = this.notes[j0];
   this.notes[j0] = this.notes[j1];
   this.notes[j1] = tmp;
+
+  tmp = this.randomNotes[j0];
+  this.randomNotes[j0] = this.randomNotes[j1];
+  this.randomNotes[j1] = tmp;
 }
 
 Tween.prototype.get = function (t, noReturn) {
@@ -94,7 +104,7 @@ Tween.prototype.lerpedRandomNote = function (t, func, i) {
   if(func != undefined) {
     tween = func(tween);
   }
-  return (1 - tween) * this.lastRandomNotes[i] + (tween) * this.randomNotes[i];
+  return (1 - tween) * this.randomNotes[this.lastIndex][i] + (tween) * this.randomNotes[this.index][i];
 }
 
 objs = [];
@@ -107,8 +117,9 @@ objs = [];
     {notes: [0,0,0,0,0,0,0,3], mult: 4, doMutate: true, duration: 0.4},
     {notes: [0,1,2,2,1,0], mult: 1, doMutate: false, duration: 1.0},
     {notes: [0,1], mult: 0.25, doMutate: false, duration: 0.4},
-    {notes: [2,2], mult: 0.25, doMutate: true, duration: 1.0},
-    // {notes: [0,1,2,1], mult: 0.25, doMutate: true, duration: 1.0},
+    // {notes: [2,2], mult: 0.25, doMutate: true, duration: 1.0},
+    {notes: [0,1,2,1], mult: 0.25, doMutate: false, duration: 1.0},
+    {notes: [0,0,0,1], mult: 0.25, doMutate: false, duration: 0.4}, //8
   ];
 
   for(let i = 0; i < timings.length; i++) {
@@ -143,17 +154,30 @@ S059A.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
 
+  let obj = objs[this.params.oindex.value];
+  let getNote = obj.lerpedRandomNote.bind(obj, t, EasingFunctions.easeInOutCubic);
+
+  pg.translate(0, -this.params.radius.value * getNote(0) * 0.25, 0);
+
   pg.push();
   let c0 = this.params.fill.value;
-  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-  pg.noStroke();
+  let strtw = objs[8].lerpedNote(t, EasingFunctions.easeInOutCubic);
+  if(strtw < 0.5) {
+    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
+    pg.noStroke();
+  }
+  else {
+    pg.noFill();
+    pg.strokeWeight(1);
+    pg.stroke(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255*strtw);
+  }
 
-  let n = this.params.numCircles.value;
+  let n = (getNote(1) / 2 + 2);//this.params.numCircles.value;
   let r = this.params.radius.value;
   for(let i = 0; i < n; i++) {
     pg.push();
-    pg.rotateY(i / n * 2 * Math.PI);
-    let l = objs[this.params.oindex.value].lerpedNote(t, EasingFunctions.easeInOutCubic) * this.width * 0.2;
+    pg.rotateY((i / n * 2) * Math.PI);
+    let l = obj.lerpedNote(t, EasingFunctions.easeInOutCubic) * this.width * 0.2;
     pg.translate(l/2, 0);
     pg.box(l, r/8, r/8);
     pg.translate(l/2, 0);
@@ -161,6 +185,8 @@ S059A.prototype.drawLayer = function(pg, key, args) {
     pg.pop();
   }
   pg.pop();
+
+  pg.translate(0, -this.params.radius.value * getNote(0) * 0.25, 0);
 }
 
 ////////
@@ -183,18 +209,26 @@ S059B.prototype.update = function(args) {}
 S059B.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
-  let tw = objs[this.params.oindex.value].get(t);
 
-  pg.rotateY((this.params.rotate.value) * Math.PI * 0.5);
+  let obj = objs[this.params.oindex.value];
+  let getNote = obj.lerpedRandomNote.bind(obj, t, EasingFunctions.easeInOutCubic);
+  pg.rotateY((getNote(0)-4) * Math.PI * 0.25);
 
   let c0 = this.params.fill.value;
-  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-  pg.noStroke();
-
+  let strtw = objs[8].lerpedNote(t, EasingFunctions.easeInOutCubic);
+  if(strtw < 0.5) {
+    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
+    pg.noStroke();
+  }
+  else {
+    pg.noFill();
+    pg.strokeWeight(2);
+    pg.stroke(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255*strtw);
+  }
 
   let len = 400;
   let thick = 10;
-  let l = 0.1 + objs[this.params.oindex.value].lerpedNote(t, EasingFunctions.easeInOutCubic);
+  let l = 0.1 + obj.lerpedNote(t, EasingFunctions.easeInOutCubic);
   pg.push();
   pg.rotateY((l * 0.25) * Math.PI * 0.5);
   pg.box(thick, thick, len);
@@ -237,21 +271,38 @@ S059C.prototype.drawLayer = function(pg, key, args) {
   let tw = objs[this.params.oindex.value].get(t);
 
   let c0 = this.params.fill.value;
-  pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
-  pg.noStroke();
+  let strtw = objs[8].lerpedNote(t, EasingFunctions.easeInOutCubic);
+  if(strtw < 0.5) {
+    pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
+    pg.noStroke();
+  }
+  else {
+    pg.noFill();
+    pg.strokeWeight(2);
+    pg.stroke(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255*strtw);
+  }
 
   let obj = objs[this.params.oindex.value];
   let getNote = obj.lerpedRandomNote.bind(obj, t, EasingFunctions.easeInOutCubic);
 
-  let size = this.params.size.value * 0.125 * getNote(1);
+  let size = this.params.size.value * (1 + getNote(1)) / 10;
   pg.translate(0, -this.params.size.value/2, 0);
-  for(let i = 0; i < getNote(3)+1; i++) {
-    pg.push();
-    let rot = obj.lerpedNote(t, EasingFunctions.easeInOutCubic) * Math.PI * 0.25;
-    pg.translate((getNote(0)-4 + (i % 2)*2)*50, 0, (getNote(2)-4 + Math.floor(i/2)*2)*50);
-    pg.rotateY(rot);
-    pg.box(size, size * (getNote(4) < 3 ? 0.25: 1), size * (getNote(4) < 3 ? 0.25: 1));
-    pg.pop();
+  let N = getNote(3);
+  let M = getNote(6);
+  for(let i = 0; i < N; i++) {
+    for(let j = 0; j < M; j++) {
+      pg.push();
+      let rot = obj.lerpedNote(t, EasingFunctions.easeInOutCubic) * Math.PI * 0.125;
+      pg.translate((getNote(0)-4 + i*2-N/2)*5*(1+getNote(7)), 0, (getNote(2)-4 + j*2-M/2)*5*(1+getNote(7)));
+      pg.rotateY(rot * (i+j));
+      pg.box(size, size, size);
+      // pg.rotateZ(getNote(6) / 2 * Math.PI);
+      // for(let j = 0; j < 8; j++) {
+      //   pg.rotateX(j / 8 * Math.PI);
+      //   pg.box(size / 14, size / 2 * getNote(5), size / 14);
+      // }
+      pg.pop();
+    }
   }
 
   // pg.push();
@@ -312,7 +363,7 @@ function S059(p, w, h) {
   this.uMetallic = 0.1;
   this.uRoughness = 0.8;
   this.uSpecular = 0.01;
-  this.uExposure = 4.0;
+  this.uExposure = 5.0;
   this.uVignette = 0.0;
   this.uLightRadius = 800.0;
   this.setup();
@@ -349,13 +400,8 @@ S059.prototype.drawScene = function (pg, isShadow) {
   if(y < 0.5) {
     pg.push();
     pg.translate(y * 2000, 0, 0);
-    let angle = objs[5].lerpedNote(t, EasingFunctions.easeInOutCubic);
     for(let i in this.ss[0]) {
-      pg.translate(0, -this.ss[0][i].params.radius.value * angle, 0);
-      pg.push();
       this.ss[0][i].drawLayer(pg, "default", {t: t});
-      pg.pop();
-      pg.translate(0, -this.ss[0][i].params.radius.value * angle, 0);
     }
     pg.pop();
   }
@@ -371,6 +417,7 @@ S059.prototype.drawScene = function (pg, isShadow) {
     pg.pop();
   }
   if(y >= 1.5) {
+    this.defaultShader.set("uVignette", 0.5);
     pg.push();
     pg.translate(-4000 + y * 2000, 0, 0);
     for(let i in this.ss[2]) {
