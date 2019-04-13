@@ -117,11 +117,11 @@ objs = {};
     rhythm2: {notes: [0,0,0,4], mult: 4, doMutate: true, duration: 0.4},
     rhythm3: {notes: [0,0,3,2], mult: 4, doMutate: true, duration: 0.4},
     rhythm4: {notes: [0,0,0,3], mult: 4, doMutate: true, duration: 0.4},
-    camera: {notes: [0,1], mult: 0.25, doMutate: false, duration: 0.4},
+    camera: {notes: [0,1], mult: 0.125, doMutate: false, duration: 0.4},
     scene: {notes: [0,1,2,1], mult: 0.25, doMutate: false, duration: 1.0},
     wireframe: {notes: [0,0,0,0], mult: 0.25, doMutate: false, duration: 0.4},
     // wireframe: {notes: [0,0,0,1], mult: 0.25, doMutate: false, duration: 0.4},
-    colors: {notes: [0,1,2,1], mult: 1.0, doMutate: true, duration: 0.5}
+    colors: {notes: [0,1,2,1], mult: 2.0, doMutate: true, duration: 0.25}
   };
 
   for(let key in timings) {
