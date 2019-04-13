@@ -1,6 +1,8 @@
-// var colorScheme = new ColorScheme("ff99c9-c1bddb-a2c7e5-58fcec-f3e9dc");
-// var colorScheme = new ColorScheme("390099-9e0059-ff0054-ff5400-ffbd00");
-var colorScheme = new ColorScheme("1446a0-db3069-f5d547-ebebd3-3c3c3b");
+var colorSchemes = [
+  new ColorScheme("ff99c9-c1bddb-a2c7e5-58fcec-f3e9dc"),
+  new ColorScheme("390099-9e0059-ff0054-ff5400-ffbd00"),
+  new ColorScheme("1446a0-db3069-f5d547-ebebd3-3c3c3b")
+]
 
 var soundOn = false//||true;
 
@@ -117,7 +119,9 @@ objs = {};
     rhythm4: {notes: [0,0,0,3], mult: 4, doMutate: true, duration: 0.4},
     camera: {notes: [0,1], mult: 0.25, doMutate: false, duration: 0.4},
     scene: {notes: [0,1,2,1], mult: 0.25, doMutate: false, duration: 1.0},
-    wireframe: {notes: [0,0,0,1], mult: 0.25, doMutate: false, duration: 0.4}
+    wireframe: {notes: [0,0,0,0], mult: 0.25, doMutate: false, duration: 0.4},
+    // wireframe: {notes: [0,0,0,1], mult: 0.25, doMutate: false, duration: 0.4},
+    colors: {notes: [0,1,2,1], mult: 1.0, doMutate: true, duration: 0.5}
   };
 
   for(let key in timings) {
@@ -136,21 +140,23 @@ function TShape(p) {
 
 TShape.prototype.draw = function(pg, args) {
   if(this.drawShape != undefined) {
+    let p = this.p;
     let t = args.t;
     this.obj = objs["rhythm" + this.params.oindex.value];
     this.getNote = this.obj.lerpedRandomNote.bind(this.obj, args.t, EasingFunctions.easeInOutCubic);
-    let c0 = this.params.fill.value;
     let strtw = objs.wireframe.lerpedNote(t, EasingFunctions.easeInOutCubic);
+    let c0 = colorSchemes[objs.colors.lastNote].get(this.params.fill.value);
+    let c1 = colorSchemes[objs.colors.note].get(this.params.fill.value);
     if(strtw < 0.5) {
-      pg.fill(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b);
+      pg.fill(p.lerp(c0.r, c1.r, objs.colors.get(t, true)), p.lerp(c0.g, c1.g, objs.colors.get(t, true)), p.lerp(c0.b, c1.b, objs.colors.get(t, true)));
       pg.noStroke();
     }
     else {
       pg.noFill();
       pg.strokeWeight(2);
-      pg.stroke(colorScheme.get(c0).r, colorScheme.get(c0).g, colorScheme.get(c0).b, 255*strtw);
+      pg.stroke(p.lerp(c0.r, c1.r, objs.colors.get(t, true)), p.lerp(c0.g, c1.g, objs.colors.get(t, true)), p.lerp(c0.b, c1.b, objs.colors.get(t, true)), 255*strtw);
     }
-    this.drawShape(pg, args, this.p, t);
+    this.drawShape(pg, args, p, t);
   }
 }
 
@@ -328,7 +334,8 @@ S059.prototype.drawScene = function (pg, isShadow) {
   pg.push();
   pg.translate(0, 100, 0);
   let c0 = 3;
-  pg.fill(colorScheme.get(c0).r+200, colorScheme.get(c0).g+200, colorScheme.get(c0).b+200);
+  let c = colorSchemes[0].get(c0);
+  pg.fill(c.r+200, c.g+200, c.b+200);
   pg.box(10000, 10, 10000);
   pg.pop();
 }
@@ -370,8 +377,8 @@ var s = function (p) {
     s059.uLightRadius = s059.lightPos.mag() * 1.3;
     s059.draw({t: t});
 
-    let c0 = 3;
-    p.background(colorScheme.get(c0).r+200, colorScheme.get(c0).g+200, colorScheme.get(c0).b+200);
+    // let c0 = 3;
+    // p.background(colorScheme.get(c0).r+200, colorScheme.get(c0).g+200, colorScheme.get(c0).b+200);
   
     p.image(s059.pg, 0, 0);
   }
