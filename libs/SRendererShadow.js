@@ -136,7 +136,7 @@ SRendererShadow.prototype.draw = function () {
   ));
 
   this.pg.camera(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z, this.cameraTarget.x, this.cameraTarget.y, this.cameraTarget.z, 0, 1, 0);
-  this.pg.background(0);
+  // this.pg.background(0);
   this.pg.endDraw();
 
   // Render shadow pass
@@ -153,7 +153,7 @@ SRendererShadow.prototype.draw = function () {
 
   // Render default pass
   this.pg.beginDraw();
-  this.pg.background(34, 34, 34, 255);
+  // this.pg.background(34, 34, 34, 255);
   this.pg.noStroke();
   this.drawScene(this.pg, false);
   this.pg.endDraw();

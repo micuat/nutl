@@ -331,13 +331,13 @@ S059.prototype.drawScene = function (pg, isShadow) {
     pg.pop();
   }
 
-  pg.push();
-  pg.translate(0, 100, 0);
-  let c0 = 3;
-  let c = colorSchemes[0].get(c0);
-  pg.fill(c.r+200, c.g+200, c.b+200);
-  pg.box(10000, 10, 10000);
-  pg.pop();
+  // pg.push();
+  // pg.translate(0, 100, 0);
+  // let c0 = 3;
+  // let c = colorSchemes[0].get(c0);
+  // pg.fill(c.r+200, c.g+200, c.b+200);
+  // pg.box(10000, 10, 10000);
+  // pg.pop();
 }
 
 ////////
