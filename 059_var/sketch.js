@@ -182,7 +182,8 @@ S059A.prototype.drawShape = function(pg, args, p, t) {
 
   pg.push();
 
-  let n = (this.getNote(1) / 2 + 2);
+  // let n = (this.getNote(1) / 2 + 2);
+  let n = this.params.numCircles.value;
   let r = this.params.radius.value;
   for(let i = 0; i < n; i++) {
     pg.push();
@@ -211,7 +212,7 @@ S059B.prototype = Object.create(TShape.prototype);
 S059B.prototype.constructor = S059B;
 
 S059B.prototype.drawShape = function(pg, args, p, t) {
-  pg.rotateY((this.getNote(0)-4) * Math.PI * 0.25);
+  // pg.rotateY((this.getNote(0)-4) * Math.PI * 0.25);
 
   let len = 400;
   let thick = 10;
@@ -302,6 +303,8 @@ S059.prototype.drawScene = function (pg, isShadow) {
 
   let y = objs.scene.lerpedNote(t, EasingFunctions.easeInOutCubic);
 
+  pg.clear();
+
   if(y < 0.5) {
     pg.push();
     pg.translate(y * 2000, 0, 0);
@@ -347,6 +350,14 @@ var s = function (p) {
 
   let lastPos = {x: 100, y: -100, z: 100};
   let targetPos = {x: 100, y: -100, z: 100};
+
+  let postProcess0 = new PostProcess(p);
+  postProcess0.setup();
+  let postProcess1 = new PostProcess(p);
+  postProcess1.setup();
+
+  let accumPg = p.createGraphics(800, 800, p.P3D);
+
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(60);
@@ -376,10 +387,25 @@ var s = function (p) {
     s059.lightDirection = s059.lightPos;
     s059.uLightRadius = s059.lightPos.mag() * 1.3;
     s059.draw({t: t});
-
-    // let c0 = 3;
-    // p.background(colorScheme.get(c0).r+200, colorScheme.get(c0).g+200, colorScheme.get(c0).b+200);
   
+    accumPg.beginDraw();
+    accumPg.image(s059.pg, 0, 0);
+    accumPg.endDraw();
+
+    postProcess0.draw("rgbshift", accumPg, {
+      delta: 5 * p.constrain(-Math.sin(t*Math.PI * 0.5) * 1 + 1, 0, 1)
+    });
+    postProcess1.draw("slide", postProcess0.pg, {
+      delta: 0.01 * p.constrain(Math.sin(t*Math.PI * 0.5) * 1 + 1, 0, 1),
+      time: t
+    });
+
+    accumPg.beginDraw();
+    accumPg.image(postProcess1.pg, 0, 0);
+    accumPg.endDraw();
+  
+    p.background(0);
+    p.image(postProcess0.pg, 0, 0);
     p.image(s059.pg, 0, 0);
   }
 
