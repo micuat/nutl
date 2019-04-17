@@ -1,13 +1,13 @@
-// var colorSchemes = [
-//   new ColorScheme("ff99c9-c1bddb-a2c7e5-58fcec-f3e9dc"),
-//   new ColorScheme("390099-9e0059-ff0054-ff5400-ffbd00"),
-//   new ColorScheme("1446a0-db3069-f5d547-ebebd3-3c3c3b")
-// ]
 var colorSchemes = [
-  new ColorScheme("efd9ce-dec0f1-b79ced-957fef-7161ef"),
-  new ColorScheme("8d3b72-8a7090-89a7a7-72e1d1-b5d8cc"),
-  new ColorScheme("fffbfe-7a7d7d-d0cfcf-565254-ffffff")
+  new ColorScheme("ff99c9-c1bddb-a2c7e5-58fcec-f3e9dc"),
+  new ColorScheme("390099-9e0059-ff0054-ff5400-ffbd00"),
+  new ColorScheme("1446a0-db3069-f5d547-ebebd3-3c3c3b")
 ]
+// var colorSchemes = [
+//   new ColorScheme("efd9ce-dec0f1-b79ced-957fef-7161ef"),
+//   new ColorScheme("8d3b72-8a7090-89a7a7-72e1d1-b5d8cc"),
+//   new ColorScheme("fffbfe-7a7d7d-d0cfcf-565254-ffffff")
+// ]
 
 var soundOn = false//||true;
 
@@ -30,6 +30,7 @@ function Tween (args) {
     }
   }
   this.index = this.lastIndex = 0;
+  this.offset = args.offset == undefined ? 0 : args.offset;
 }
 
 Tween.prototype.init = function (args) {
@@ -55,11 +56,13 @@ Tween.prototype.isRefreshed = function () {
 }
 
 Tween.prototype.update = function (args) {
+  let t = args.t - this.offset;
+  let lastT = args.lastT - this.offset;
   let mult = this.mult;
-  let index = Math.floor(args.t*mult) % this.notes.length;
-  if(Math.floor(args.t * mult) - Math.floor(args.lastT * mult) > 0){
+  let index = Math.floor(t*mult) % this.notes.length;
+  if(Math.floor(t * mult) - Math.floor(lastT * mult) > 0){
     this.init({
-      startTime: args.t, index: index,
+      startTime: t, index: index,
       channel: 1, note: parseInt(this.notes[index]), velocity: 127,
       soundDelay: 0.125, p: args.p, delay: 0});
   }
@@ -80,7 +83,7 @@ Tween.prototype.mutate = function () {
 
 Tween.prototype.get = function (t, noReturn) {
   if(this.inited == false) return 0;
-  let tt = t - this.startTime - this.delay;
+  let tt = (t - this.offset) - this.startTime - this.delay;
   if(tt == undefined) return 0;
 
   if(this.ringed == false && tt >= this.soundDelay) {
@@ -117,17 +120,19 @@ Tween.prototype.lerpedRandomNote = function (t, func, i) {
 objs = {};
 {
   let timings = {
-    rhythm0: {notes: [0,3,0,4], mult: 2, doMutate: true, duration: 0.4},
-    rhythm1: {notes: [0,4,0,1], mult: 2, doMutate: true, duration: 0.4},
-    rhythm2: {notes: [0,0,0,4], mult: 2, doMutate: true, duration: 0.4},
-    rhythm3: {notes: [0,0,3,2], mult: 2, doMutate: true, duration: 0.4},
-    rhythm4: {notes: [0,0,0,3], mult: 2, doMutate: true, duration: 0.4},
+    rhythm0: {notes: [0,3,0,4], mult: 2, doMutate: true, duration: 0.4, offset: 0.0},
+    rhythm1: {notes: [0,4,0,1], mult: 2, doMutate: true, duration: 0.4, offset: 0.08},
+    rhythm2: {notes: [0,0,0,4], mult: 2, doMutate: true, duration: 0.4, offset: 0.16},
+    rhythm3: {notes: [0,0,3,2], mult: 2, doMutate: true, duration: 0.4, offset: 0.24},
+    rhythm4: {notes: [0,0,0,3], mult: 2, doMutate: true, duration: 0.4, offset: 0.32},
     camera: {notes: [0,1], mult: 0.125, doMutate: false, duration: 0.4},
-    scene: {notes: [0,1,2,1], mult: 0.25, doMutate: false, duration: 1.0},
+    scene: {notes: [2,2], mult: 0.25, doMutate: false, duration: 1.0},
+    // scene: {notes: [0,1,2,1], mult: 0.25, doMutate: false, duration: 1.0},
     wireframe: {notes: [0,0,0,0], mult: 0.25, doMutate: false, duration: 0.4},
     // wireframe: {notes: [0,0,0,1], mult: 0.25, doMutate: false, duration: 0.4},
     colors: {notes: [0,1,2,1], mult: 2.0, doMutate: true, duration: 0.25},
-    post: {notes: [0,1], mult: 0.125, doMutate: false, duration: 2.5}
+    anim: {notes: [0,1], mult: 0.5, doMutate: false, duration: 0.4},
+    post: {notes: [0,1], mult: 0.5, doMutate: false, duration: 1.5}
   };
 
   for(let key in timings) {
@@ -296,6 +301,35 @@ S059D.prototype.drawShape = function(pg, args, p, t) {
 
 ////////
 
+function S059E(p, w, h) {
+  TShape.call(this, p);
+  this.params.size = {type: "fixed", min: 50, max: 100, value: 0};
+}
+
+S059E.prototype = Object.create(TShape.prototype);
+S059E.prototype.constructor = S059E;
+
+S059E.prototype.drawShape = function(pg, args, p, t) {
+  let size = (1 + this.getNote(1)) * 10;
+  // pg.translate(0, -this.params.size.value/2, 0);
+
+  for(let i = -2; i <= 2; i++) {
+    for(let j = -2; j <= 2; j++) {
+      pg.push();
+      pg.rotateY((this.getNote(2) + i * this.getNote(4) * 0.25) * 0.25 * Math.PI);
+      pg.rotateZ((this.getNote(3) + j * this.getNote(4) * 0.25) * 0.25 * Math.PI);
+      pg.translate(100 * (1 + this.params.oindex.value), 0, 0);
+      // pg.translate((this.getNote(2) - 4) * 100, 0, (this.getNote(3) - 4) * 100);
+      pg.box(80, 10, 10);
+      pg.pop();
+    }
+  }
+
+  // pg.translate(0, -this.params.size.value/2, 0);
+}
+
+////////
+
 function S059(p, w, h) {
   SRendererShadow.call(this, p, w, h);
   this.uMetallic = 0.1;
@@ -311,7 +345,7 @@ function S059(p, w, h) {
   this.ss = [[], [], []];
   for(let i = 0; i < 3; i++) {
     for(let j = 0; j < 5; j++) {
-      let SS = [S059D, S059D, S059D][i];
+      let SS = [S059C, S059D, S059E][i];
       // let SS = [S059A, S059B, S059C][i];
       this.ss[i][j] = new SS(p, w, h);
       for(key in this.ss[i][j].params) {
@@ -340,7 +374,12 @@ S059.prototype.drawScene = function (pg, isShadow) {
   for(let j = 0; j < 3; j++) {
     if(y < 0.5 + j) {
       pg.push();
-      // pg.translate(y * 2000 - j * 2000, 0, 0);
+      if(objs.scene.randomNotes[objs.scene.index][0] < 4) {
+        pg.translate(y * 2000 - j * 2000, 0, 0);
+      }
+      else {
+        pg.translate(0, y * 2000 - j * 2000, 0);
+      }
       for(let i in this.ss[0]) {
         this.ss[j][i].draw(pg, {t: t});
       }
@@ -364,12 +403,20 @@ var s = function (p) {
   postProcess1.setup();
 
   let accumPg = p.createGraphics(800, 800, p.P3D);
-  let tAnimation = new TLedAnimation(p, p.width, p.height, {
-    layer: s059.pg,
-    type: "strip",
-    timeScale: 0.5,
-    n: 16
-  });
+  let tAnimations = [
+    new TLedAnimation(p, p.width, p.height, {
+      layer: s059.pg,
+      type: "stretch",
+      timeScale: 0.45,
+      n: 4
+    }),
+    new TLedAnimation(p, p.width, p.height, {
+      layer: s059.pg,
+      type: "strip",
+      timeScale: 0.55,
+      n: 4
+    })
+  ];
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(60);
@@ -400,13 +447,20 @@ var s = function (p) {
     s059.uLightRadius = s059.lightPos.mag() * 1.3;
     s059.draw({t: t});
   
-    tAnimation.draw({t: t, scratch: 0.0});
+    tAnimations[objs.anim.note].draw({t: t, scratch: 0.0});
 
     accumPg.beginDraw();
-    if(objs.post.isRefreshed()) accumPg.clear();
+    if(objs.post.get(t, true) < 1) {
+      //accumPg.clear();
+      accumPg.push();
+      accumPg.fill(0, 5);
+      accumPg.noStroke();
+      accumPg.rect(0, 0, accumPg.width, accumPg.height);
+      accumPg.pop();
+    }
     accumPg.push();
     // accumPg.tint(255, 120);
-    accumPg.image(tAnimation.pg, 0, 0);
+    accumPg.image(tAnimations[objs.anim.note].pg, 0, 0);
     accumPg.pop();
     accumPg.endDraw();
 
