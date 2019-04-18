@@ -70,15 +70,15 @@ Tween.prototype.update = function (args) {
 
 Tween.prototype.mutate = function () {
   if(this.doMutate == false || Math.random() < 0.25) return;
-  let j0 = Math.floor(Math.random() * this.notes.length);
-  let j1 = Math.floor(Math.random() * this.notes.length);
-  let tmp = this.notes[j0];
-  this.notes[j0] = this.notes[j1];
-  this.notes[j1] = tmp;
+  // let j0 = Math.floor(Math.random() * this.notes.length);
+  // let j1 = Math.floor(Math.random() * this.notes.length);
+  // let tmp = this.notes[j0];
+  // this.notes[j0] = this.notes[j1];
+  // this.notes[j1] = tmp;
 
-  tmp = this.randomNotes[j0];
-  this.randomNotes[j0] = this.randomNotes[j1];
-  this.randomNotes[j1] = tmp;
+  // tmp = this.randomNotes[j0];
+  // this.randomNotes[j0] = this.randomNotes[j1];
+  // this.randomNotes[j1] = tmp;
 }
 
 Tween.prototype.get = function (t, noReturn) {
@@ -126,12 +126,12 @@ objs = {};
     rhythm3: {notes: [0,0,3,2], mult: 2, doMutate: true, duration: 0.4, offset: 0.24},
     rhythm4: {notes: [0,0,0,3], mult: 2, doMutate: true, duration: 0.4, offset: 0.32},
     camera: {notes: [0,1], mult: 0.125, doMutate: false, duration: 0.4},
-    scene: {notes: [2,2], mult: 0.25, doMutate: false, duration: 1.0},
-    // scene: {notes: [0,1,2,1], mult: 0.25, doMutate: false, duration: 1.0},
+    // scene: {notes: [2,2], mult: 0.25, doMutate: false, duration: 1.0},
+    scene: {notes: [0,1,2,3,4,2], mult: 0.25, doMutate: false, duration: 1.0},
     wireframe: {notes: [0,0,0,0], mult: 0.25, doMutate: false, duration: 0.4},
     // wireframe: {notes: [0,0,0,1], mult: 0.25, doMutate: false, duration: 0.4},
     colors: {notes: [0,1,2,1], mult: 2.0, doMutate: true, duration: 0.25},
-    anim: {notes: [0,1], mult: 0.5, doMutate: false, duration: 0.4},
+    anim: {notes: [0,1,2], mult: 0.5, doMutate: false, duration: 0.4},
     post: {notes: [0,1], mult: 0.5, doMutate: false, duration: 1.5}
   };
 
@@ -342,11 +342,11 @@ function S059(p, w, h) {
   this.pg.perspective(60.0 / 180 * Math.PI, this.pg.width / this.pg.height, 10, 5000);
   this.shadowMap.ortho(-400, 400, -400, 1000, -200, 2000); // Setup orthogonal view matrix for the directional light
   
-  this.ss = [[], [], []];
-  for(let i = 0; i < 3; i++) {
+  this.ss = [];
+  for(let i = 0; i < 5; i++) {
+    this.ss.push([]);
     for(let j = 0; j < 5; j++) {
-      let SS = [S059C, S059D, S059E][i];
-      // let SS = [S059A, S059B, S059C][i];
+      let SS = [S059A, S059B, S059C, S059D, S059E][i];
       this.ss[i][j] = new SS(p, w, h);
       for(key in this.ss[i][j].params) {
         let param = this.ss[i][j].params[key];
@@ -371,7 +371,7 @@ S059.prototype.drawScene = function (pg, isShadow) {
 
   // this.defaultShader.set("uVignette", 0.5);
 
-  for(let j = 0; j < 3; j++) {
+  for(let j = 0; j < 5; j++) {
     if(y < 0.5 + j) {
       pg.push();
       if(objs.scene.randomNotes[objs.scene.index][0] < 4) {
@@ -447,7 +447,8 @@ var s = function (p) {
     s059.uLightRadius = s059.lightPos.mag() * 1.3;
     s059.draw({t: t});
   
-    tAnimations[objs.anim.note].draw({t: t, scratch: 0.0});
+    if(objs.anim.note < 2)
+      tAnimations[objs.anim.note].draw({t: t, scratch: 0.0});
 
     accumPg.beginDraw();
     if(objs.post.get(t, true) < 1) {
@@ -460,7 +461,8 @@ var s = function (p) {
     }
     accumPg.push();
     // accumPg.tint(255, 120);
-    accumPg.image(tAnimations[objs.anim.note].pg, 0, 0);
+    if(objs.anim.note < 2)
+      accumPg.image(tAnimations[objs.anim.note].pg, 0, 0);
     accumPg.pop();
     accumPg.endDraw();
 
@@ -477,7 +479,8 @@ var s = function (p) {
     accumPg.endDraw();
   
     p.background(0);
-    p.image(accumPg, 0, 0);
+    if(objs.anim.note < 2)
+      p.image(accumPg, 0, 0);
     p.image(s059.pg, 0, 0);
   }
 
