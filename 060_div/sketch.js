@@ -133,14 +133,14 @@ function S060(p, w, h) {
   this.uSpecular = 0.01;
   this.uExposure = 5.0;
   this.uVignette = 0.0;
-  this.uLightRadius = 800.0;
+  this.uLightRadius = 1600.0;
   this.setup();
-  this.pg.perspective(60.0 / 180 * Math.PI, this.pg.width / this.pg.height, 10, 5000);
-  this.shadowMap.ortho(-400, 400, -400, 1000, -200, 2000); // Setup orthogonal view matrix for the directional light
+  this.pg.perspective(30.0 / 180 * Math.PI, this.pg.width / this.pg.height, 10, 5000);
+  this.shadowMap.ortho(-200, 200, -400, 400, -200, 1000); // Setup orthogonal view matrix for the directional light
 
-  this.cameraPosition.set(0, 0, 400);
+  this.cameraPosition.set(0, 0, 800);
   // this.cameraTarget.set(0, 0, 0);
-  this.lightPos.set(-170, -170, 400);
+  this.lightPos.set(270, -270, 400);
   // this.lightDirection.set(50, 10, 400);
   // this.uLightRadius = this.lightPos.mag() * 1.3;
 }
@@ -153,19 +153,24 @@ S060.prototype.drawScene = function (pg, isShadow) {
   let p = this.p;
 
   pg.clear();
-  // pg.rotateX(objs.rhythm0.lerpedRandomNote(t, EasingFunctions.easeInOutCubic, 0) * 0.125 * Math.PI);
-  // pg.rotateY(objs.rhythm0.lerpedRandomNote(t, EasingFunctions.easeInOutCubic, 1) * 0.125 * Math.PI);
-  let nume = 49 + Math.floor(objs.rhythm0.lerpedRandomNote(t, EasingFunctions.easeInOutCubic, 0) * 20);
-  let deno = 30 + Math.floor(objs.rhythm1.lerpedRandomNote(t, EasingFunctions.easeInOutCubic, 1) * 20);
   pg.push();
   pg.fill(255);
   pg.box(1000, 1000, 100);
   pg.pop();
+  let count = 0;
+  for(let i = -0.5; i <= 1; i++)
   {
-    pg.push();
-    pg.translate(0, 0, 50);
-    boxes(pg, nume, deno, 0);
-    pg.pop();
+    for(let j = -0.5; j <= 1; j++)
+    {
+      pg.push();
+      pg.translate(j * 160, i * 160, 0);
+      let nume = 49 + Math.floor(objs.rhythm0.lerpedRandomNote(t, EasingFunctions.easeInOutCubic, 0+count) * 10);
+      let deno = 30 + Math.floor(objs.rhythm1.lerpedRandomNote(t, EasingFunctions.easeInOutCubic, 1+count) * 10);
+      pg.translate(nume / 2 - (49+40)/2, deno / 2 - (49+40)/2, 0);
+      boxes(pg, nume, deno, 0);
+      pg.pop();
+      count++;
+    }
   }
 }
 
@@ -174,12 +179,13 @@ function boxes(pg, nume, deno, level) {
   let modu = nume % deno;
   pg.translate(-nume / 2, 0, 0);
   {
-    let c0 = colorSchemes[1].get(level % 5);
+    let c0 = colorSchemes[2].get(level % 5);
     pg.fill(c0.r, c0.g, c0.b);
     let x = reso * deno;
     let y = deno;
     pg.translate(x / 2, 0, 0);
-    pg.box(x, y, 200);
+    if(reso > 0)
+    pg.box(x-1, y-1, 200);
     pg.translate(x / 2, 0, 0);
   }
   {
