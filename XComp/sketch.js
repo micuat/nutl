@@ -9,7 +9,7 @@ var windowHeight = 1080;
 
 var soundOn = false//||true;
 
-var numRandomNotes = 8;
+var numRandomNotes = 30;
 var maxRandomNote = 8;
 
 function Tween (args) {
@@ -23,7 +23,7 @@ function Tween (args) {
   this.randomNotes = new Array(this.notes.length);
   for(let i = 0; i < this.randomNotes.length; i++) {
     this.randomNotes[i] = [];
-    for(let j = 0; j < maxRandomNote; j++) {
+    for(let j = 0; j < numRandomNotes; j++) {
       this.randomNotes[i][j] = Math.floor(Math.random() * maxRandomNote);
     }
   }
@@ -34,14 +34,14 @@ function Tween (args) {
   this.stopgos = new Array(this.notes.length);
   for(let i = 0; i < this.randomNotes.length; i++) {
     this.stopgos[i] = [];
-    for(let j = 1; j < maxRandomNote; j++) {
+    for(let j = 1; j < numRandomNotes; j++) {
       let sg = Math.random() < this.randomStopgo * 0.5 ? 1 : 0;
       if(sg)
         this.randomNotes[i][j] = this.randomNotes[i][j-1];
     }
   }
-  this.lastRandomNote = new Array(maxRandomNote);
-  for(let j = 0; j < maxRandomNote; j++) {
+  this.lastRandomNote = new Array(numRandomNotes);
+  for(let j = 0; j < numRandomNotes; j++) {
     this.lastRandomNote[j] = this.randomNotes[0][j];
   }
   this.refreshed = false;
@@ -62,7 +62,7 @@ Tween.prototype.init = function (args) {
   this.delay = args.delay;
   this.channel = args.channel;
   this.lastNote = this.note;
-  for(let j = 0; j < maxRandomNote; j++) {
+  for(let j = 0; j < numRandomNotes; j++) {
     this.lastRandomNote[j] = this.randomNotes[this.lastIndex][j];
   }
   this.note = args.note;
@@ -161,12 +161,12 @@ objs = {};
 {
   let timings = {
     rhythm0: {
-      notes : [1,2,3,4],
-      stopgo: [0,1,1,1], mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
+      notes : [1,2,3,4,1,2,3,4],
+      stopgo: [0,1,0,1,0,0,1,1], mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
     rhythm1: {
-      notes : [0,3,0,4],
-      stopgo: [1,0,1,0],
-      randomStopgo: 0.2, mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
+      notes : [0,3,0,4,1,2,3,4],
+      stopgo: [1,0,1,0,1,1,0,0],
+      randomStopgo: 0.75, mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
     camera: {notes: [0,1], mult: 0.25, doMutate: false, duration: 3},
   };
 
@@ -210,21 +210,39 @@ SX001.prototype.drawLayer = function(pg, key, args) {
 
   pg.translate(this.width / 2, this.height / 2);
 
+  let d = this.height / 9;
   setColor(pg, "stroke", 1);
   for(let i = -10; i <= 10; i++) {
     for(let j = -10; j <= 10; j++) {
-      pg.line(i * this.width / 11 - 10, j*100, i * this.width / 11 + 10, j*100);
-      pg.line(i * this.width / 11, j*100 - 10, i * this.width / 11, j*100 + 10);
+      pg.line(i * d - 10, j * d, i * d + 10, j * d);
+      pg.line(i * d, j * d - 10, i * d, j * d + 10);
     }
   }
 
+  pg.translate(0,0,1);
   pg.noStroke();
 
-  pg.rectMode(p.CENTER);
-  for(let i = -10; i <= 10; i++) {
-    let obj = (i+10) % 2 == 0 ? objs.rhythm0 : objs.rhythm1;
-    setColor(pg, "fill", (i+10)%5);
-    pg.rect(i * this.width / 11, (obj.lerpedRandomNote(t, ef.easeInOutCubic, (i+10)%8)-4)*100, 100, 100);
+  // pg.rectMode(p.CENTER);
+  for(let i = 0; i <= 30; i++) {
+    let index = i % 5;
+    setColor(pg, "fill", index);
+    // pg.rect((objs.rhythm0.lerpedRandomNote(t, ef.easeInOutCubic, i)-4) * d,
+    //   (objs.rhythm1.lerpedRandomNote(t, ef.easeInOutCubic, i)-4)*d,
+    //   d, d);
+    let x = (objs.rhythm0.lerpedRandomNote(t, ef.easeInOutCubic, i)-4) * d;
+    let y = (objs.rhythm1.lerpedRandomNote(t, ef.easeInOutCubic, i)-4) * d;
+    if(index == 1) x += d/2;
+    if(index == 2) y += d/2;
+    if(index == 3) x += d/2, y+= d/2;
+    if(index == 4) {
+      pg.push();
+      pg.translate(0,0,-1);
+      pg.rect(x, y, d, d);
+      pg.pop();
+      continue;
+    }
+
+    pg.rect(x, y, d / 2, d / 2);
   }
 }
 
