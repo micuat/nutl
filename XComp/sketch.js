@@ -16,7 +16,7 @@ function Tween (args) {
   this.notes = args.notes;
   this.mult = args.mult;
   this.doMutate = args.doMutate;
-  this.duration = args.duration;
+  this.duration = Math.min(args.duration / args.mult, 1);
   this.inited = false;
   this.note = 0;
   this.lastNote = 0;
@@ -29,12 +29,32 @@ function Tween (args) {
   }
   this.index = this.lastIndex = 0;
   this.offset = args.offset == undefined ? 0 : args.offset;
+  this.stopgo = args.stopgo;
+  this.randomStopgo = args.randomStopgo == undefined ? 0 : args.randomStopgo;
+  this.stopgos = new Array(this.notes.length);
+  for(let i = 0; i < this.randomNotes.length; i++) {
+    this.stopgos[i] = [];
+    for(let j = 1; j < maxRandomNote; j++) {
+      let sg = Math.random() < this.randomStopgo * 0.5 ? 1 : 0;
+      if(sg)
+        this.randomNotes[i][j] = this.randomNotes[i][j-1];
+    }
+  }
+  this.lastRandomNote = new Array(maxRandomNote);
+  for(let j = 0; j < maxRandomNote; j++) {
+    this.lastRandomNote[j] = this.randomNotes[0][j];
+  }
   this.refreshed = false;
   this.cycled = false;
 }
 
 {
 Tween.prototype.init = function (args) {
+  if(this.stopgo != undefined) {
+    if(this.stopgo[args.index] == 0) {
+      return;
+    }
+  }
   this.lastIndex = this.index;
   this.index = args.index;
   this.startTime = args.startTime;
@@ -42,6 +62,9 @@ Tween.prototype.init = function (args) {
   this.delay = args.delay;
   this.channel = args.channel;
   this.lastNote = this.note;
+  for(let j = 0; j < maxRandomNote; j++) {
+    this.lastRandomNote[j] = this.randomNotes[this.lastIndex][j];
+  }
   this.note = args.note;
   this.velocity = args.velocity;
   this.p = args.p;
@@ -51,7 +74,7 @@ Tween.prototype.init = function (args) {
   if(args.index == 0) {
     this.cycled = true;
     if(this.doMutate) {
-      // this.mutate();
+      this.mutate();
     }  
   }
   else {
@@ -85,16 +108,16 @@ Tween.prototype.update = function (args) {
 }
 
 Tween.prototype.mutate = function () {
-  if(this.doMutate == false || Math.random() < 0.25) return;
-  // let j0 = Math.floor(Math.random() * this.notes.length);
-  // let j1 = Math.floor(Math.random() * this.notes.length);
-  // let tmp = this.notes[j0];
-  // this.notes[j0] = this.notes[j1];
-  // this.notes[j1] = tmp;
+  // if(this.doMutate == false || Math.random() < 0.25) return;
+  let j0 = Math.floor(Math.random() * (this.notes.length));
+  let j1 = Math.floor(Math.random() * (this.notes.length));
+  let tmp = this.notes[j0];
+  this.notes[j0] = this.notes[j1];
+  this.notes[j1] = tmp;
 
-  // tmp = this.randomNotes[j0];
-  // this.randomNotes[j0] = this.randomNotes[j1];
-  // this.randomNotes[j1] = tmp;
+  tmp = this.randomNotes[j0];
+  this.randomNotes[j0] = this.randomNotes[j1];
+  this.randomNotes[j1] = tmp;
 }
 
 Tween.prototype.get = function (t, noReturn) {
@@ -130,15 +153,20 @@ Tween.prototype.lerpedRandomNote = function (t, func, i) {
   if(func != undefined) {
     tween = func(tween);
   }
-  return (1 - tween) * this.randomNotes[this.lastIndex][i] + (tween) * this.randomNotes[this.index][i];
+  return (1 - tween) * this.lastRandomNote[i] + (tween) * this.randomNotes[this.index][i];
 }
 }
 
 objs = {};
 {
   let timings = {
-    rhythm0: {notes: [1,2,3,4], mult: 1.0, doMutate: true, duration: 0.7, offset: 0.0},
-    rhythm1: {notes: [0,3,0,4], mult: 1.0*4, doMutate: true, duration: 0.5, offset: 0.0},
+    rhythm0: {
+      notes : [1,2,3,4],
+      stopgo: [0,1,1,1], mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
+    rhythm1: {
+      notes : [0,3,0,4],
+      stopgo: [1,0,1,0],
+      randomStopgo: 0.2, mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
     camera: {notes: [0,1], mult: 0.25, doMutate: false, duration: 3},
   };
 
@@ -181,12 +209,22 @@ SX001.prototype.drawLayer = function(pg, key, args) {
   let tw0 = objs.rhythm0.get(t, true);
 
   pg.translate(this.width / 2, this.height / 2);
+
+  setColor(pg, "stroke", 1);
+  for(let i = -10; i <= 10; i++) {
+    for(let j = -10; j <= 10; j++) {
+      pg.line(i * this.width / 11 - 10, j*100, i * this.width / 11 + 10, j*100);
+      pg.line(i * this.width / 11, j*100 - 10, i * this.width / 11, j*100 + 10);
+    }
+  }
+
   pg.noStroke();
 
   pg.rectMode(p.CENTER);
   for(let i = -10; i <= 10; i++) {
-    setColor(pg, "fill", (i+10)%5, 255);
-    pg.rect(i * this.width / 11, (objs.rhythm0.lerpedRandomNote(t, ef.easeInOutCubic, (i+10)%8)-4)*100, 100, 100);
+    let obj = (i+10) % 2 == 0 ? objs.rhythm0 : objs.rhythm1;
+    setColor(pg, "fill", (i+10)%5);
+    pg.rect(i * this.width / 11, (obj.lerpedRandomNote(t, ef.easeInOutCubic, (i+10)%8)-4)*100, 100, 100);
   }
 }
 
