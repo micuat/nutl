@@ -160,38 +160,25 @@ S061.prototype.drawScene = function (pg, isShadow) {
   let n = (1 + Math.sqrt(5)) / (Math.sqrt(5) - 1);
   // let n = (1 + Math.sqrt(2)) / (Math.sqrt(2) - 1);
   n *= n;
-  let T = p.map(EasingFunctions.easeInQuad(t % 1), 0, 1, 1/n, 1);
   // let T = p.map(objs.rhythm0.lerpedRandomNote(t, EasingFunctions.easeInOutCubic, 0) % 1, 0, 1, 1/n, 1);
 
-  let nume = 70 * (1 + Math.sqrt(5)) / 2;
-  let deno = 70;
   // let nume = (50 + 50 * Math.sqrt(2));
   // let deno = 50;
-  pg.translate(50, 50);
+  // pg.translate(50, 50);
   // pg.translate(nume, deno);
-  nume *= T;
-  deno *= T;
-  {
-    pg.push();
-    pg.translate(nume/-2, deno/-2);
-    boxes(pg, nume, deno, 0, EasingFunctions.easeOutQuad(t % 1));
-    pg.pop();
-  }
-  {
-    pg.push();
-    nume *= n;
-    deno *= n;
-    pg.translate(nume/-2, deno/-2, 0);
-    boxes(pg, nume, deno, 0, 1);
-    pg.pop();
-  }
-  {
-    pg.push();
-    nume *= n;
-    deno *= n;
-    pg.translate(nume/-2, deno/-2, 0);
-    boxes(pg, nume, deno, 0, 1);
-    pg.pop();
+  for(let j = 0; j < 2; j++) {
+    let T = p.map(EasingFunctions.easeInQuad((t + j * 0.5) % 1), 0, 1, 1/n, 1);
+    let nume = 70 * (1 + Math.sqrt(5)) / 2 * T;
+    let deno = 70 * T;
+    for(let i = 0; i < 3; i++) {
+      pg.push();
+      pg.rotate(Math.PI / 2 * j*2);
+      pg.translate(nume/-2, deno/-2);
+      boxes(pg, nume, deno, 0, i == 0 ? EasingFunctions.easeOutQuad((t + j * 0.5) % 1) : 1);
+      pg.pop();
+      nume *= n;
+      deno *= n;
+    }
   }
   pg.pop();
 }
