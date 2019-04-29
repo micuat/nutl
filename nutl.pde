@@ -42,10 +42,14 @@ import netP5.*;
 
 import themidibus.*;
 
+import websockets.*;
+
 public MidiBus midiBus;
 
 public OscP5 oscP5;
 NetAddress myRemoteLocation;
+
+WebsocketServer ws;
 
 Movie movie;
 
@@ -94,6 +98,8 @@ void setup() {
     }
   }
   
+  ws= new WebsocketServer(this,8025,"/nutl");
+
   noSmooth();
   //hint(DISABLE_TEXTURE_MIPMAPS);
   //smooth();

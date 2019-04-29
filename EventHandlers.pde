@@ -157,3 +157,13 @@ void oscEvent(OscMessage theOscMessage) {
     e.printStackTrace();
   }
 }
+
+void webSocketServerEvent(String msg){
+  try {
+    nashorn.eval("var webSocketMsg = \'" + msg + "\'");
+    nashorn.eval("if(globalSketch.websocketServerEvent != null) globalSketch.websocketServerEvent(\'" + msg + "\')");
+  }
+  catch (Exception e) {
+    e.printStackTrace();
+  }
+}

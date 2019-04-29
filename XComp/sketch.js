@@ -12,6 +12,12 @@ var soundOn = false//||true;
 var numRandomNotes = 30;
 var maxRandomNote = 8;
 
+var zones = {};
+var recordedZones = new Array(30);
+for(let i = 0; i < recordedZones.length; i++) {
+  recordedZones[i] = {};
+}
+
 function Tween (args) {
   this.notes = args.notes;
   this.mult = args.mult;
@@ -237,12 +243,22 @@ SX001.prototype.drawLayer = function(pg, key, args) {
     if(index == 4) {
       pg.push();
       pg.translate(0,0,-1);
-      pg.rect(x, y, d, d);
+      // pg.rect(x, y, d, d);
       pg.pop();
       continue;
     }
 
-    pg.rect(x, y, d / 2, d / 2);
+    // pg.rect(x, y, d / 2, d / 2);
+  }
+
+  pg.translate(-this.width / 2, -this.height / 2);
+  setColor(pg, "stroke", 4);
+  for(let i in zones) {
+    let zone = zones[i];
+    pg.push();
+    pg.translate(zone.x * 2, zone.y * 2);
+    pg.line(0, 0, zone.u * 4, zone.v * 4);
+    pg.pop();
   }
 }
 
@@ -278,6 +294,28 @@ var s = function (p) {
     }
 
     lastT = t;
+  }
+
+  let curFrame = 0;
+  p.websocketServerEvent = function (msg) {
+    let rawZones = JSON.parse(msg).zones;
+    let frame = recordedZones[curFrame];
+
+    // for(let i = rawZones.length - 3; i < rawZones.length && i >= 0; i++) {
+    //   let z = rawZones[i];
+    //   print(z.x, z.y, z.u, z.v)
+    // }
+
+    for(let i = 0; i < rawZones.length; i++) {
+      let z = rawZones[i];
+      let oz = zones[z.x+","+z.y];
+      if(oz == undefined) {
+        zones[z.x+","+z.y] = {x: z.x, y: z.y, u: z.u, v: z.v};
+      }
+      else {
+        zones[z.x+","+z.y] = {x: z.x, y: z.y, u: p.lerp(z.u, oz.u, 0.7), v: p.lerp(z.v, oz.v, 0.7)};
+      }
+    }
   }
 };
 
