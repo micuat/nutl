@@ -27,22 +27,49 @@ function Word (args) {
     this.sequence = [];
     this.curFrame = 0;
   }
-  this.draw = function (pg) {
+  this.drawState = function (pg) {
     pg.push();
     pg.translate(this.position.x, this.position.y);
     pg.fill(0);
     pg.text(this.name, 150, 50);
+    pg.noFill();
+    pg.rect(40, 40, 100, 40);
+    pg.fill(100);
+    pg.rect(40, 40, 100 * (this.sequence.length / this.maxSequence), 40);
+    pg.translate(150, 150);
     if(this.sequence.length < this.maxSequence) {
-      pg.noFill();
-      pg.rect(40, 40, 100, 40);
-      pg.fill(100);
-      pg.rect(40, 40, 100 * (this.sequence.length / this.maxSequence), 40);
     }
     else {
       pg.stroke(0);
       let frame = this.sequence[this.curFrame];
-      let s = 20;
+      let s = 10;
       let r = 6;
+      for(let i = 0; i < frame.length; i+=2) {
+        for(let j = 0; j < frame[i].length; j+=2) {
+          let z = frame[i][j];
+          pg.line(z.x * s, z.y * s, z.x * s + z.u * r, z.y * s + z.v * r);
+        }
+      }
+      this.subFrame++;
+      if(this.subFrame >= 4) {
+        this.subFrame = 0;
+        this.curFrame = (this.curFrame + 1) % (this.maxSequence);
+      }
+    }
+    pg.pop();
+  }
+  this.draw = function (pg) {
+    pg.push();
+    // pg.translate(this.position.x, this.position.y);
+    pg.fill(0);
+    pg.text(this.name, 150, 100);
+    if(this.sequence.length < this.maxSequence) {
+    }
+    else {
+      pg.stroke(0);
+      let frame = this.sequence[this.curFrame];
+      let s = 80;
+      let r = 6*4;
       for(let i in frame) {
         for(let j in frame[i]) {
           let z = frame[i][j];
@@ -51,19 +78,18 @@ function Word (args) {
       }
     }
     pg.pop();
-    this.subFrame++;
-    if(this.subFrame >= 4) {
-      this.subFrame = 0;
-      this.curFrame = (this.curFrame + 1) % (this.maxSequence);
-    }
   }
 }
 
-var recordedWords = new Array(6);
-for(let i = 0; i < recordedWords.length; i++) {
-  recordedWords[i] = new Word({name: i + "th", position: {x: (i % 3) * 600, y: Math.floor(i / 3) * 600}});
+if(recordedWords == undefined) {
+  var recordedWords = new Array(6);
+  for(let i = 0; i < recordedWords.length; i++) {
+    recordedWords[i] = new Word({name: i + "th", position: {x: (i % 3) * 600, y: Math.floor(i / 3) * 600}});
+  }
 }
-
+else{
+  
+}
 function Tween (args) {
   this.notes = args.notes;
   this.mult = args.mult;
@@ -219,6 +245,8 @@ objs = {};
       notes : [0,3,0,4,1,2,3,4],
       stopgo: [1,0,1,0,1,1,0,0],
       randomStopgo: 0.75, mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
+    words: {
+      notes : [0,1,2,3,4,5], mult: 0.5, doMutate: false, duration: 1.0, offset: 0.0},
     camera: {notes: [0,1], mult: 0.25, doMutate: false, duration: 3},
   };
 
@@ -302,9 +330,9 @@ SX001.prototype.drawLayer = function(pg, key, args) {
 
   for(let i in recordedWords)
   {
-    recordedWords[i].draw(pg);
+    recordedWords[i].drawState(pg);
   }
-
+  recordedWords[objs.words.note].draw(pg);
 }
 
 ////////
