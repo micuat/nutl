@@ -14,7 +14,7 @@ var maxRandomNote = 8;
 
 var zones = [];
 var curFrame = 0;
-var recordedZones = new Array(30);
+var recordedZones = new Array(180);
 for(let i = 0; i < recordedZones.length; i++) {
   recordedZones[i] = [];
 }
@@ -254,29 +254,32 @@ SX001.prototype.drawLayer = function(pg, key, args) {
 
   pg.translate(-this.width / 2, -this.height / 2);
   setColor(pg, "stroke", 4);
-  let zones = recordedZones[curFrame];
-  for(let i in zones) {
-    for(let j in zones[i]) {
-      let zone = zones[i][j];
-      pg.push();
-      pg.translate(zone.x * 40 + 100, zone.y * 40 + 100);
-      pg.line(0, 0, zone.u * 8, zone.v * 8);
-      pg.pop();
-    }
-  }
+  // let zones = recordedZones[curFrame];
+  // for(let i in zones) {
+  //   for(let j in zones[i]) {
+  //     let zone = zones[i][j];
+  //     pg.push();
+  //     pg.translate(zone.x * 40 + 100, zone.y * 40 + 100);
+  //     pg.line(0, 0, zone.u * 8, zone.v * 8);
+  //     pg.pop();
+  //   }
+  // }
 
-  for(let n in recordedZones)
+  for(let N = 0; N < 6; N++)
   {
-    // let n = (curFrame + 25) % 30;
+    let n = ((curFrame) % 30) + N * 30;
+    pg.push();
+    pg.translate((N % 3) * 600, Math.floor(N / 3) * 600);
     for(let i in recordedZones[n]) {
       for(let j in recordedZones[n][i]) {
         let zone = recordedZones[n][i][j];
         pg.push();
-        pg.translate(zone.x * 40 + 100, zone.y * 40 + 100);
-        pg.line(0, 0, zone.u * 8, zone.v * 8);
+        pg.translate(zone.x * 8*3, zone.y * 8*3);
+        pg.line(0, 0, zone.u * 8*3, zone.v * 8*3);
         pg.pop();
       }
     }
+    pg.pop();
   }
 
   pg.rect(40, 40, 100 * (curFrame / 30), 40);
