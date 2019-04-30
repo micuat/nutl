@@ -12,10 +12,11 @@ var soundOn = false//||true;
 var numRandomNotes = 30;
 var maxRandomNote = 8;
 
-var zones = {};
+var zones = [];
+var curFrame = 0;
 var recordedZones = new Array(30);
 for(let i = 0; i < recordedZones.length; i++) {
-  recordedZones[i] = {};
+  recordedZones[i] = [];
 }
 
 function Tween (args) {
@@ -251,15 +252,33 @@ SX001.prototype.drawLayer = function(pg, key, args) {
     // pg.rect(x, y, d / 2, d / 2);
   }
 
-  pg.translate(-this.width / 2, -this.height / 2);
+  // pg.translate(-this.width / 2, -this.height / 2);
   setColor(pg, "stroke", 4);
   for(let i in zones) {
-    let zone = zones[i];
-    pg.push();
-    pg.translate(zone.x * 2, zone.y * 2);
-    pg.line(0, 0, zone.u * 4, zone.v * 4);
-    pg.pop();
+    for(let j in zones[i]) {
+      let zone = zones[i][j];
+      pg.push();
+      pg.translate(zone.x * 32, zone.y * 32);
+      pg.line(0, 0, zone.u * 4, zone.v * 4);
+      pg.pop();
+    }
   }
+
+  // for(let n in recordedZones)
+  // {
+  //   // let n = (curFrame + 25) % 30;
+  //   for(let i in recordedZones[n]) {
+  //     for(let j in recordedZones[n][i]) {
+  //       let zone = recordedZones[n][i][j];
+  //       pg.push();
+  //       pg.translate(zone.x * 2, zone.y * 32);
+  //       pg.line(0, 0, zone.u * 4, zone.v * 4);
+  //       pg.pop();
+  //     }
+  //   }
+  // }
+
+  pg.rect(40, 40, 100 * (curFrame / 30), 40);
 }
 
 ////////
@@ -296,26 +315,59 @@ var s = function (p) {
     lastT = t;
   }
 
-  let curFrame = 0;
-  p.websocketServerEvent = function (msg) {
-    let rawZones = JSON.parse(msg).zones;
+  p.oscEvent = function (m) {
     let frame = recordedZones[curFrame];
-
-    // for(let i = rawZones.length - 3; i < rawZones.length && i >= 0; i++) {
-    //   let z = rawZones[i];
-    //   print(z.x, z.y, z.u, z.v)
-    // }
-
-    for(let i = 0; i < rawZones.length; i++) {
-      let z = rawZones[i];
-      let oz = zones[z.x+","+z.y];
-      if(oz == undefined) {
-        zones[z.x+","+z.y] = {x: z.x, y: z.y, u: z.u, v: z.v};
-      }
-      else {
-        zones[z.x+","+z.y] = {x: z.x, y: z.y, u: p.lerp(z.u, oz.u, 0.7), v: p.lerp(z.v, oz.v, 0.7)};
-      }
+    for(let i = 0; i < m.typetag().length / 4; i++) {
+      let x = m.get(i * 4 + 0).intValue();
+      let y = m.get(i * 4 + 1).intValue();
+      let u = m.get(i * 4 + 2).floatValue();
+      let v = m.get(i * 4 + 3).floatValue();
+      if(zones[y] == undefined) zones[y] = [];
+      if(frame[y] == undefined) frame[y] = [];
+      let oz = zones[y][x];
+      // if(oz == undefined) {
+        zones[y][x] = {x: x, y: y, u: u, v: v};
+        frame[y][x] = {x: x, y: y, u: u, v: v};
+      // }
+      // else {
+      //   zones[y][x].x = x;
+      //   zones[y][x].y = y;
+      //   zones[y][x].u = p.lerp(u, oz.u, 0.7);
+      //   zones[y][x].v = p.lerp(v, oz.v, 0.7);
+      //   if(frame[y][x] == undefined) frame[y][x] = {}
+      //   frame[y][x].x = x;
+      //   frame[y][x].y = y;
+      //   frame[y][x].u = p.lerp(u, oz.u, 0.7);
+      //   frame[y][x].v = p.lerp(v, oz.v, 0.7);
+      // }
     }
+    curFrame = (curFrame + 1) % recordedZones.length;
+  }
+
+  p.websocketServerEvent = function (msg) {
+    // let rawZones = JSON.parse(msg).zones;
+    // let frame = recordedZones[curFrame];
+
+    // for(let i = 0; i < rawZones.length; i++) {
+    //   let z = rawZones[i];
+    //   let oz = zones[z.x+","+z.y];
+    //   if(oz == undefined) {
+    //     zones[z.x+","+z.y] = {x: z.x, y: z.y, u: z.u, v: z.v};
+    //     frame[z.x+","+z.y] = {x: z.x, y: z.y, u: z.u, v: z.v};
+    //   }
+    //   else {
+    //     zones[z.x+","+z.y].x = z.x;
+    //     zones[z.x+","+z.y].y = z.y;
+    //     zones[z.x+","+z.y].u = p.lerp(z.u, oz.u, 0.7);
+    //     zones[z.x+","+z.y].v = p.lerp(z.v, oz.v, 0.7);
+    //     if(frame[z.x+","+z.y] == undefined) frame[z.x+","+z.y] = {}
+    //     frame[z.x+","+z.y].x = z.x;
+    //     frame[z.x+","+z.y].y = z.y;
+    //     frame[z.x+","+z.y].u = p.lerp(z.u, oz.u, 0.7);
+    //     frame[z.x+","+z.y].v = p.lerp(z.v, oz.v, 0.7);
+    //   }
+    // }
+    // curFrame = (curFrame + 1) % recordedZones.length;
   }
 };
 
