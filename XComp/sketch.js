@@ -252,31 +252,32 @@ SX001.prototype.drawLayer = function(pg, key, args) {
     // pg.rect(x, y, d / 2, d / 2);
   }
 
-  // pg.translate(-this.width / 2, -this.height / 2);
+  pg.translate(-this.width / 2, -this.height / 2);
   setColor(pg, "stroke", 4);
+  let zones = recordedZones[curFrame];
   for(let i in zones) {
     for(let j in zones[i]) {
       let zone = zones[i][j];
       pg.push();
-      pg.translate(zone.x * 32, zone.y * 32);
-      pg.line(0, 0, zone.u * 4, zone.v * 4);
+      pg.translate(zone.x * 40 + 100, zone.y * 40 + 100);
+      pg.line(0, 0, zone.u * 8, zone.v * 8);
       pg.pop();
     }
   }
 
-  // for(let n in recordedZones)
-  // {
-  //   // let n = (curFrame + 25) % 30;
-  //   for(let i in recordedZones[n]) {
-  //     for(let j in recordedZones[n][i]) {
-  //       let zone = recordedZones[n][i][j];
-  //       pg.push();
-  //       pg.translate(zone.x * 2, zone.y * 32);
-  //       pg.line(0, 0, zone.u * 4, zone.v * 4);
-  //       pg.pop();
-  //     }
-  //   }
-  // }
+  for(let n in recordedZones)
+  {
+    // let n = (curFrame + 25) % 30;
+    for(let i in recordedZones[n]) {
+      for(let j in recordedZones[n][i]) {
+        let zone = recordedZones[n][i][j];
+        pg.push();
+        pg.translate(zone.x * 40 + 100, zone.y * 40 + 100);
+        pg.line(0, 0, zone.u * 8, zone.v * 8);
+        pg.pop();
+      }
+    }
+  }
 
   pg.rect(40, 40, 100 * (curFrame / 30), 40);
 }
@@ -315,33 +316,51 @@ var s = function (p) {
     lastT = t;
   }
 
-  p.oscEvent = function (m) {
+  p.flowfbEvent = function (m) {
     let frame = recordedZones[curFrame];
-    for(let i = 0; i < m.typetag().length / 4; i++) {
-      let x = m.get(i * 4 + 0).intValue();
-      let y = m.get(i * 4 + 1).intValue();
-      let u = m.get(i * 4 + 2).floatValue();
-      let v = m.get(i * 4 + 3).floatValue();
-      if(zones[y] == undefined) zones[y] = [];
+    for(let i = 0; i < m.length / 4; i++) {
+      let x = parseInt(m[i * 4 + 0]);
+      let y = parseInt(m[i * 4 + 1]);
+      let u = m[i * 4 + 2];
+      let v = m[i * 4 + 3];
       if(frame[y] == undefined) frame[y] = [];
-      let oz = zones[y][x];
-      // if(oz == undefined) {
-        zones[y][x] = {x: x, y: y, u: u, v: v};
-        frame[y][x] = {x: x, y: y, u: u, v: v};
-      // }
-      // else {
-      //   zones[y][x].x = x;
-      //   zones[y][x].y = y;
-      //   zones[y][x].u = p.lerp(u, oz.u, 0.7);
-      //   zones[y][x].v = p.lerp(v, oz.v, 0.7);
-      //   if(frame[y][x] == undefined) frame[y][x] = {}
-      //   frame[y][x].x = x;
-      //   frame[y][x].y = y;
-      //   frame[y][x].u = p.lerp(u, oz.u, 0.7);
-      //   frame[y][x].v = p.lerp(v, oz.v, 0.7);
-      // }
+      frame[y][x] = {x: x, y: y, u: u, v: v};
     }
     curFrame = (curFrame + 1) % recordedZones.length;
+  }
+
+  p.oscEvent = function (m) {
+    if(m.addrPattern() == "/of/flow/fb") {
+      if(curFrame % 2 == 0) {
+        let frame = recordedZones[curFrame];
+        for(let i = 0; i < m.typetag().length / 4; i++) {
+          let x = m.get(i * 4 + 0).intValue();
+          let y = m.get(i * 4 + 1).intValue();
+          let u = m.get(i * 4 + 2).floatValue();
+          let v = m.get(i * 4 + 3).floatValue();
+          // if(zones[y] == undefined) zones[y] = [];
+          if(frame[y] == undefined) frame[y] = [];
+          // zones[y][x] = {x: x, y: y, u: u, v: v};
+          frame[y][x] = {x: x, y: y, u: u, v: v};
+        }
+      }
+      curFrame = (curFrame + 1) % recordedZones.length;
+    }
+    if(m.addrPattern() == "/of/flow/lk") {
+      let newZones = [];
+      let frame = recordedZones[curFrame];
+      for(let i = 0; i < m.typetag().length / 4; i++) {
+        let x = m.get(i * 4 + 0).floatValue();
+        let y = m.get(i * 4 + 1).floatValue();
+        let u = m.get(i * 4 + 2).floatValue();
+        let v = m.get(i * 4 + 3).floatValue();
+        newZones.push({x: x, y: y, u: u, v: v});
+        // frame[y][x] = {x: x, y: y, u: u, v: v};
+      }
+      print(newZones[0].u,m.get(0 * 4 + 2).floatValue())
+      zones = newZones;
+      curFrame = (curFrame + 1) % recordedZones.length;
+    }
   }
 
   p.websocketServerEvent = function (msg) {
