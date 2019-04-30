@@ -20,6 +20,14 @@ function Word (args) {
   this.subFrame = 0;
   this.maxSequence = 30;
   this.addFrame = function (frame) {
+    if(this.sequence.length > 1) {
+      for(let i in frame) {
+        for(let j in frame[i]) {
+          frame[i][j].u = pX001.lerp(this.sequence[this.sequence.length - 1][i][j].u, frame[i][j].u, 0.2);
+          frame[i][j].v = pX001.lerp(this.sequence[this.sequence.length - 1][i][j].v, frame[i][j].v, 0.2);
+        }      
+      }      
+    }
     if(this.sequence.length < this.maxSequence)
       this.sequence.push(frame);
   }
@@ -68,8 +76,8 @@ function Word (args) {
     else {
       pg.stroke(0);
       let frame = this.sequence[this.curFrame];
-      let s = 80;
-      let r = 6*4;
+      let s = 40;
+      let r = 6*1;
       for(let i in frame) {
         for(let j in frame[i]) {
           let z = frame[i][j];
@@ -82,13 +90,100 @@ function Word (args) {
 }
 
 if(recordedWords == undefined) {
-  var recordedWords = new Array(6);
+  var recordedWords = new Array(4);
   for(let i = 0; i < recordedWords.length; i++) {
-    recordedWords[i] = new Word({name: i + "th", position: {x: (i % 3) * 600, y: Math.floor(i / 3) * 600}});
+    recordedWords[i] = new Word({name: i + "th", position: {x: (i % 2) * 600, y: Math.floor(i / 2) * 600}});
   }
 }
-else{
-  
+else {
+  recordedWords[0].draw = function (pg) {
+    pg.push();
+    // pg.translate(this.position.x, this.position.y);
+    pg.fill(0);
+    pg.text(this.name, 150, 100);
+    if(this.sequence.length >= this.maxSequence) {
+      pg.stroke(0);
+      let frame = this.sequence[this.curFrame];
+      let s = 40;
+      let r = 6*4;
+      pg.noStroke();
+      setColor(pg, "fill", 1);
+      for(let i in frame) {
+        for(let j in frame[i]) {
+          let z = frame[i][j];
+          pg.rect(z.x * s, z.y * s, z.u * r, z.v * r);
+        }
+      }
+    }
+    pg.pop();
+  }
+  recordedWords[1].draw = function (pg) {
+    pg.push();
+    // pg.translate(this.position.x, this.position.y);
+    pg.fill(0);
+    pg.text(this.name, 150, 100);
+    if(this.sequence.length >= this.maxSequence) {
+      let frame = this.sequence[this.curFrame];
+      let s = 40;
+      let r = 6*4;
+      // pg.noStroke();
+      setColor(pg, "stroke", 2);
+      for(let i in frame) {
+        pg.beginShape(pX001.LINE_STRIP)
+        for(let j in frame[i]) {
+          let z = frame[i][j];
+          pg.vertex(z.x * s + z.u * r, z.y * s + z.v * r);
+        }
+        pg.endShape();
+      }
+    }
+    pg.pop();
+  }
+  recordedWords[2].draw = function (pg) {
+    pg.push();
+    // pg.translate(this.position.x, this.position.y);
+    pg.fill(0);
+    pg.text(this.name, 150, 100);
+    if(this.sequence.length >= this.maxSequence) {
+      let frame = this.sequence[this.curFrame];
+      let s = 40;
+      let r = 6*4;
+      pg.noStroke();
+      setColor(pg, "fill", 3);
+      for(let i in frame) {
+        for(let j in frame[i]) {
+          let z = frame[i][j];
+          pg.rect(z.x * s, z.y * s, z.u * r, z.v * r);
+        }
+      }
+    }
+    pg.pop();
+  }
+  recordedWords[3].draw = function (pg) {
+    pg.push();
+    // pg.translate(this.position.x, this.position.y);
+    pg.fill(0);
+    pg.text(this.name, 150, 100);
+    if(this.sequence.length >= this.maxSequence) {
+      let frame = this.sequence[this.curFrame];
+      let s = 40;
+      let r = 6*4;
+      pg.noStroke();
+      setColor(pg, "fill", 4);
+      for(let i in frame) {
+        for(let j in frame[i]) {
+          let z = frame[i][j];
+          let w = z.u*r;
+          let h = z.v*r;
+          setColor(pg, "fill", 4);
+          pg.rect(z.x * s, z.y * s, w/2,h/2);
+          setColor(pg, "fill", 0);
+          pg.rect(z.x * s+w/2, z.y * s+h/2, w/2,h/2);
+        }
+      }
+    }
+    pg.pop();
+  }
 }
 function Tween (args) {
   this.notes = args.notes;
@@ -246,7 +341,7 @@ objs = {};
       stopgo: [1,0,1,0,1,1,0,0],
       randomStopgo: 0.75, mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
     words: {
-      notes : [0,1,2,3,4,5], mult: 0.5, doMutate: false, duration: 1.0, offset: 0.0},
+      notes : [0,1,2,3], mult: 0.25, doMutate: false, duration: 1.0, offset: 0.0},
     camera: {notes: [0,1], mult: 0.25, doMutate: false, duration: 3},
   };
 
@@ -280,7 +375,6 @@ SX001.prototype.drawLayer = function(pg, key, args) {
   let ef = EasingFunctions;
 
   pg.clear();
-  // setColor(pg, "background", 2);
   pg.background(255);
 
   if(objs.rhythm0.isCycled()) {
@@ -288,12 +382,11 @@ SX001.prototype.drawLayer = function(pg, key, args) {
 
   let tw0 = objs.rhythm0.get(t, true);
 
-  pg.translate(this.width / 2, this.height / 2);
 
-  let d = this.height / 9;
+  let d = 80;
   setColor(pg, "stroke", 1);
-  for(let i = -10; i <= 10; i++) {
-    for(let j = -10; j <= 10; j++) {
+  for(let i = -0; i <= 24; i++) {
+    for(let j = -0; j <= 20; j++) {
       pg.line(i * d - 10, j * d, i * d + 10, j * d);
       pg.line(i * d, j * d - 10, i * d, j * d + 10);
     }
@@ -301,32 +394,6 @@ SX001.prototype.drawLayer = function(pg, key, args) {
 
   pg.translate(0,0,1);
   pg.noStroke();
-
-  // pg.rectMode(p.CENTER);
-  for(let i = 0; i <= 30; i++) {
-    let index = i % 5;
-    setColor(pg, "fill", index);
-    // pg.rect((objs.rhythm0.lerpedRandomNote(t, ef.easeInOutCubic, i)-4) * d,
-    //   (objs.rhythm1.lerpedRandomNote(t, ef.easeInOutCubic, i)-4)*d,
-    //   d, d);
-    let x = (objs.rhythm0.lerpedRandomNote(t, ef.easeInOutCubic, i)-4) * d;
-    let y = (objs.rhythm1.lerpedRandomNote(t, ef.easeInOutCubic, i)-4) * d;
-    if(index == 1) x += d/2;
-    if(index == 2) y += d/2;
-    if(index == 3) x += d/2, y+= d/2;
-    if(index == 4) {
-      pg.push();
-      pg.translate(0,0,-1);
-      // pg.rect(x, y, d, d);
-      pg.pop();
-      continue;
-    }
-
-    // pg.rect(x, y, d / 2, d / 2);
-  }
-
-  pg.translate(-this.width / 2, -this.height / 2);
-  setColor(pg, "stroke", 4);
 
   for(let i in recordedWords)
   {
