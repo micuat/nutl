@@ -146,12 +146,22 @@ void oscEvent(OscMessage theOscMessage) {
   try {
     //nashorn.eval("for(var prop in pApplet) {if(!this.isReservedFunction(prop)) {globalSketch[prop] = pApplet[prop]}}");
 
-    nashorn.eval("var theOscMessage = {}");
-    Object theOscMessageObject = nashorn.eval("this.theOscMessage");
-    Object jsObject = nashorn.eval("Object");
-    ((Invocable)nashorn).invokeMethod(jsObject, "bindProperties", theOscMessageObject, (OscMessage)theOscMessage);
-
-    nashorn.eval("if(globalSketch.oscEvent != null) globalSketch.oscEvent(this.theOscMessage)");
+    if(theOscMessage.checkAddrPattern("/of/flow/fb")) {
+      String arg = "";
+      for(int i = 0; i < theOscMessage.typetag().length(); i++) {
+        if(i % 4 < 2) arg += theOscMessage.get(i).intValue() + ",";
+        else arg += theOscMessage.get(i).floatValue() + ",";
+      }
+      nashorn.eval("if(globalSketch.flowfbEvent != null) globalSketch.flowfbEvent([" + arg + "])");
+    }
+    else {
+      nashorn.eval("var theOscMessage = {}");
+      Object theOscMessageObject = nashorn.eval("this.theOscMessage");
+      Object jsObject = nashorn.eval("Object");
+      ((Invocable)nashorn).invokeMethod(jsObject, "bindProperties", theOscMessageObject, (OscMessage)theOscMessage);
+  
+      nashorn.eval("if(globalSketch.oscEvent != null) globalSketch.oscEvent(this.theOscMessage)");
+    }
   }
   catch (Exception e) {
     e.printStackTrace();

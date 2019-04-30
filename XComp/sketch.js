@@ -12,11 +12,56 @@ var soundOn = false//||true;
 var numRandomNotes = 30;
 var maxRandomNote = 8;
 
-var zones = [];
-var curFrame = 0;
-var recordedZones = new Array(180);
-for(let i = 0; i < recordedZones.length; i++) {
-  recordedZones[i] = [];
+function Word (args) {
+  this.sequence = [];
+  this.name = args.name;
+  this.position = args.position;
+  this.curFrame = 0;
+  this.subFrame = 0;
+  this.maxSequence = 30;
+  this.addFrame = function (frame) {
+    if(this.sequence.length < this.maxSequence)
+      this.sequence.push(frame);
+  }
+  this.reset = function () {
+    this.sequence = [];
+    this.curFrame = 0;
+  }
+  this.draw = function (pg) {
+    pg.push();
+    pg.translate(this.position.x, this.position.y);
+    pg.fill(0);
+    pg.text(this.name, 150, 50);
+    if(this.sequence.length < this.maxSequence) {
+      pg.noFill();
+      pg.rect(40, 40, 100, 40);
+      pg.fill(100);
+      pg.rect(40, 40, 100 * (this.sequence.length / this.maxSequence), 40);
+    }
+    else {
+      pg.stroke(0);
+      let frame = this.sequence[this.curFrame];
+      let s = 20;
+      let r = 6;
+      for(let i in frame) {
+        for(let j in frame[i]) {
+          let z = frame[i][j];
+          pg.line(z.x * s, z.y * s, z.x * s + z.u * r, z.y * s + z.v * r);
+        }
+      }
+    }
+    pg.pop();
+    this.subFrame++;
+    if(this.subFrame >= 4) {
+      this.subFrame = 0;
+      this.curFrame = (this.curFrame + 1) % (this.maxSequence);
+    }
+  }
+}
+
+var recordedWords = new Array(6);
+for(let i = 0; i < recordedWords.length; i++) {
+  recordedWords[i] = new Word({name: i + "th", position: {x: (i % 3) * 600, y: Math.floor(i / 3) * 600}});
 }
 
 function Tween (args) {
@@ -254,35 +299,12 @@ SX001.prototype.drawLayer = function(pg, key, args) {
 
   pg.translate(-this.width / 2, -this.height / 2);
   setColor(pg, "stroke", 4);
-  // let zones = recordedZones[curFrame];
-  // for(let i in zones) {
-  //   for(let j in zones[i]) {
-  //     let zone = zones[i][j];
-  //     pg.push();
-  //     pg.translate(zone.x * 40 + 100, zone.y * 40 + 100);
-  //     pg.line(0, 0, zone.u * 8, zone.v * 8);
-  //     pg.pop();
-  //   }
-  // }
 
-  for(let N = 0; N < 6; N++)
+  for(let i in recordedWords)
   {
-    let n = ((curFrame) % 30) + N * 30;
-    pg.push();
-    pg.translate((N % 3) * 600, Math.floor(N / 3) * 600);
-    for(let i in recordedZones[n]) {
-      for(let j in recordedZones[n][i]) {
-        let zone = recordedZones[n][i][j];
-        pg.push();
-        pg.translate(zone.x * 8*3, zone.y * 8*3);
-        pg.line(0, 0, zone.u * 8*3, zone.v * 8*3);
-        pg.pop();
-      }
-    }
-    pg.pop();
+    recordedWords[i].draw(pg);
   }
 
-  pg.rect(40, 40, 100 * (curFrame / 30), 40);
 }
 
 ////////
@@ -319,8 +341,9 @@ var s = function (p) {
     lastT = t;
   }
 
+  let curWord = -1;
   p.flowfbEvent = function (m) {
-    let frame = recordedZones[curFrame];
+    let frame = [];
     for(let i = 0; i < m.length / 4; i++) {
       let x = parseInt(m[i * 4 + 0]);
       let y = parseInt(m[i * 4 + 1]);
@@ -329,67 +352,32 @@ var s = function (p) {
       if(frame[y] == undefined) frame[y] = [];
       frame[y][x] = {x: x, y: y, u: u, v: v};
     }
-    curFrame = (curFrame + 1) % recordedZones.length;
+    if(curWord >= 0)
+      recordedWords[curWord].addFrame(frame);
+  }
+
+  p.keyPressed = function () {
+    if(p.key >= '0' && p.key < '6') {
+      curWord = p.key - '0';
+      recordedWords[curWord].reset();
+    }
   }
 
   p.oscEvent = function (m) {
     if(m.addrPattern() == "/of/flow/fb") {
-      if(curFrame % 2 == 0) {
-        let frame = recordedZones[curFrame];
-        for(let i = 0; i < m.typetag().length / 4; i++) {
-          let x = m.get(i * 4 + 0).intValue();
-          let y = m.get(i * 4 + 1).intValue();
-          let u = m.get(i * 4 + 2).floatValue();
-          let v = m.get(i * 4 + 3).floatValue();
-          // if(zones[y] == undefined) zones[y] = [];
-          if(frame[y] == undefined) frame[y] = [];
-          // zones[y][x] = {x: x, y: y, u: u, v: v};
-          frame[y][x] = {x: x, y: y, u: u, v: v};
-        }
-      }
-      curFrame = (curFrame + 1) % recordedZones.length;
+      // if(curFrame % 2 == 0) {
+      //   let frame = recordedZones[curFrame];
+      //   for(let i = 0; i < m.typetag().length / 4; i++) {
+      //     let x = m.get(i * 4 + 0).intValue();
+      //     let y = m.get(i * 4 + 1).intValue();
+      //     let u = m.get(i * 4 + 2).floatValue();
+      //     let v = m.get(i * 4 + 3).floatValue();
+      //     if(frame[y] == undefined) frame[y] = [];
+      //     frame[y][x] = {x: x, y: y, u: u, v: v};
+      //   }
+      // }
+      // curFrame = (curFrame + 1) % recordedZones.length;
     }
-    if(m.addrPattern() == "/of/flow/lk") {
-      let newZones = [];
-      let frame = recordedZones[curFrame];
-      for(let i = 0; i < m.typetag().length / 4; i++) {
-        let x = m.get(i * 4 + 0).floatValue();
-        let y = m.get(i * 4 + 1).floatValue();
-        let u = m.get(i * 4 + 2).floatValue();
-        let v = m.get(i * 4 + 3).floatValue();
-        newZones.push({x: x, y: y, u: u, v: v});
-        // frame[y][x] = {x: x, y: y, u: u, v: v};
-      }
-      print(newZones[0].u,m.get(0 * 4 + 2).floatValue())
-      zones = newZones;
-      curFrame = (curFrame + 1) % recordedZones.length;
-    }
-  }
-
-  p.websocketServerEvent = function (msg) {
-    // let rawZones = JSON.parse(msg).zones;
-    // let frame = recordedZones[curFrame];
-
-    // for(let i = 0; i < rawZones.length; i++) {
-    //   let z = rawZones[i];
-    //   let oz = zones[z.x+","+z.y];
-    //   if(oz == undefined) {
-    //     zones[z.x+","+z.y] = {x: z.x, y: z.y, u: z.u, v: z.v};
-    //     frame[z.x+","+z.y] = {x: z.x, y: z.y, u: z.u, v: z.v};
-    //   }
-    //   else {
-    //     zones[z.x+","+z.y].x = z.x;
-    //     zones[z.x+","+z.y].y = z.y;
-    //     zones[z.x+","+z.y].u = p.lerp(z.u, oz.u, 0.7);
-    //     zones[z.x+","+z.y].v = p.lerp(z.v, oz.v, 0.7);
-    //     if(frame[z.x+","+z.y] == undefined) frame[z.x+","+z.y] = {}
-    //     frame[z.x+","+z.y].x = z.x;
-    //     frame[z.x+","+z.y].y = z.y;
-    //     frame[z.x+","+z.y].u = p.lerp(z.u, oz.u, 0.7);
-    //     frame[z.x+","+z.y].v = p.lerp(z.v, oz.v, 0.7);
-    //   }
-    // }
-    // curFrame = (curFrame + 1) % recordedZones.length;
   }
 };
 

@@ -105,8 +105,10 @@ void setup() {
   //smooth();
   //hint(ENABLE_TEXTURE_MIPMAPS);
 
-  oscP5 = new OscP5(this, 7000);
-
+  OscProperties op = new OscProperties();
+  op.setListeningPort(7000);
+  op.setDatagramSize(50000);
+  oscP5 = new OscP5(this, op);
   midiBus = new MidiBus(this, -1, "loopMIDI Port");
   
   RG.init(this);
