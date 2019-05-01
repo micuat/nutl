@@ -44,7 +44,7 @@ recordedWords[0].draw = function (pg) {
     for(let i in frame) {
       let z = frame[i];
       pg.push();
-      let m = Math.sqrt(z.u*z.u + z.v*z.v)*300;
+      let m = z.mag*300;
       pg.translate(z.x * s, z.y * s);
       pg.fill(z.r, z.g, z.b);
       pg.rect(0, 0, r, r);
@@ -72,7 +72,7 @@ recordedWords[1].draw = function (pg) {
         pg.beginShape(pX001.TRIANGLE_STRIP)
       }
       x = z.x;
-      let m = Math.sqrt(z.u*z.u + z.v*z.v);
+      let m = z.mag;
       pg.vertex(z.x * s + z.u * r, z.y * s + z.v * r, 300*m+30);
       pg.vertex(z.x * s + z.u * r, z.y * s + z.v * r-30, 300*m);
     }
@@ -102,8 +102,7 @@ recordedWords[2].draw = function (pg) {
       pg.translate(z.x * s, z.y * s);
       pg.fill(z.r, z.g, z.b);
       // pg.rect(0, 0, r, r);
-      let m = Math.sqrt(z.u*z.u + z.v*z.v);
-      pg.translate(0, 0, m * 300);
+      pg.translate(0, 0, z.mag * 300);
       // setColor(pg, "fill", 3);
       pg.rect(0, 0, r, r);
       pg.pop();
@@ -124,8 +123,7 @@ recordedWords[3].draw = function (pg) {
       let z = frame[i];
       pg.translate(z.x * s, z.y * s);
       pg.fill(z.r, z.g, z.b);
-      let m = Math.sqrt(z.u*z.u + z.v*z.v);
-      pg.rotateX(m*3);
+      pg.rotateX(z.mag*3);
       pg.box(r, r, 10);
       pg.pop();
     }
@@ -244,11 +242,12 @@ var s = function (p) {
       let cr = parseInt(m[i * 7 + 2]);
       let cg = parseInt(m[i * 7 + 3]);
       let cb = parseInt(m[i * 7 + 4]);
-      let pu = lastFrame[i] == undefined ? 0 : lastFrame[i].u;
-      let pv = lastFrame[i] == undefined ? 0 : lastFrame[i].v;
-      let u = p.lerp(m[i * 7 + 5], pu, 0.8);
-      let v = p.lerp(m[i * 7 + 6], pv, 0.8);
-      frame.push({x: x, y: y, u: u, v: v, r: cr, g: cg, b: cb});
+      // let pu = lastFrame[i] == undefined ? 0 : lastFrame[i].u;
+      // let pv = lastFrame[i] == undefined ? 0 : lastFrame[i].v;
+      let u = m[i * 7 + 5];//p.lerp(m[i * 7 + 5], pu, 0.8);
+      let v = m[i * 7 + 6];//p.lerp(m[i * 7 + 6], pv, 0.8);
+      let mag = Math.sqrt(u*u+v*v);
+      frame.push({x: x, y: y, u: u, v: v, r: cr, g: cg, b: cb, mag: mag});
     }
     if(curWord >= 0)
       recordedWords[curWord].addFrame(frame);
