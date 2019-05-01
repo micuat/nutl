@@ -4,9 +4,6 @@ var colorSchemes = [
   new ColorScheme("390099-9e0064-ff0054-ff5400-ffbd00"),
 ]
 
-var windowWidth = 1920;
-var windowHeight = 1080;
-
 var soundOn = false//||true;
 
 var numRandomNotes = 30;
@@ -19,7 +16,7 @@ function Word (args) {
   this.position = args.position;
   this.curFrame = 0;
   this.subFrame = 0;
-  this.maxSequence = 30;
+  this.maxSequence = 120;
   this.addFrame = function (frame) {
     if(this.sequence.length > 1) {
       for(let i in frame) {
@@ -51,12 +48,12 @@ function Word (args) {
       let frame = this.sequence[this.curFrame];
       let s = 10;
       let r = 6;
-      for(let i = 0; i < frame.length; i++) {
-        let z = frame[i];
-        pg.line(z.x * s, z.y * s, z.x * s + z.u * r, z.y * s + z.v * r);
-      }
+      // for(let i = 0; i < frame.length; i++) {
+      //   let z = frame[i];
+      //   pg.line(z.x * s, z.y * s, z.x * s + z.u * r, z.y * s + z.v * r);
+      // }
       this.subFrame++;
-      if(this.subFrame >= 4) {
+      if(this.subFrame >= 2) {
         this.subFrame = 0;
         this.curFrame = (this.curFrame + 1) % (this.maxSequence);
       }
@@ -235,61 +232,3 @@ function setColor(parent, func, index, alpha) {
   if(alpha == undefined) alpha = 255;
   parent[func](colorSchemes[0].get(index).r, colorSchemes[0].get(index).g, colorSchemes[0].get(index).b, alpha);
 }
-
-function SX001(p, w, h) {
-  TLayer.call(this, p, w, h);
-}
-
-SX001.prototype = Object.create(TLayer.prototype);
-SX001.prototype.constructor = SX001;
-
-SX001.prototype.update = function(args) {
-  let t = args.t;
-  let p = this.p;
-}
-
-SX001.prototype.drawLayer = function(pg, key, args) {
-  let t = args.t;
-  let p = this.p;
-  let ef = EasingFunctions;
-
-  pg.clear();
-  pg.background(255);
-
-  if(objs.words.isCycled()) {
-    recordedWords[objs.words.note].curFrame = 0;
-  }
-
-  let tw0 = objs.rhythm0.get(t, true);
-
-
-  let d = 80;
-  setColor(pg, "stroke", 1);
-  for(let i = -0; i <= 24; i++) {
-    for(let j = -0; j <= 20; j++) {
-      pg.line(i * d - 10, j * d, i * d + 10, j * d);
-      pg.line(i * d, j * d - 10, i * d, j * d + 10);
-    }
-  }
-
-  pg.translate(0,0,1);
-  pg.noStroke();
-
-  for(let i in recordedWords)
-  {
-    recordedWords[i].drawState(pg);
-  }
-  recordedWords[objs.words.note].draw(pg);
-
-  // pg.stroke(0);
-  // let s = 40;
-  // let r = 6*4;
-  // for(let i in lastFrame) {
-  //   for(let j in lastFrame[i]) {
-  //     let z = lastFrame[i][j]
-  //     pg.line(z.x * s, z.y * s, z.x * s + z.u * r, z.y * s + z.v * r)
-  //   }
-  // }
-}
-
-////////
