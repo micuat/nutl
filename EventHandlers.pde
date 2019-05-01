@@ -149,7 +149,7 @@ void oscEvent(OscMessage theOscMessage) {
     if(theOscMessage.checkAddrPattern("/of/flow/fb")) {
       String arg = "";
       for(int i = 0; i < theOscMessage.typetag().length(); i++) {
-        if(i % 4 < 2) arg += theOscMessage.get(i).intValue() + ",";
+        if(i % 7 < 5) arg += theOscMessage.get(i).intValue() + ",";
         else arg += theOscMessage.get(i).floatValue() + ",";
       }
       nashorn.eval("if(globalSketch.flowfbEvent != null) globalSketch.flowfbEvent([" + arg + "])");

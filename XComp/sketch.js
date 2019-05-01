@@ -13,7 +13,7 @@ objs = {};
       stopgo: [1,0,1,0,1,1,0,0],
       randomStopgo: 0.75, mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
     words: {
-      notes : [1,1], mult: 0.25, doMutate: false, duration: 1.0, offset: 0.0},
+      notes : [0,1], mult: 0.5, doMutate: false, duration: 1.0, offset: 0.0},
     camera: {notes: [0,1], mult: 0.25, doMutate: false, duration: 3},
   };
 
@@ -39,14 +39,16 @@ recordedWords[0].draw = function (pg) {
     pg.stroke(0);
     let frame = this.sequence[this.curFrame];
     let s = 40*2;
-    let r = 6*8;
+    let r = 6*10;
     pg.noStroke();
-    setColor(pg, "fill", 1);
     for(let i in frame) {
       let z = frame[i];
       pg.push();
-      let m = Math.sqrt(z.u*z.u + z.v*z.v)*150;
+      let m = Math.sqrt(z.u*z.u + z.v*z.v)*300;
       pg.translate(z.x * s, z.y * s);
+      pg.fill(z.r, z.g, z.b);
+      pg.rect(0, 0, r, r);
+      setColor(pg, "fill", 1);
       pg.box(Math.abs(z.u) * r, Math.abs(z.v) * r, m);
       pg.pop();
     }
@@ -60,7 +62,7 @@ recordedWords[1].draw = function (pg) {
     let frame = this.sequence[this.curFrame];
     let s = 40*2;
     let r = 6*10;
-    setColor(pg, "fill", 2);
+    setColor(pg, "fill", 3);
     pg.beginShape(pX001.TRIANGLE_STRIP)
     let x = 0;
     for(let i in frame) {
@@ -71,10 +73,18 @@ recordedWords[1].draw = function (pg) {
       }
       x = z.x;
       let m = Math.sqrt(z.u*z.u + z.v*z.v);
-      pg.vertex(z.x * s + z.u * r, z.y * s + z.v * r, 150*m+30);
-      pg.vertex(z.x * s + z.u * r, z.y * s + z.v * r-30, 150*m);
+      pg.vertex(z.x * s + z.u * r, z.y * s + z.v * r, 300*m+30);
+      pg.vertex(z.x * s + z.u * r, z.y * s + z.v * r-30, 300*m);
     }
     pg.endShape();
+    for(let i in frame) {
+      let z = frame[i];
+      pg.push();
+      pg.translate(z.x * s, z.y * s);
+      pg.fill(z.r, z.g, z.b);
+      pg.rect(0, 0, r, r);
+      pg.pop();
+    }
   }
   pg.pop();
 }
@@ -86,12 +96,15 @@ recordedWords[2].draw = function (pg) {
     let s = 40*2;
     let r = 6*10;
     pg.noStroke();
-    setColor(pg, "fill", 3);
     for(let i in frame) {
       pg.push();
       let z = frame[i];
+      pg.translate(z.x * s, z.y * s);
+      pg.fill(z.r, z.g, z.b);
+      // pg.rect(0, 0, r, r);
       let m = Math.sqrt(z.u*z.u + z.v*z.v);
-      pg.translate(z.x * s, z.y * s, m * 150);
+      pg.translate(0, 0, m * 300);
+      // setColor(pg, "fill", 3);
       pg.rect(0, 0, r, r);
       pg.pop();
     }
@@ -106,16 +119,15 @@ recordedWords[3].draw = function (pg) {
     let s = 40*2;
     let r = 6*10;
     pg.noStroke();
-    setColor(pg, "stroke", 4);
-    setColor(pg, "fill", 4);
     for(let i in frame) {
+      pg.push();
       let z = frame[i];
-      let w = z.u*r;
-      let h = z.v*r;
-      setColor(pg, "fill", 4);
-      pg.rect(z.x * s, z.y * s, w/2,h/2);
-      setColor(pg, "fill", 0);
-      pg.rect(z.x * s+w/2, z.y * s+h/2, w/2,h/2);
+      pg.translate(z.x * s, z.y * s);
+      pg.fill(z.r, z.g, z.b);
+      let m = Math.sqrt(z.u*z.u + z.v*z.v);
+      pg.rotateX(m*3);
+      pg.box(r, r, 10);
+      pg.pop();
     }
   }
   pg.pop();
@@ -146,9 +158,9 @@ function SX001(p, w, h) {
     let t = args.t;
     this.t = t;
     let p = this.p;
-    if(objs.words.isCycled()) {
+    if(objs.words.isRefreshed()) {
       for(let i in recordedWords)
-        recordedWords[i].curFrame = 0;
+        recordedWords[i].curFrame = 30;
     }
   }
   SX001.prototype.drawScene = function (pg, isShadow) {
@@ -226,14 +238,17 @@ var s = function (p) {
   let curWord = -1;
   p.flowfbEvent = function (m) {
     let frame = [];
-    for(let i = 0; i < m.length / 4; i++) {
-      let x = parseInt(m[i * 4 + 0]);
-      let y = parseInt(m[i * 4 + 1]);
+    for(let i = 0; i < m.length / 7; i++) {
+      let x = parseInt(m[i * 7 + 0]);
+      let y = parseInt(m[i * 7 + 1]);
+      let cr = parseInt(m[i * 7 + 2]);
+      let cg = parseInt(m[i * 7 + 3]);
+      let cb = parseInt(m[i * 7 + 4]);
       let pu = lastFrame[i] == undefined ? 0 : lastFrame[i].u;
       let pv = lastFrame[i] == undefined ? 0 : lastFrame[i].v;
-      let u = p.lerp(m[i * 4 + 2], pu, 0.8);
-      let v = p.lerp(m[i * 4 + 3], pv, 0.8);
-      frame.push({x: x, y: y, u: u, v: v});
+      let u = p.lerp(m[i * 7 + 5], pu, 0.8);
+      let v = p.lerp(m[i * 7 + 6], pv, 0.8);
+      frame.push({x: x, y: y, u: u, v: v, r: cr, g: cg, b: cb});
     }
     if(curWord >= 0)
       recordedWords[curWord].addFrame(frame);
