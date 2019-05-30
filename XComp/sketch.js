@@ -1,7 +1,8 @@
 var windowWidth = 1280;
 var windowHeight = 800;
 
-
+// print(JSON.stringify(recordedWords[0].sequence))
+// print(recordedWords[0].draw)
 objs = {};
 {
   let timings = {
@@ -10,9 +11,12 @@ objs = {};
       stopgo: [0,1,0,1,0,0,1,1], mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
     rhythm1: {
       notes : [0,3,0,4,1,2,3,4],
-      stopgo: [1,0,1,0,1,1,0,0],
-      randomStopgo: 0.75, mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
+      // stopgo: [1,0,1,0,1,1,0,0],
+      // randomStopgo: 0.75,
+      mult: 2.0, doMutate: true, duration: 1.0, offset: 0.0},
     words: {
+      notes : [0,1], mult: 0.5, doMutate: false, duration: 1.0, offset: 0.0},
+    wordsIn: {
       notes : [0,1], mult: 0.5, doMutate: false, duration: 1.0, offset: 0.0},
     camera: {notes: [0,1], mult: 0.25, doMutate: false, duration: 3},
   };
@@ -36,20 +40,22 @@ recordedWords[0].draw = function (pg) {
   pg.push();
   pg.fill(0);
   if(this.sequence.length >= this.maxSequence) {
+    let tw = EasingFunctions.easeInOutQuint(objs.wordsIn.get(pX001.millis()*0.001, true));
     pg.stroke(0);
     let frame = this.sequence[this.curFrame];
     let s = 40*2;
     let r = 6*10;
     pg.noStroke();
     for(let i in frame) {
-      let z = frame[i];
       pg.push();
-      let m = z.mag*300;
+      let z = frame[i];
+      let m = z.mag*100;
       pg.translate(z.x * s, z.y * s);
       pg.fill(z.r, z.g, z.b);
       pg.rect(0, 0, r, r);
-      setColor(pg, "fill", 1);
-      pg.box(Math.abs(z.u) * r, Math.abs(z.v) * r, m);
+      setColor(pg, "fill", Math.floor((objs.rhythm1.lerpedRandomNote(pX001.millis()*0.001, EasingFunctions.easeInOutCubic, 0)+m*0.01) % 5));
+      pg.fill(z.r, z.g, z.b);
+      pg.box(Math.abs(z.u) * r*0.5, Math.abs(z.v) * r*0.5, m*tw);
       pg.pop();
     }
   }
@@ -59,22 +65,25 @@ recordedWords[1].draw = function (pg) {
   pg.push();
   pg.fill(0);
   if(this.sequence.length >= this.maxSequence) {
+    let tw = EasingFunctions.easeInOutQuint(objs.wordsIn.get(pX001.millis()*0.001, true));
     let frame = this.sequence[this.curFrame];
     let s = 40*2;
     let r = 6*10;
-    setColor(pg, "fill", 3);
     pg.beginShape(pX001.TRIANGLE_STRIP)
+    setColor(pg, "fill", Math.floor(objs.rhythm1.lerpedRandomNote(pX001.millis()*0.001, EasingFunctions.easeInOutCubic, 0) % 5));
     let x = 0;
     for(let i in frame) {
       let z = frame[i];
       if(z.x < x) {
         pg.endShape();
         pg.beginShape(pX001.TRIANGLE_STRIP)
+        setColor(pg, "fill", Math.floor((objs.rhythm1.lerpedRandomNote(pX001.millis()*0.001, EasingFunctions.easeInOutCubic, 0)+i/5) % 5));
       }
       x = z.x;
       let m = z.mag;
-      pg.vertex(z.x * s + z.u * r, z.y * s + z.v * r, 300*m+30);
-      pg.vertex(z.x * s + z.u * r, z.y * s + z.v * r-30, 300*m);
+      pg.fill(z.r, z.g, z.b);
+      pg.vertex(z.x * s + z.u * r, z.y * s + z.v * r, 100*m+30*tw);
+      pg.vertex(z.x * s + z.u * r, z.y * s + z.v * r-30*tw, 100*m);
     }
     pg.endShape();
     for(let i in frame) {
@@ -101,9 +110,7 @@ recordedWords[2].draw = function (pg) {
       let z = frame[i];
       pg.translate(z.x * s, z.y * s);
       pg.fill(z.r, z.g, z.b);
-      // pg.rect(0, 0, r, r);
-      pg.translate(0, 0, z.mag * 300);
-      // setColor(pg, "fill", 3);
+      pg.translate(0, 0, z.mag * 100);
       pg.rect(0, 0, r, r);
       pg.pop();
     }
@@ -131,7 +138,9 @@ recordedWords[3].draw = function (pg) {
   pg.pop();
 }
 
-function SX001(p, w, h) {
+if(SX001 == undefined)
+{
+var SX001 = function(p, w, h) {
   SRendererShadow.call(this, p, w, h);
   this.uMetallic = 0.1;
   this.uRoughness = 0.8;
@@ -148,7 +157,6 @@ function SX001(p, w, h) {
   this.cameraTarget.set(0, 0, 0);
 }
 
-{
   SX001.prototype = Object.create(SRendererShadow.prototype);
   SX001.prototype.constructor = SX001;
 
@@ -195,7 +203,7 @@ function SX001(p, w, h) {
 }
 ////////
 
-if(s == undefined)
+if(s == undefined) {
 var s = function (p) {
   let sX001 = new SX001(p, windowWidth, windowHeight);
 
@@ -269,3 +277,4 @@ var s = function (p) {
 };
 
 var pX001 = new p5(s);
+}

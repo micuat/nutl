@@ -16,7 +16,7 @@ function Word (args) {
   this.position = args.position;
   this.curFrame = 0;
   this.subFrame = 0;
-  this.maxSequence = 120;
+  this.maxSequence = 60;
   this.addFrame = function (frame) {
     if(this.sequence.length > 1) {
       for(let i in frame) {
