@@ -1,4 +1,4 @@
-var colorSchemes = [new ColorScheme("20bf55-0b4f6c-01baef-fbfbff-757575")];
+var colorSchemes = [new ColorScheme("20bf55-01baef-0b4f6c-a682ff-715aff")];
 // var colorScheme = new ColorScheme("ff6b35-f7c59f-efefd0-004e89-1a659e");
 
 function setColor(parent, func, index, alpha) {
@@ -47,50 +47,75 @@ S065.prototype.drawLayer = function(pg, key, args) {
 
   pg.clear();
 
-  setColor(pg, "background", 3);
+  // setColor(pg, "background", 3);
+  pg.background(255);
 
   pg.pushMatrix();
 
   let W = 40;
   let H = 7.5;
   let J = 22;
-  let N = 8;
   pg.strokeWeight(2);
   pg.noFill();
-  for(let i = 0; i < 36 * 4; i++) {
+
+  function drawWeft(i, debug) {
     for(let j = 0; j < J; j++) {
+      let NI = 18;
       let dx = i % 2 == 0 ? 0 : W / 2;
       pg.push();
-      pg.translate(j * W + dx, i * H);
-      let HH = 1;
-      let iId = Math.floor(i/16);
+      pg.translate(j * W + dx, 0);
+      let HH = 0;
+      let iId = Math.floor(i/NI);
       let jId = Math.floor(j/4);
-      // if((iId + jId) % 2 == i % 2) HH = 0;
-      // else {
-      //   // if(iId % 2 == 0)
-      //     if(Math.sin((j/4)*Math.PI)*0.5+0.5<(i%16)/16) HH = 0;
-      //   // else
-      //   //   if(Math.sin((j/8 + iId/2)*Math.PI)*0.5+0.5>=(i%16)/16) HH = 0;
-      // }
-      let sinVal = Math.sin((j/p.map(iId, 0, 8, 4, 8) + iId)*Math.PI)*0.5+0.5;
-      let iVal = (i % 16) / 16;
-      if(sinVal < iVal && i % 2 == 0) HH = 0;
-      if(sinVal >= iVal && i % 2 == 1) HH = 0;
+      let sinVal = Math.sin((j/J +0.5)*Math.PI)*0.5+0.5;
+      // let sinVal = Math.sin((j/p.map(iId, 0, 5, 18, 2)+0.5 )*Math.PI)*0.5+0.5;
+      let sinVal2 = Math.sin((j/p.map(iId, 5, 0, 18, 2) )*Math.PI)*0.5+0.5;
+      let iVal = (i % NI) / NI;
+      let margin = 0.25;
+      if(sinVal < iVal && i % 2 == 0) {
+        if(sinVal2 < iVal + margin && i % 4 == 0)
+          HH = 1;
+        if(sinVal2 >= iVal - margin && i % 4 == 2)
+          HH = 1;
+      }
+      if(sinVal >= iVal && i % 2 == 1) {
+        if(sinVal2 < iVal + margin && i % 4 == 1)
+          HH = 1;
+        if(sinVal2 >= iVal - margin && i % 4 == 3)
+          HH = 1;
+      }
 
       pg.beginShape();
       let h = W * 1.5;
-      let d = 2;
       for(let ii = 0; ii <= W; ii++) {
         let x = Math.cos(ii / W * Math.PI * 2) * 0.5 + 0.5;
         let y = (1 - x * x) * HH;
-        setColor(pg, "stroke", i % 2, p.map(y*y, 0, 1, 50, 255));
+        setColor(pg, "stroke", (i+1) % 4, p.map(y*y, 0, 1, 50, 255));
         pg.vertex(ii, y * h);
       }
       pg.endShape();
+      if(debug) {
+        pg.fill(0)
+        pg.text((j+1)+"", W/2, 0);
+        pg.text((J-j)+"", W/2, -10);
+      }
       pg.pop();
     }
-    // pg.translate(0, 0, 0.001);
   }
+  for(let i = 0; i < 54 * 2; i++) {
+    pg.push();
+    pg.translate(0, i * H);
+    drawWeft(i);
+    pg.pop();
+  }
+
+  pg.push();
+  pg.translate(0, 950);
+  let line = 0;
+  drawWeft(line-1,true);
+  pg.translate(0, 100);
+  drawWeft(line,true);
+  pg.pop();
 
   pg.popMatrix();
 }
