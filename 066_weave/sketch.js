@@ -24,28 +24,48 @@ function S065(p, w, h) {
     this.matrix[i] = [];
     for(let j = 0; j < this.J; j++) {
       let dj = i % 2 == 0 ? 0 : 0.5;
+      let x = (j+dj) * this.W;
+      let y = i * this.H;
+
       let H = 0;
       let b = p.brightness(this.image.get((j+dj)/(this.J+1)*this.image.width/2, i/this.I*this.image.height/2)) / 255;
-      let col = i % 2;
+      let col = i % 4;
       let th0 = 0.05;
       let th1 = 0.5;
       let th2 = 0.95;
-      if(col == 0) {
-        if(b < th0) {
-          H = 1;
-        }
-        else if(b < th2) {
-          H = 0.5;
-        }
-        else {
-          H = 0;
-        }
-      }
-      else {
-        H = 0.5;
-      }
+      if((i/8+j)%4 < 0.5) H = 0.5;
+      this.matrix[i][j] = {H: H, col: col, x: x, y: y};
+    }
+  }
+  for(let i = 0; i < this.I + 1; i++) { // oh...
+    for(let j = 0; j < this.J; j++) {
+      let prevJ = j-1;
+      let prev = undefined;
+      let nextJ = j+1;
+      let next = undefined;
+      if(prevJ >= 0) prev = this.matrix[i][prevJ];
+      if(nextJ < this.J) next = this.matrix[i][nextJ];
+      this.matrix[i][j].prev = prev;
+      this.matrix[i][j].next = next;
+    }
+  }
+  for(let i = 0; i < 30; i++) {
+    let I0 = Math.floor(p.random(this.I));
+    let J0 = Math.floor(p.random(this.J-1));
 
-      this.matrix[i][j] = {H: H, col: col};
+    let I1 = Math.floor(p.random(this.I));
+    let J1 = J0 + 1;Math.floor(p.random(this.J));
+
+    if(I0 != I1 && J0 != J1) {
+      let tmp = this.matrix[I1][J1].prev;
+      this.matrix[I1][J1].prev = this.matrix[I0][J0];
+      this.matrix[I1][J1].H = 10;
+
+      this.matrix[I0][J0].next.prev = tmp;
+      this.matrix[I0][J0].next.H = 10;
+
+
+      this.matrix[I0][J0].next = this.matrix[I1][J1];
     }
   }
 }
@@ -76,23 +96,31 @@ S065.prototype.drawLayer = function(pg, key, args) {
   pg.noFill();
 
   function drawCurve(args) {
-    pg.beginShape();
-    for(let ii = 0; ii <= W; ii++) {
-      let x = Math.cos(ii / W * Math.PI * 2) * 0.5 + 0.5;
-      let y = (1 - x * x) * args.H;
-      let alpha = p.constrain(p.map(y, 0, 0.7, 50, 255), 0, 255);
-      if(args.H == 0) alpha = 50;
-      setColor(pg, "stroke", args.col, alpha);
-      pg.vertex(ii, y * hh);
+    setColor(pg, "stroke", args.col);
+    // pg.ellipse(args.x, args.y, 5, 5);
+    // if(args.prev != undefined)
+    //   pg.line(args.x, args.y, args.prev.x, args.prev.y);
+    if(args.prev != undefined) {
+      pg.beginShape();
+      for(let ii = 0; ii <= W; ii++) {
+        let x = ii/W;//Math.sin(ii / W * Math.PI) * 0.5 + 0.5;
+        let X = p.lerp(args.prev.x, args.x, x);
+        let Y = p.lerp(args.prev.y, args.y, x);
+        let a = Math.sin(ii / W * Math.PI);
+        let y = (a * a) * args.H;
+        let alpha = p.constrain(p.map(y, 0, 0.7, 50, 255), 0, 255);
+        if(args.H == 0) alpha = 50;
+        // alpha = 150;
+        setColor(pg, "stroke", args.col, alpha);
+        pg.vertex(X, y * hh + Y);
+      }
+      pg.endShape();
     }
-    pg.endShape();
   }
   function drawWeft(matrix, i, debug) {
     for(let j = 0; j < J; j++) {
       let dj = i % 2 == 0 ? 0 : 0.5;
       pg.push();
-      pg.translate((j+dj) * W, 0);
-
       drawCurve(matrix[i][j]);
 
       if(debug) {
@@ -105,14 +133,13 @@ S065.prototype.drawLayer = function(pg, key, args) {
   }
   for(let i = 0; i < this.I; i++) {
     pg.push();
-    pg.translate(0, i * H);
     drawWeft(this.matrix, i);
     pg.pop();
   }
 
   pg.push();
   pg.translate(0, 950);
-  let line = 159;
+  let line = 0;//159;
   drawWeft(this.matrix, line,true);
   pg.translate(0, 100);
   drawWeft(this.matrix, line+1,true);
