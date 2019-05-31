@@ -6,7 +6,7 @@ function setColor(parent, func, index, alpha) {
   parent[func](colorSchemes[0].get(index).r, colorSchemes[0].get(index).g, colorSchemes[0].get(index).b, alpha);
 }
 
-function S065(p, w, h) {
+function S066(p, w, h) {
   TLayer.call(this, p, w, h);
   this.pg.smooth(1);
   p.noiseSeed(0);
@@ -33,8 +33,8 @@ function S065(p, w, h) {
       let th0 = 0.05;
       let th1 = 0.5;
       let th2 = 0.95;
-      if((i/8+j)%4 < 0.5) H = 0.5;
-      this.matrix[i][j] = {H: H, col: col, x: x, y: y};
+      H = 0.25;
+      this.matrix[i][j] = {H: H, col: col, x: x, y: y, cut: false};
     }
   }
   for(let i = 0; i < this.I + 1; i++) { // oh...
@@ -49,35 +49,35 @@ function S065(p, w, h) {
       this.matrix[i][j].next = next;
     }
   }
-  for(let i = 0; i < 30; i++) {
-    let I0 = Math.floor(p.random(this.I));
-    let J0 = Math.floor(p.random(this.J-1));
-
-    let I1 = Math.floor(p.random(this.I));
-    let J1 = J0 + 1;Math.floor(p.random(this.J));
-
-    if(I0 != I1 && J0 != J1) {
-      let tmp = this.matrix[I1][J1].prev;
-      this.matrix[I1][J1].prev = this.matrix[I0][J0];
-      this.matrix[I1][J1].H = 10;
-
-      this.matrix[I0][J0].next.prev = tmp;
-      this.matrix[I0][J0].next.H = 10;
-
-
-      this.matrix[I0][J0].next = this.matrix[I1][J1];
+  for(let i = 0; i < this.I + 1; i++) { // oh...
+    for(let j = 0; j < this.J; j++) {
+      if(this.matrix[i][j].next == undefined) {
+        continue;
+      }
+      let dj = i % 2 == 0 ? 0 : 0.5;
+      let b = p.brightness(this.image.get((j+dj)/(this.J+1)*this.image.width/2, i/this.I*this.image.height/2)) / 255;
+      if((i/4+j)%2 < 0.5 && b > 0.5) {
+        this.matrix[i][j].cut = true;
+        this.matrix[i][j].H = 2;
+      }
     }
   }
+  // for(let i = 0; i < 30; i++) {
+  //   let I0 = Math.floor(p.random(this.I));
+  //   let J0 = Math.floor(p.random(this.J));
+  //   if(this.matrix[I0][J0].next != undefined)
+  //     this.matrix[I0][J0].cut = true;
+  // }
 }
 
-S065.prototype = Object.create(TLayer.prototype);
+S066.prototype = Object.create(TLayer.prototype);
 
-S065.prototype.update = function(args) {
+S066.prototype.update = function(args) {
   let t = args.t;
   let p = this.p;
 }
 
-S065.prototype.drawLayer = function(pg, key, args) {
+S066.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
 
@@ -96,11 +96,11 @@ S065.prototype.drawLayer = function(pg, key, args) {
   pg.noFill();
 
   function drawCurve(args) {
-    setColor(pg, "stroke", args.col);
+    setColor(pg, "stroke", args.col, 150);
     // pg.ellipse(args.x, args.y, 5, 5);
     // if(args.prev != undefined)
     //   pg.line(args.x, args.y, args.prev.x, args.prev.y);
-    if(args.prev != undefined) {
+    if(args.prev != undefined && args.cut == false) {
       pg.beginShape();
       for(let ii = 0; ii <= W; ii++) {
         let x = ii/W;//Math.sin(ii / W * Math.PI) * 0.5 + 0.5;
@@ -116,6 +116,41 @@ S065.prototype.drawLayer = function(pg, key, args) {
       }
       pg.endShape();
     }
+
+    if(args.prev != undefined && args.cut) {
+      pg.beginShape();
+      for(let ii = 0; ii <= W/4; ii++) {
+        let x = ii/W;//Math.sin(ii / W * Math.PI) * 0.5 + 0.5;
+        let X = p.lerp(args.prev.x, args.x, x);
+        let Y = p.lerp(args.prev.y, args.y, x);
+        let a = Math.sin(ii / W * Math.PI);
+        let y = (a * a) * args.H;
+        let alpha = p.constrain(p.map(y, 0, 0.7, 50, 255), 0, 255);
+        if(args.H == 0) alpha = 50;
+        // alpha = 150;
+        setColor(pg, "stroke", args.col, alpha);
+        pg.vertex(X, y * hh + Y);
+      }
+      pg.endShape();
+
+      pg.beginShape();
+      for(let ii = W*0.75; ii <= W; ii++) {
+        let x = ii/W;//Math.sin(ii / W * Math.PI) * 0.5 + 0.5;
+        let X = p.lerp(args.prev.x, args.x, x);
+        let Y = p.lerp(args.prev.y, args.y, x);
+        let a = Math.sin(ii / W * Math.PI);
+        let y = (a * a) * args.H;
+        let alpha = p.constrain(p.map(y, 0, 0.7, 50, 255), 0, 255);
+        if(args.H == 0) alpha = 50;
+        // alpha = 150;
+        setColor(pg, "stroke", args.col, alpha);
+        pg.vertex(X, y * hh + Y);
+      }
+      pg.endShape();
+    }
+    // if(args.next == undefined) {
+    //   pg.line(args.x, args.y, args.x, args.y+100);
+    // }
   }
   function drawWeft(matrix, i, debug) {
     for(let j = 0; j < J; j++) {
@@ -125,8 +160,8 @@ S065.prototype.drawLayer = function(pg, key, args) {
 
       if(debug) {
         pg.fill(0)
-        pg.text((j+1)+"", W/2, 0);
-        pg.text((J-j)+"", W/2, -10);
+        pg.text((j+1)+"", matrix[i][j].x + W/4, 0);
+        pg.text((J-j)+"", matrix[i][j].x + W/4, -10);
       }
       pg.pop();
     }
@@ -148,19 +183,19 @@ S065.prototype.drawLayer = function(pg, key, args) {
   pg.popMatrix();
 }
 
-S065.prototype.constructor = S065;
+S066.prototype.constructor = S066;
 
 ////////
 
 var s = function (p) {
-  let s065 = new S065(p, 1200, 3000);
+  let s066 = new S066(p, 1200, 3000);
   let counter = 99;
 
   p.setup = function () {
     p.createCanvas(1200, 1200);
     p.frameRate(60);
     let t = p.millis() * 0.001;
-    s065.draw({t: t});
+    s066.draw({t: t});
   }
 
   p.draw = function () {
@@ -174,7 +209,7 @@ var s = function (p) {
 
     //p.translate(0, -counter * 20 + p.height / 2);
 
-    p.image(s065.pg, 0, 0);
+    p.image(s066.pg, 0, 0);
     p.noStroke();
     p.fill(255, 0, 0, 100);
     p.rect(28*20, counter * 20, -28*20, 10);
@@ -191,4 +226,4 @@ var s = function (p) {
   }
 };
 
-var p065 = new p5(s);
+var p066 = new p5(s);
