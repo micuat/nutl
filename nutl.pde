@@ -44,6 +44,8 @@ import themidibus.*;
 
 import websockets.*;
 
+import de.voidplus.leapmotion.*;
+
 public MidiBus midiBus;
 
 public OscP5 oscP5;
@@ -73,6 +75,8 @@ public String folderName = "";
 public int updateDelayMillis = 5;
 
 public OpenSimplexNoise osnoise = new OpenSimplexNoise();
+
+public LeapMotion leap;
 
 boolean libInited = false;
 
@@ -123,7 +127,9 @@ void setup() {
   frameRate(60);
 
   scriptPaths.add(sketchPath(folderName + "/sketch.js"));
-  
+
+  leap = new LeapMotion(this);
+
   thread("updateThread");
 }
 
@@ -309,6 +315,9 @@ void draw() {
   }
   stroke(255);
   //background(0);
+
+  int fps = leap.getFrameRate();
+  println(fps);
 
   try {
     //nashorn.eval("for(var prop in pApplet) {if(!this.isReservedFunction(prop)) {alternateSketch[prop] = pApplet[prop]}}");

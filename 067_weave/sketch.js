@@ -6,7 +6,7 @@ function setColor(parent, func, index, alpha) {
   parent[func](colorSchemes[0].get(index).r, colorSchemes[0].get(index).g, colorSchemes[0].get(index).b, alpha);
 }
 
-function S066(p, w, h) {
+function S067(p, w, h) {
   TLayer.call(this, p, w, h);
   this.pg.smooth(1);
   p.noiseSeed(0);
@@ -15,7 +15,7 @@ function S066(p, w, h) {
   this.H = 3.2;
   this.J = 22;
   this.hh = 60;
-  this.I = 160;
+  this.I = 240;
 
   this.image = p.loadImage(p.folderName + "/map.png");
 
@@ -63,25 +63,32 @@ function S066(p, w, h) {
       }
     }
     prevOne = self.matrix[0][0];
+    function getB(j, i) {
+      // let I = i/self.I % 0.5;
+      // let J = j/self.J % 0.5;
+      // return 1-2*p.dist(0.25, 0.25, J*1, I*1);
+      // let J = Math.floor(j/self.J*4);
+      // let I = Math.floor(i/self.I*2);
+      // return (J+I)%2;
+      return p.brightness(self.image.get(j/(self.J+1)*self.image.width/1.75, 80+i/self.I*self.image.height/1.75)) / 255;
+      // return p.brightness(self.image.get(j/(self.J+1)*self.image.width/1.5, i/self.I*self.image.height/1.5)) / 255;
+    }
     do {
       let j = prevOne.j;
       let i = prevOne.i;
       let dj = i % 2 == 0 ? 0 : 0.5;
-      let b = p.brightness(self.image.get((j+dj)/(self.J+1)*self.image.width/1.5, i/self.I*self.image.height/1.5)) / 255;
+      let b = getB(j+dj, i);
       if(b > 0.5) {
         let h = 0;
         for(let n = 0; n < 100; n++) {
-          let b = p.brightness(self.image.get(
-            (j+dj)/(self.J+1)*self.image.width/1.5,
-            (i+n)/self.I*self.image.height/1.5
-          )) / 255;
+          let b = getB(j+dj, i+n);
           if(b > 0.5) h+=0.1;
           else break;
         }
-        if(h > 4) {
+        if(h > 3) {
           self.matrix[i][j].cut = true;
-          self.matrix[i][j].H = Math.floor(Math.min(4,Math.max(2, h))/2)*2;
-          let bl = p.brightness(self.image.get((j+dj-1)/(self.J+1)*self.image.width/1.5, i/self.I*self.image.height/1.5)) / 255;
+          self.matrix[i][j].H = 4;//Math.floor(Math.min(4,Math.max(2, h))/2)*2;
+          let bl = getB(j+dj-1, i);
           if(bl < 0.5) {
             let prev = self.matrix[i][j];
             do {
@@ -89,7 +96,7 @@ function S066(p, w, h) {
               prev = prev.prev;
             } while(prev != undefined && prev.cut != true);
           }
-          let br = p.brightness(self.image.get((j+dj+1)/(self.J+1)*self.image.width/1.5, i/self.I*self.image.height/1.5)) / 255;
+          let br = getB(j+dj+1, i);
           if(br < 0.5) {
             let prev = self.matrix[i][j];
             do {
@@ -107,14 +114,14 @@ function S066(p, w, h) {
   }).start();
 }
 
-S066.prototype = Object.create(TLayer.prototype);
+S067.prototype = Object.create(TLayer.prototype);
 
-S066.prototype.update = function(args) {
+S067.prototype.update = function(args) {
   let t = args.t;
   let p = this.p;
 }
 
-S066.prototype.drawLayer = function(pg, key, args) {
+S067.prototype.drawLayer = function(pg, key, args) {
   let t = args.t;
   let p = this.p;
 
@@ -123,7 +130,8 @@ S066.prototype.drawLayer = function(pg, key, args) {
   // setColor(pg, "background", 3);
   pg.background(255);
 
-  pg.translate(130, 0);
+  pg.translate(130, -100);
+  // pg.translate(0, 300);
 
   pg.pushMatrix();
 
@@ -134,12 +142,12 @@ S066.prototype.drawLayer = function(pg, key, args) {
   pg.strokeWeight(2);
   pg.noFill();
 
-  pg.translate(p.width/2, p.height/2);
-  pg.rotateY(p.map(p.mouseX, 0, p.width, -Math.PI * 0.5, Math.PI * 0.5));
-  pg.rotateX(p.map(p.mouseY, 0, p.height, Math.PI * 0.5, -Math.PI * 0.5));
-  pg.translate(-p.width/2, -p.height/2);
+  // pg.translate(p.width/2, p.height/2);
+  // pg.rotateY(p.map(p.mouseX, 0, p.width, -Math.PI * 0.5, Math.PI * 0.5));
+  // pg.rotateX(p.map(p.mouseY, 0, p.height, Math.PI * 0.5, -Math.PI * 0.5));
+  // pg.translate(-p.width/2, -p.height/2);
   pg.translate(30, 0);
-  function drawCurve(args, overrideAlpha) {
+  function drawCurve(args, overrideAlpha, debug) {
     setColor(pg, "stroke", args.col, 150);
     if(args.prev != undefined && args.cut == false) {
       pg.beginShape();
@@ -153,7 +161,7 @@ S066.prototype.drawLayer = function(pg, key, args) {
         if(args.H == 0) alpha = 50;
         // alpha = 150;
         setColor(pg, "stroke", args.col, 255 * overrideAlpha);
-        pg.vertex(X, y * hh + Y, Math.sqrt(a) * args.H * 40);
+        pg.vertex(X, y * hh + Y, Math.sqrt(a) * args.H * 40 * (debug?0:1));
       }
       pg.endShape();
     }
@@ -170,7 +178,7 @@ S066.prototype.drawLayer = function(pg, key, args) {
         if(args.H == 0) alpha = 50;
         // alpha = 150;
         setColor(pg, "stroke", args.col, 255 * overrideAlpha);
-        pg.vertex(X, y * hh + Y, Math.sqrt(a) * args.H * 40);
+        pg.vertex(X, y * hh + Y, Math.sqrt(a) * args.H * 40 * (debug?0:1));
       }
       pg.endShape();
 
@@ -185,7 +193,7 @@ S066.prototype.drawLayer = function(pg, key, args) {
         if(args.H == 0) alpha = 50;
         // alpha = 150;
         setColor(pg, "stroke", args.next.col, 255 * overrideAlpha);
-        pg.vertex(X, y * hh + Y, Math.sqrt(a) * args.H * 40);
+        pg.vertex(X, y * hh + Y, Math.sqrt(a) * args.H * 40 * (debug?0:1));
       }
       pg.endShape();
     }
@@ -194,7 +202,7 @@ S066.prototype.drawLayer = function(pg, key, args) {
     for(let j = 0; j < J; j++) {
       let dj = i % 2 == 0 ? 0 : 0.5;
       pg.push();
-      drawCurve(matrix[i][j], overrideAlpha);
+      drawCurve(matrix[i][j], overrideAlpha, debug);
 
       if(debug) {
         pg.fill(0)
@@ -213,8 +221,9 @@ S066.prototype.drawLayer = function(pg, key, args) {
 
   pg.push();
   pg.translate(0, 750);
+  pg.translate(0, 250);
   // let line = Math.floor(p.map(p.mouseX, 0, p.width, 0, 159));//159;
-  let line = 10;
+  let line = 96;
   drawWeft(this.matrix, line, 1, true);
   pg.translate(0, 200);
   drawWeft(this.matrix, line+1, 1, true);
@@ -223,15 +232,17 @@ S066.prototype.drawLayer = function(pg, key, args) {
   pg.popMatrix();
 }
 
-S066.prototype.constructor = S066;
+S067.prototype.constructor = S067;
 
 ////////
 
 var s = function (p) {
-  let s066 = new S066(p, 1200, 1200);
+  let width = 1200;
+  let height = 1400;
+  let s067 = new S067(p, width, height);
 
   p.setup = function () {
-    p.createCanvas(1200, 1200);
+    p.createCanvas(width, height);
     p.frameRate(60);
     let t = p.millis() * 0.001;
   }
@@ -245,13 +256,13 @@ var s = function (p) {
 
     p.background(0);
 
-    if(s066.calcDone == true) {
-      s066.draw({t: t});
-      // s066.calcDone = false;
+    if(s067.calcDone == true) {
+      s067.draw({t: t});
+      s067.calcDone = false;
     }
-    // s066.draw({t: t});
-    p.image(s066.pg, 0, 0);
+    // s067.draw({t: t});
+    p.image(s067.pg, 0, 0);
   }
 };
 
-var p066 = new p5(s);
+var p067 = new p5(s);
