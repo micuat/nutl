@@ -142,38 +142,38 @@ void mousePressed(MouseEvent event) {
   }
 }
 
-void oscEvent(OscMessage theOscMessage) {
-  try {
-    //nashorn.eval("for(var prop in pApplet) {if(!this.isReservedFunction(prop)) {globalSketch[prop] = pApplet[prop]}}");
+// void oscEvent(OscMessage theOscMessage) {
+//   try {
+//     //nashorn.eval("for(var prop in pApplet) {if(!this.isReservedFunction(prop)) {globalSketch[prop] = pApplet[prop]}}");
 
-    if(theOscMessage.checkAddrPattern("/of/flow/fb")) {
-      String arg = "";
-      for(int i = 0; i < theOscMessage.typetag().length(); i++) {
-        if(i % 7 < 5) arg += theOscMessage.get(i).intValue() + ",";
-        else arg += theOscMessage.get(i).floatValue() + ",";
-      }
-      nashorn.eval("if(globalSketch.flowfbEvent != null) globalSketch.flowfbEvent([" + arg + "])");
-    }
-    else {
-      nashorn.eval("var theOscMessage = {}");
-      Object theOscMessageObject = nashorn.eval("this.theOscMessage");
-      Object jsObject = nashorn.eval("Object");
-      ((Invocable)nashorn).invokeMethod(jsObject, "bindProperties", theOscMessageObject, (OscMessage)theOscMessage);
+//     if(theOscMessage.checkAddrPattern("/of/flow/fb")) {
+//       String arg = "";
+//       for(int i = 0; i < theOscMessage.typetag().length(); i++) {
+//         if(i % 7 < 5) arg += theOscMessage.get(i).intValue() + ",";
+//         else arg += theOscMessage.get(i).floatValue() + ",";
+//       }
+//       nashorn.eval("if(globalSketch.flowfbEvent != null) globalSketch.flowfbEvent([" + arg + "])");
+//     }
+//     else {
+//       nashorn.eval("var theOscMessage = {}");
+//       Object theOscMessageObject = nashorn.eval("this.theOscMessage");
+//       Object jsObject = nashorn.eval("Object");
+//       ((Invocable)nashorn).invokeMethod(jsObject, "bindProperties", theOscMessageObject, (OscMessage)theOscMessage);
   
-      nashorn.eval("if(globalSketch.oscEvent != null) globalSketch.oscEvent(this.theOscMessage)");
-    }
-  }
-  catch (Exception e) {
-    e.printStackTrace();
-  }
-}
+//       nashorn.eval("if(globalSketch.oscEvent != null) globalSketch.oscEvent(this.theOscMessage)");
+//     }
+//   }
+//   catch (Exception e) {
+//     e.printStackTrace();
+//   }
+// }
 
-void webSocketServerEvent(String msg){
-  try {
-    nashorn.eval("var webSocketMsg = \'" + msg + "\'");
-    nashorn.eval("if(globalSketch.websocketServerEvent != null) globalSketch.websocketServerEvent(\'" + msg + "\')");
-  }
-  catch (Exception e) {
-    e.printStackTrace();
-  }
-}
+// void webSocketServerEvent(String msg){
+//   try {
+//     nashorn.eval("var webSocketMsg = \'" + msg + "\'");
+//     nashorn.eval("if(globalSketch.websocketServerEvent != null) globalSketch.websocketServerEvent(\'" + msg + "\')");
+//   }
+//   catch (Exception e) {
+//     e.printStackTrace();
+//   }
+// }

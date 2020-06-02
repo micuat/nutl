@@ -24,10 +24,10 @@ import processing.awt.PSurfaceAWT;
 import processing.video.*;
 
 import com.jogamp.opengl.GL2;
-import com.thomasdiewald.pixelflow.java.DwPixelFlow;
-import com.thomasdiewald.pixelflow.java.dwgl.DwGLSLProgram;
-import com.thomasdiewald.pixelflow.java.dwgl.DwGLTexture;
-import com.thomasdiewald.pixelflow.java.imageprocessing.filter.DwFilter;
+// import com.thomasdiewald.pixelflow.java.DwPixelFlow;
+// import com.thomasdiewald.pixelflow.java.dwgl.DwGLSLProgram;
+// import com.thomasdiewald.pixelflow.java.dwgl.DwGLTexture;
+// import com.thomasdiewald.pixelflow.java.imageprocessing.filter.DwFilter;
 
 import toxi.physics3d.*;
 import toxi.physics3d.behaviors.*;
@@ -35,27 +35,33 @@ import toxi.physics3d.constraints.*;
 import toxi.geom.*;
 import toxi.geom.mesh2d.*;
 
-import geomerative.*;
+import wblut.math.*;
+import wblut.processing.*;
+import wblut.core.*;
+import wblut.hemesh.*;
+import wblut.geom.*;
 
-import oscP5.*;
-import netP5.*;
+// import geomerative.*;
 
-import themidibus.*;
+// import oscP5.*;
+// import netP5.*;
 
-import websockets.*;
+// import themidibus.*;
 
-import de.voidplus.leapmotion.*;
+// import websockets.*;
 
-public MidiBus midiBus;
+// import de.voidplus.leapmotion.*;
 
-public OscP5 oscP5;
-NetAddress myRemoteLocation;
+// public MidiBus midiBus;
 
-WebsocketServer ws;
+// public OscP5 oscP5;
+// NetAddress myRemoteLocation;
+
+// WebsocketServer ws;
 
 Movie movie;
 
-public DwPixelFlow pfContext;
+// public DwPixelFlow pfContext;
 
 private static ScriptEngineManager engineManager;
 private static ScriptEngine nashorn;
@@ -76,7 +82,7 @@ public int updateDelayMillis = 5;
 
 public OpenSimplexNoise osnoise = new OpenSimplexNoise();
 
-public LeapMotion leap;
+// public LeapMotion leap;
 
 boolean libInited = false;
 
@@ -84,13 +90,15 @@ float frameRate() {
   return frameRate;
 }
 
-public void addInt(OscMessage m, int f) {
-  m.add(f);
-}
+public WB_Render render;
 
-public void addFloat(OscMessage m, float f) {
-  m.add(f);
-}
+// public void addInt(OscMessage m, int f) {
+//   m.add(f);
+// }
+
+// public void addFloat(OscMessage m, float f) {
+//   m.add(f);
+// }
 
 void setup() {
   String[] setLines = loadStrings("app.config");
@@ -102,25 +110,27 @@ void setup() {
     }
   }
   
-  ws= new WebsocketServer(this,8025,"/nutl");
+  render = new WB_Render(this);
+
+  // ws= new WebsocketServer(this,8025,"/nutl");
 
   noSmooth();
   //hint(DISABLE_TEXTURE_MIPMAPS);
   //smooth();
   //hint(ENABLE_TEXTURE_MIPMAPS);
 
-  OscProperties op = new OscProperties();
-  op.setListeningPort(7000);
-  op.setDatagramSize(50000);
-  oscP5 = new OscP5(this, op);
-  midiBus = new MidiBus(this, -1, "loopMIDI Port");
+  // OscProperties op = new OscProperties();
+  // op.setListeningPort(7000);
+  // op.setDatagramSize(50000);
+  // oscP5 = new OscP5(this, op);
+  // midiBus = new MidiBus(this, -1, "loopMIDI Port");
   
-  RG.init(this);
+  // RG.init(this);
 
   // pixelflow context
-  pfContext = new DwPixelFlow(this);
-  pfContext.print();
-  pfContext.printGL();
+  // pfContext = new DwPixelFlow(this);
+  // pfContext.print();
+  // pfContext.printGL();
 
   size(1024, 768, P3D);
   surface.setResizable(true);
@@ -128,7 +138,7 @@ void setup() {
 
   scriptPaths.add(sketchPath(folderName + "/sketch.js"));
 
-  leap = new LeapMotion(this);
+  // leap = new LeapMotion(this);
 
   thread("updateThread");
 }
@@ -316,8 +326,8 @@ void draw() {
   stroke(255);
   //background(0);
 
-  int fps = leap.getFrameRate();
-  println(fps);
+  // int fps = leap.getFrameRate();
+  // println(fps);
 
   try {
     //nashorn.eval("for(var prop in pApplet) {if(!this.isReservedFunction(prop)) {alternateSketch[prop] = pApplet[prop]}}");
