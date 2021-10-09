@@ -12,7 +12,7 @@ S064.prototype.update = function (args) {
   this.lastT = t;
 }
 
-var printing = true;
+var printing = false;
 var map;
 
 S064.prototype.drawLayer = function (pg, key, args) {

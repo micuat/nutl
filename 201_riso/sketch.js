@@ -1,3 +1,5 @@
+// brain v1
+
 function S064(p, w, h) {
   TLayer.call(this, p, w, h);
 }
@@ -12,7 +14,7 @@ S064.prototype.update = function (args) {
   this.lastT = t;
 }
 
-var printing = true;
+var printing = false;
 var map;
 
 S064.prototype.drawLayer = function (pg, key, args) {
@@ -159,7 +161,7 @@ var s = function (p) {
     }
     else {
       p.image(spink.pg, 0, 0);
-      p.translate(0,(t / 2.0) % 4,0)
+      p.translate((t / 1.0) % 4,0)
       p.image(sblue.pg, 0, 0);
     }
   }
