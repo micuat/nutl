@@ -17,6 +17,7 @@ S064.prototype.update = function (args) {
 var printing = false;
 var map;
 var font;
+var scaling = 1.25;
 
 S064.prototype.drawLayer = function (pg, key, args) {
   let t = args.t;
@@ -25,7 +26,7 @@ S064.prototype.drawLayer = function (pg, key, args) {
   pg.clear();
 
   pg.background(255);
-  pg.strokeWeight(3);
+  pg.strokeWeight(3 * scaling);
   pg.noFill();
   pg.pushMatrix();
   if (printing) {
@@ -62,16 +63,26 @@ S064.prototype.drawLayer = function (pg, key, args) {
     pg.pushMatrix();
     pg.translate(70, 50);
     pg.rotate(Math.PI / 2);
+    pg.scale(0.5, 0.5);
     pg.text("Naoto Hieda.com", 0, 0)
+    pg.popMatrix();
+
+    pg.pushMatrix();
+    pg.translate(70, pg.height / 2);
+    pg.rotate(Math.PI / 2);
+    pg.scale(0.5, 0.5);
+    pg.textAlign(p.CENTER, p.CENTER);
+    pg.text("riso.glitches.me", 0, 0)
     pg.popMatrix();
 
     pg.pushMatrix();
     pg.translate(70, pg.height - 50);
     pg.rotate(Math.PI / 2);
-    pg.textSize(16);
+    pg.scale(0.5, 0.5);
     pg.textAlign(p.RIGHT, p.CENTER);
     pg.text("2021", 0, 0)
     pg.popMatrix();
+
     pg.popStyle();
   }
   for (let j = Nstart; j < Nstop; j++) {
@@ -101,8 +112,8 @@ S064.prototype.drawLayer = function (pg, key, args) {
 ////////
 
 var s = function (p) {
-  let h = 297 * 4;
-  let w = 420 * 4;
+  let h = 297 * 4 * scaling;
+  let w = 420 * 4 * scaling;
   let spink = new S064(p, w, h);
   spink.ink = "pink";
   let sblue = new S064(p, w, h);
@@ -113,7 +124,7 @@ var s = function (p) {
   }
 
   // if (font == undefined) {
-    font = p.createFont("assets/fonts/ApfelGrotezk-Regular.otf", 20);
+    font = p.createFont("assets/fonts/ApfelGrotezk-Regular.otf", 20 * scaling);
   // }
 
   let printingIndex = -1;
@@ -143,7 +154,7 @@ var s = function (p) {
       inited = true;
     }
 
-    p.background(240);
+    p.background(255);
     p.blendMode(p.MULTIPLY);
 
     if (printing) {
