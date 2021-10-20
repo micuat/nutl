@@ -1,4 +1,4 @@
-// brain v2 (signature) - v3
+// finger x-ray (failed?)
 
 function S064(p, w, h) {
   TLayer.call(this, p, w, h);

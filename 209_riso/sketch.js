@@ -1,4 +1,4 @@
-// brain v2 (signature) - v3
+// finger x-ray (failed?)
 
 function S064(p, w, h) {
   TLayer.call(this, p, w, h);
@@ -14,10 +14,12 @@ S064.prototype.update = function (args) {
   this.lastT = t;
 }
 
-var printing = false;
+var orgBuffer;
+
+var printing = true;
 var map;
 var font;
-var scaling = .75;
+var scaling = printing ? 1.25 : .75;
 // var scaling = 1.25;
 
 S064.prototype.drawLayer = function (pg, key, args) {
@@ -27,7 +29,12 @@ S064.prototype.drawLayer = function (pg, key, args) {
   pg.clear();
 
   pg.background(255);
-  pg.strokeWeight(3 * scaling);
+  if(this.ink == "blue") {
+    pg.strokeWeight(8 * scaling / 1.25);
+  }
+  else {
+    pg.strokeWeight(3 * scaling / 1.25);
+  }
   pg.noFill();
   pg.pushMatrix();
   if (printing) {
@@ -90,7 +97,7 @@ S064.prototype.drawLayer = function (pg, key, args) {
     pg.beginShape();
     let X = 0;
     if (this.ink == "pink") {
-      X = Math.pow(Math.sin(j * Math.PI / 100), 1) * 4;
+      // X = Math.pow(Math.sin(j * Math.PI / 100), 1) * 4;
     }
     for (let i = 0; i < M; i++) {
       let x = p.map(j, 0, N - 1, 50, pg.width - 50);
@@ -99,9 +106,9 @@ S064.prototype.drawLayer = function (pg, key, args) {
       if (this.ink == "pink") {
         // if (j < Nstart && i > M - 30) break;
         xx = i * 2 > j ? 1 : -1;
-        let x = Math.floor(j / N * map.width);
-        let y = Math.floor(i / M * map.height);
-        xx = Math.pow(p.brightness(map.get(x, y)) * 1.0 / 255, 2) * 10;
+        let x = Math.floor(p.map(j, 0, N, 100, map.width - 100));
+        let y = Math.floor(p.map(i, 0, M, 0, map.height - 0));
+        xx = Math.pow(p.brightness(map.get(x, y)) * 1.0 / 255, 1) * 4;
       }
       pg.vertex(x + X + xx, y);
     }
@@ -173,7 +180,7 @@ var s = function (p) {
     }
     else {
       p.image(spink.pg, 0, 0);
-      p.translate((t / 1.0) % 6 - 3,0)
+      p.translate((t / 1.0) % 10 - 5,0)
       p.image(sblue.pg, 0, 0);
     }
   }
